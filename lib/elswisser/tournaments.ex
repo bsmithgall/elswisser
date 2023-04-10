@@ -8,6 +8,7 @@ defmodule Elswisser.Tournaments do
 
   alias Elswisser.Tournaments.Tournament
   alias Elswisser.Players.Player
+  alias Elswisser.Rounds.Round
 
   @doc """
   Returns the list of tournaments.
@@ -104,13 +105,22 @@ defmodule Elswisser.Tournaments do
 
   """
   def change_tournament(%Tournament{} = tournament, attrs \\ %{}) do
-    players = list_players_by_id(attrs["player_ids"])
+    players = list_players_by_id(attrs[:player_ids])
+    len = calculate_length(players)
+
+    rounds =
+      if is_nil(tournament.id) do
+        ensure_rounds(len)
+      else
+        ensure_rounds(len, tournament.id)
+      end
 
     tournament
     |> Repo.preload(:players)
-    |> Tournament.changeset(attrs)
+    |> Repo.preload(:rounds)
+    |> Tournament.changeset(Map.merge(attrs, %{length: calculate_length(players)}))
     |> Ecto.Changeset.put_assoc(:players, players)
-    |> Ecto.Changeset.put_change(:length, calculate_length(players))
+    |> Ecto.Changeset.put_assoc(:rounds, rounds)
   end
 
   def list_players_by_id(player_ids) do
@@ -118,6 +128,28 @@ defmodule Elswisser.Tournaments do
   end
 
   def calculate_length(players) do
-    Math.log2(length(players))
+    ceil(Math.log2(length(players)))
+  end
+
+  def ensure_rounds(len) do
+    Enum.map(1..len, fn n -> %{number: n} end)
+  end
+
+  @doc """
+  Ensures that there are sufficient rounds if we add a new player and it gets
+  pushed over the previous threshold for number of swiss games.
+  """
+  def ensure_rounds(len, id) do
+    max_rounds = Repo.aggregate(from(r in Round, where: r.tournament_id == ^id), :max, :number)
+
+    cond do
+      max_rounds < len ->
+        Enum.map((max_rounds + 1)..len, fn n ->
+          %{tournament_id: id, number: n}
+        end)
+
+      true ->
+        []
+    end
   end
 end

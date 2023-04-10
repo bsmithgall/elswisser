@@ -2,12 +2,15 @@ defmodule Elswisser.Rounds.Game do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Elswisser.Rounds.Round
+
   schema "games" do
     field :black, :integer
     field :game_link, :string
     field :result, :integer
-    field :round, :integer
     field :white, :integer
+
+    belongs_to :round, Round
 
     timestamps()
   end

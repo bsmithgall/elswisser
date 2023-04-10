@@ -4,7 +4,8 @@ defmodule Elswisser.Rounds.Round do
 
   schema "rounds" do
     field :number, :integer
-    field :tournament_id, :integer
+
+    belongs_to :tournament, Elswisser.Tournaments.Tournament
 
     timestamps()
   end
