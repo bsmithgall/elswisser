@@ -110,11 +110,14 @@ defmodule Elswisser.Tournaments do
     |> Repo.preload(:players)
     |> Tournament.changeset(attrs)
     |> Ecto.Changeset.put_assoc(:players, players)
+    |> Ecto.Changeset.put_change(:length, calculate_length(players))
   end
-
-  def list_players_by_id(nil), do: []
 
   def list_players_by_id(player_ids) do
     Repo.all(from p in Player, where: p.id in ^player_ids)
+  end
+
+  def calculate_length(players) do
+    Math.log2(length(players))
   end
 end

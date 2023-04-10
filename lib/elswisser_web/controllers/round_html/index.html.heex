@@ -1,0 +1,13 @@
+<.header>
+  Listing Rounds
+</.header>
+
+<.table id="rounds" rows={@rounds}>
+  <:col :let={round} label="Number"><%= round.number %></:col>
+  <:col :let={round} label="Tournament"><%= round.tournament_id %></:col>
+  <:action :let={round}>
+    <div class="sr-only">
+      <.link navigate={~p"/tournaments/#{round.tournament}/rounds/#{round}"}>Show</.link>
+    </div>
+  </:action>
+</.table>

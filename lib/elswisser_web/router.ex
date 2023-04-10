@@ -18,7 +18,11 @@ defmodule ElswisserWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-    resources "/tournaments", TournamentController
+
+    resources "/tournaments", TournamentController do
+      resources "/rounds", RoundController, only: [:show, :edit, :update]
+    end
+
     resources "/players", PlayerController
   end
 

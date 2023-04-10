@@ -6,6 +6,7 @@ defmodule Elswisser.Tournaments.Tournament do
 
   schema "tournaments" do
     field :name, :string
+    field :length, :integer
 
     many_to_many :players, Player, join_through: "tournament_players", on_replace: :delete
 
@@ -15,7 +16,7 @@ defmodule Elswisser.Tournaments.Tournament do
   @doc false
   def changeset(tournament, attrs) do
     tournament
-    |> cast(attrs, [:name])
-    |> validate_required([:name])
+    |> cast(attrs, [:name, :length])
+    |> validate_required([:name, :length])
   end
 end

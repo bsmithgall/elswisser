@@ -1,0 +1,14 @@
+<.header>
+  Round <%= @round.id %>
+  <:subtitle>This is a round record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/tournaments/#{@round.tournament}/rounds/#{@round}/edit"}>
+      <.button>Edit round</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Number"><%= @round.number %></:item>
+  <:item title="Tournament"><%= @round.tournament_id %></:item>
+</.list>
