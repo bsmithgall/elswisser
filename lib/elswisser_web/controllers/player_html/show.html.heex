@@ -1,0 +1,16 @@
+<.header>
+  Player <%= @player.id %>
+  <:subtitle>This is a player record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/players/#{@player}/edit"}>
+      <.button>Edit player</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @player.name %></:item>
+  <:item title="Rating"><%= @player.rating %></:item>
+</.list>
+
+<.back navigate={~p"/players"}>Back to players</.back>

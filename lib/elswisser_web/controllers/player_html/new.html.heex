@@ -1,0 +1,8 @@
+<.header>
+  New Player
+  <:subtitle>Use this form to manage player records in your database.</:subtitle>
+</.header>
+
+<.player_form changeset={@changeset} action={~p"/players"} />
+
+<.back navigate={~p"/players"}>Back to players</.back>

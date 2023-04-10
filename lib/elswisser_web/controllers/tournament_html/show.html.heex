@@ -1,0 +1,20 @@
+<.header>
+  Tournament <%= @tournament.id %>
+  <:subtitle>This is a tournament record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/tournaments/#{@tournament}/edit"}>
+      <.button>Edit tournament</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @tournament.name %></:item>
+  <:item title="Players">
+    <%= for player <- @tournament.players do %>
+      - <b><%= player.name %></b> (<%= player.rating %>) <br />
+    <% end %>
+  </:item>
+</.list>
+
+<.back navigate={~p"/tournaments"}>Back to tournaments</.back>

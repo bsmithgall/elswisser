@@ -1,0 +1,23 @@
+<.header>
+  Listing Tournaments
+  <:actions>
+    <.link href={~p"/tournaments/new"}>
+      <.button>New Tournament</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table id="tournaments" rows={@tournaments} row_click={&JS.navigate(~p"/tournaments/#{&1}")}>
+  <:col :let={tournament} label="Name"><%= tournament.name %></:col>
+  <:action :let={tournament}>
+    <div class="sr-only">
+      <.link navigate={~p"/tournaments/#{tournament}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/tournaments/#{tournament}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={tournament}>
+    <.link href={~p"/tournaments/#{tournament}"} method="delete" data-confirm="Are you sure?">
+      Delete
+    </.link>
+  </:action>
+</.table>
