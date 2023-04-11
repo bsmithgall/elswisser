@@ -7,6 +7,7 @@ defmodule Elswisser.Rounds do
   alias Elswisser.Repo
 
   alias Elswisser.Rounds.Round
+  alias Elswisser.Rounds.Game
 
   @doc """
   Gets a single round.
@@ -42,32 +43,10 @@ defmodule Elswisser.Rounds do
     |> Repo.update()
   end
 
-  @doc """
-  Deletes a round.
-
-  ## Examples
-
-      iex> delete_round(round)
-      {:ok, %Round{}}
-
-      iex> delete_round(round)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_round(%Round{} = round) do
-    Repo.delete(round)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking round changes.
-
-  ## Examples
-
-      iex> change_round(round)
-      %Ecto.Changeset{data: %Round{}}
-
-  """
-  def change_round(%Round{} = round, attrs \\ %{}) do
-    Round.changeset(round, attrs)
+  def add_game(%Round{} = r, game_attrs) do
+    %Game{round_id: r.id}
+    |> Game.changeset(game_attrs)
+    |> Ecto.Changeset.put_assoc(:round, r)
+    |> Repo.insert()
   end
 end

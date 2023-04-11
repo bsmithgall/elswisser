@@ -18,7 +18,7 @@ defmodule Elswisser.Rounds.Game do
   @doc false
   def changeset(game, attrs) do
     game
-    |> cast(attrs, [:white, :black, :result, :round, :game_link])
-    |> validate_required([:white, :black, :result, :round, :game_link])
+    |> cast(attrs, [:white, :black, :result, :round_id, :game_link])
+    |> validate_required([:white, :black, :result, :round_id])
   end
 end

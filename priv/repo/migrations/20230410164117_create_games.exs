@@ -6,12 +6,12 @@ defmodule Elswisser.Repo.Migrations.CreateGames do
       add :white, references(:players)
       add :black, references(:players)
       add :result, :integer
-      add :round, references(:rounds, on_delete: :delete_all), null: false
+      add :round_id, references(:rounds, on_delete: :delete_all), null: false
       add :game_link, :string
 
       timestamps()
     end
 
-    create index(:games, [:round])
+    create index(:games, [:round_id])
   end
 end

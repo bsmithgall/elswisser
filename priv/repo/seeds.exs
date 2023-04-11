@@ -14,7 +14,9 @@ import Ecto.Query
 alias Elswisser.Repo
 alias Elswisser.Players
 alias Elswisser.Tournaments
+alias Elswisser.Tournaments.Tournament
 alias Elswisser.Rounds
+alias Elswisser.Rounds.Game
 alias Elswisser.Players.Player
 
 # Generate twelve players
@@ -35,13 +37,30 @@ for name <- [
   Players.create_player(%{name: name, rating: Enum.random(800..2200)})
 end
 
+players = Repo.all(Player)
+
 # Generate two tournaments with all the players
 for name <- ["Now THIS is Podracing", "Mos Eisley Cantina Championship 2023"] do
-  player_ids = Repo.all(from p in Player, select: p.id)
-
+  player_ids = for p <- players, do: p.id
   Tournaments.create_tournament(%{name: name, player_ids: player_ids})
 end
 
-# Fill in tournament number one with games
+# Fill in tournament number one with games, tourn two with one round
+for tourn <- Repo.all(Tournament) |> Repo.preload(:rounds) do
+  rounds =
+    if tourn.name == "Now THIS is Podracing" do
+      tourn.rounds
+    else
+      Enum.take(tourn.rounds, 1)
+    end
 
-# Fill in tournament two with one round of games
+  for round <- rounds do
+    for pair <- Enum.shuffle(players) |> Enum.chunk_every(2) do
+      [white, black] = pair
+
+      game = %{white: white.id, black: black.id, result: Enum.random([-1, 0, 1])}
+
+      Rounds.add_game(round, game)
+    end
+  end
+end

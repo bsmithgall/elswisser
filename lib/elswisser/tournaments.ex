@@ -118,7 +118,7 @@ defmodule Elswisser.Tournaments do
     tournament
     |> Repo.preload(:players)
     |> Repo.preload(:rounds)
-    |> Tournament.changeset(Map.merge(attrs, %{length: calculate_length(players)}))
+    |> Tournament.changeset(Map.merge(attrs, %{length: len}))
     |> Ecto.Changeset.put_assoc(:players, players)
     |> Ecto.Changeset.put_assoc(:rounds, rounds)
   end
