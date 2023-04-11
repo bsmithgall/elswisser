@@ -3,6 +3,7 @@
   <:subtitle>Use this form to manage round records in your database.</:subtitle>
 </.header>
 
-<.round_form changeset={@changeset} action={~p"/rounds/#{@round}"} />
-
-<.back navigate={~p"/rounds"}>Back to rounds</.back>
+<.round_form
+  changeset={@changeset}
+  action={~p"/tournaments/#{@round.tournament}/rounds/#{@round}"}
+/>
