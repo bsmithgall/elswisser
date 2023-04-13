@@ -1,0 +1,12 @@
+<.topnav />
+<main class="h-full">
+  <.flash_group flash={@flash} />
+  <div class="grid grid-cols-10 gap-4">
+    <div class="col-span-2">
+      <.sidenav tournament={@tournament} />
+    </div>
+    <div class="col-span-8 mx-auto max-w-screen-xl">
+      <%= @inner_content %>
+    </div>
+  </div>
+</main>
