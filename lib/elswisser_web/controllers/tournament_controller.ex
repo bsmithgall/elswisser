@@ -1,6 +1,8 @@
 defmodule ElswisserWeb.TournamentController do
   use ElswisserWeb, :controller
 
+  import Phoenix.Controller
+
   alias Elswisser.Tournaments
   alias Elswisser.Tournaments.Tournament
 
@@ -28,13 +30,17 @@ defmodule ElswisserWeb.TournamentController do
 
   def show(conn, %{"id" => id}) do
     tournament = Tournaments.get_tournament!(id)
-    render(conn, :show, tournament: tournament)
+
+    conn
+    |> put_root_layout(:root)
+    |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
+    |> render(:show, tournament: tournament)
   end
 
   def edit(conn, %{"id" => id}) do
     tournament = Tournaments.get_tournament!(id)
     changeset = Tournaments.change_tournament(tournament)
-    render(conn, :edit, tournament: tournament, changeset: changeset)
+    render(conn, :edit, tournament: tournament, changeset: changeset, layout: :sidenav)
   end
 
   def update(conn, %{"id" => id, "tournament" => tournament_params}) do

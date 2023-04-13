@@ -41,6 +41,7 @@ defmodule Elswisser.Tournaments do
     Tournament
     |> Repo.get!(id)
     |> Repo.preload(:players)
+    |> Repo.preload(:rounds)
   end
 
   @doc """
