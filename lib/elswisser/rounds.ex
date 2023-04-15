@@ -23,7 +23,22 @@ defmodule Elswisser.Rounds do
       ** (Ecto.NoResultsError)
 
   """
-  def get_round!(id), do: Repo.get!(Round, id)
+  def get_round!(id) do
+    Repo.get!(Round, id)
+  end
+
+  def get_games_for_round!(id) do
+    Repo.all(
+      from g in Game,
+        left_join: w in Elswisser.Players.Player,
+        on: g.white == w.id,
+        left_join: b in Elswisser.Players.Player,
+        on: g.black == b.id,
+        where: g.round_id == ^id,
+        select: {g, w, b}
+    )
+    |> Enum.map(fn {g, w, b} -> %{game: g, white: w, black: b} end)
+  end
 
   @doc """
   Updates a round.

@@ -40,6 +40,12 @@ defmodule Elswisser.Tournaments do
   def get_tournament!(id) do
     Tournament
     |> Repo.get!(id)
+    |> Repo.preload(:rounds)
+  end
+
+  def get_tournament_with_players!(id) do
+    Tournament
+    |> Repo.get!(id)
     |> Repo.preload(:players)
     |> Repo.preload(:rounds)
   end
