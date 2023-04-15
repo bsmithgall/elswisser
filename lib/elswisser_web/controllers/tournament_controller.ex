@@ -6,6 +6,8 @@ defmodule ElswisserWeb.TournamentController do
   alias Elswisser.Tournaments
   alias Elswisser.Tournaments.Tournament
 
+  plug :put_root_layout, [html: {ElswisserWeb.TournamentLayouts, :root}] when action in [:show]
+
   def index(conn, _params) do
     tournaments = Tournaments.list_tournaments()
     render(conn, :index, tournaments: tournaments)
@@ -32,7 +34,6 @@ defmodule ElswisserWeb.TournamentController do
     tournament = Tournaments.get_tournament!(id)
 
     conn
-    |> put_root_layout(:root)
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
     |> render(:show, tournament: tournament)
   end

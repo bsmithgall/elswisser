@@ -37,7 +37,11 @@ defmodule ElswisserWeb.TournamentLayouts do
 
   def rnd(assigns) do
     ~H"""
-    <div class="px-1">Round <%= @round.number %></div>
+    <div class="px-1">
+      <.link navigate={~p"/tournaments/#{@round.tournament_id}/rounds/#{@round}"}>
+        Round <%= @round.number %>
+      </.link>
+    </div>
     """
   end
 
