@@ -132,7 +132,7 @@ defmodule Elswisser.Tournaments do
 
 
   def list_players_by_id(nil), do: list_players_by_id([])
-  def list_players_by_id(player_ids) do
+  def list_players_by_id(player_ids) when is_list(player_ids) do
     Repo.all(from p in Player, where: p.id in ^player_ids)
   end
 
