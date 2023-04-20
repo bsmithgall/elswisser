@@ -130,13 +130,19 @@ defmodule Elswisser.Tournaments do
     |> Ecto.Changeset.put_assoc(:rounds, rounds)
   end
 
-  def list_players_by_id(player_ids) do
+
+  def list_players_by_id(nil), do: list_players_by_id([])
+  def list_players_by_id(player_ids) when is_list(player_ids) do
     Repo.all(from p in Player, where: p.id in ^player_ids)
   end
 
-  def calculate_length(players) do
-    ceil(Math.log2(length(players)))
+  def calculate_length(players) when is_list(players) do
+    players
+      |> length()
+      |> Math.log2()
+      |> ceil()
   end
+  def calculate_length(_), do: 0
 
   def ensure_rounds(len) do
     Enum.map(1..len, fn n -> %{number: n} end)
