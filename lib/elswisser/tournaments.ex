@@ -130,6 +130,8 @@ defmodule Elswisser.Tournaments do
     |> Ecto.Changeset.put_assoc(:rounds, rounds)
   end
 
+
+  def list_players_by_id(nil), do: list_players_by_id([])
   def list_players_by_id(player_ids) do
     Repo.all(from p in Player, where: p.id in ^player_ids)
   end
