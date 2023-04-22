@@ -5,9 +5,7 @@ defmodule ElswisserWeb.GameLive.Round do
 
   @impl true
   def mount(_params, session, socket) do
-    games = Rounds.get_games_for_round!(session["round_id"])
-
-    {:ok, socket |> assign(:games, games), layout: false}
+    {:ok, socket |> assign(:games, fetch_games(session["round_id"])), layout: false}
   end
 
   @impl true
@@ -15,11 +13,15 @@ defmodule ElswisserWeb.GameLive.Round do
     game = Rounds.get_game!(params["id"])
 
     case Rounds.update_game(game, params) do
-      {:ok, _game} ->
-        {:noreply, socket}
+      {:ok, game} ->
+        {:noreply, socket |> assign(:games, fetch_games(game.round_id))}
 
       {:error, %Ecto.Changeset{} = _changeset} ->
         {:error, socket}
     end
+  end
+
+  defp fetch_games(round_id) do
+    Rounds.get_games_for_round!(round_id)
   end
 end
