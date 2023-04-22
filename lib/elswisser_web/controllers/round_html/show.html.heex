@@ -2,23 +2,8 @@
   Round <%= @round.id %>
 </.header>
 
-<.table id="games" rows={@games}>
-  <:col :let={g} label="White">
-    <span class="w-6 inline-block">
-      <.icon :if={g.game.result == 1} name="hero-trophy" />
-      <.icon :if={g.game.result == 0} name="hero-scale" />
-    </span>
-    <%= g.white.name %>
-  </:col>
-  <:col :let={g} label="Black">
-    <span class="w-6 inline-block">
-      <.icon :if={g.game.result == -1} name="hero-trophy" />
-      <.icon :if={g.game.result == 0} name="hero-scale" />
-    </span>
-    <%= g.black.name %>
-  </:col>
-  <:col :let={g} label="Result">
-    <.result result={g.game.result} />
-  </:col>
-  <:col label="Actions"></:col>
-</.table>
+<%= live_render(
+  @conn,
+  ElswisserWeb.GameLive.Round,
+  session: %{"round_id" => @round.id}
+) %>

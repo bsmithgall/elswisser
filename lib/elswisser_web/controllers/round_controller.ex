@@ -16,7 +16,6 @@ defmodule ElswisserWeb.RoundController do
       |> halt()
     end
 
-    games = Rounds.get_games_for_round!(id)
     tournament = Elswisser.Tournaments.get_tournament_with_players!(tournament_id)
 
     player_map =
@@ -25,14 +24,7 @@ defmodule ElswisserWeb.RoundController do
 
     conn
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
-    |> render(:show, round: rnd, games: games, tournament: tournament, player_map: player_map)
-  end
-
-  def edit(conn, %{"id" => id}) do
-    round = Rounds.get_round!(id)
-    changeset = Rounds.change_round(round)
-
-    render(conn, :edit, round: round, changeset: changeset)
+    |> render(:show, round: rnd, tournament: tournament, player_map: player_map)
   end
 
   def update(conn, %{"id" => id, "round" => round_params}) do

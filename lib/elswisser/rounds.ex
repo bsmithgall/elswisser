@@ -27,19 +27,6 @@ defmodule Elswisser.Rounds do
     Repo.get!(Round, id)
   end
 
-  def get_games_for_round!(id) do
-    Repo.all(
-      from g in Game,
-        left_join: w in Elswisser.Players.Player,
-        on: g.white == w.id,
-        left_join: b in Elswisser.Players.Player,
-        on: g.black == b.id,
-        where: g.round_id == ^id,
-        select: {g, w, b}
-    )
-    |> Enum.map(fn {g, w, b} -> %{game: g, white: w, black: b} end)
-  end
-
   @doc """
   Updates a round.
 
@@ -63,5 +50,26 @@ defmodule Elswisser.Rounds do
     |> Game.changeset(game_attrs)
     |> Ecto.Changeset.put_assoc(:round, r)
     |> Repo.insert()
+  end
+
+  def get_game!(id) do
+    Repo.get!(Game, id)
+  end
+
+  def get_games_for_round!(id) do
+    Repo.all(
+      from g in Game,
+        left_join: w in Elswisser.Players.Player,
+        on: g.white == w.id,
+        left_join: b in Elswisser.Players.Player,
+        on: g.black == b.id,
+        where: g.round_id == ^id,
+        select: {g, w, b}
+    )
+    |> Enum.map(fn {g, w, b} -> %{id: g.id, game: g, white: w, black: b} end)
+  end
+
+  def update_game(%Game{} = game, attrs) do
+    game |> Game.changeset(attrs) |> Repo.update()
   end
 end
