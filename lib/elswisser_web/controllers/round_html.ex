@@ -10,17 +10,4 @@ defmodule ElswisserWeb.RoundHTML do
   attr(:action, :string, required: true)
 
   def round_form(assigns)
-
-  attr(:result, :integer)
-
-  def result(assigns) do
-    ~H"""
-    <.input
-      name="result"
-      type="select"
-      options={["White won": "1", "Black won": -1, Draw: 0]}
-      value={@result}
-    />
-    """
-  end
 end

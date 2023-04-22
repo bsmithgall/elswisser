@@ -16,7 +16,7 @@ defmodule ElswisserWeb.PlayerController do
 
   def create(conn, %{"player" => player_params}) do
     case Players.create_player(player_params) do
-      {:ok, player} ->
+      {:ok, _player} ->
         conn
         |> put_flash(:info, "Player created successfully.")
         |> redirect(to: ~p"/players")
