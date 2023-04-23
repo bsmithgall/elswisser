@@ -455,7 +455,11 @@ defmodule ElswisserWeb.CoreComponents do
           class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
         >
           <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class="group hover:bg-zinc-50">
-            <td :for={col <- @col} class={["relative p-0", @row_click && "hover:cursor-pointer"]}>
+            <td
+              :for={col <- @col}
+              phx-click={@row_click && @row_click.(row)}
+              class={["relative p-0", @row_click && "hover:cursor-pointer"]}
+            >
               <div class="block py-1 pr-6">
                 <span class="absolute -inset-y-px right-0 -left-4 group-hover:bg-zinc-50 sm:rounded-l-xl" />
                 <span class="relative"><%= render_slot(col, @row_item.(row)) %></span>
