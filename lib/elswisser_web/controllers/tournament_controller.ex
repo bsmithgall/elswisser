@@ -6,7 +6,8 @@ defmodule ElswisserWeb.TournamentController do
   alias Elswisser.Tournaments
   alias Elswisser.Tournaments.Tournament
 
-  plug :put_root_layout, [html: {ElswisserWeb.TournamentLayouts, :root}] when action in [:show]
+  plug :put_root_layout,
+       [html: {ElswisserWeb.TournamentLayouts, :root}] when action in [:show, :edit]
 
   def index(conn, _params) do
     tournaments = Tournaments.list_tournaments()
@@ -31,7 +32,7 @@ defmodule ElswisserWeb.TournamentController do
   end
 
   def show(conn, %{"id" => id}) do
-    tournament = Tournaments.get_tournament!(id)
+    tournament = Tournaments.get_tournament_with_players!(id)
 
     conn
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
@@ -39,9 +40,12 @@ defmodule ElswisserWeb.TournamentController do
   end
 
   def edit(conn, %{"id" => id}) do
-    tournament = Tournaments.get_tournament!(id)
-    changeset = Tournaments.change_tournament(tournament)
-    render(conn, :edit, tournament: tournament, changeset: changeset, layout: :sidenav)
+    tournament = Tournaments.get_tournament_with_players!(id)
+    changeset = Tournaments.empty_changeset(tournament)
+
+    conn
+    |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
+    |> render(:edit, tournament: tournament, changeset: changeset)
   end
 
   def update(conn, %{"id" => id, "tournament" => tournament_params}) do

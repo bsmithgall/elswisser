@@ -3,15 +3,17 @@ defmodule ElswisserWeb.TournamentLayouts do
   import ElswisserWeb.Layouts
   import ElswisserWeb.CoreComponents
 
-  embed_templates "tournaments/*"
+  embed_templates("tournaments/*")
 
-  attr :tournament, :map, required: true
+  attr(:tournament, :map, required: true)
 
   def sidenav(assigns) do
     ~H"""
     <aside class="flex flex-col grow px-4 pt-2 border-r border-r-slate-200 h-[calc(100vh-62px)] overflow-y">
       <div class="flex place-content-center pb-2">
-        <h1 class="text-lg font-semibold leading-8 text-zinc-800"><%= @tournament.name %></h1>
+        <h1 class="text-lg font-semibold leading-8 text-zinc-800">
+        <.link href={~p"/tournaments/#{@tournament}"}><%= @tournament.name %></.link>
+        </h1>
       </div>
       <hr />
       <div>
@@ -26,33 +28,24 @@ defmodule ElswisserWeb.TournamentLayouts do
           Rounds
         </h2>
         <%= for rnd <- @tournament.rounds do %>
-          <.rnd round={rnd} />
+          <.navlink
+            href={~p"/tournaments/#{rnd.tournament_id}/rounds/#{rnd}"}
+            label={"Round #{rnd.number}"}
+          />
         <% end %>
       </div>
     </aside>
     """
   end
 
-  attr :round, :map, required: true
-
-  def rnd(assigns) do
-    ~H"""
-    <div class="px-1">
-      <.link navigate={~p"/tournaments/#{@round.tournament_id}/rounds/#{@round}"}>
-        Round <%= @round.number %>
-      </.link>
-    </div>
-    """
-  end
-
-  attr :href, :string, required: true
-  attr :label, :string, required: true
-  attr :icon, :string, required: true
+  attr(:href, :string, required: true)
+  attr(:label, :string, required: true)
+  attr(:icon, :string, default: nil)
 
   def navlink(assigns) do
     ~H"""
     <div class="hover:bg-slate-300 cursor-pointer rounded-md p-1">
-      <.icon name={@icon} />
+      <.icon :if={@icon != nil} name={@icon} />
       <a href={@href}><%= @label %></a>
     </div>
     """

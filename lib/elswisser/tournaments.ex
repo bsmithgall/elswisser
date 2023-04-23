@@ -130,6 +130,11 @@ defmodule Elswisser.Tournaments do
     |> Ecto.Changeset.put_assoc(:rounds, rounds)
   end
 
+  def empty_changeset(%Tournament{} = tournament, attrs \\ %{}) do
+    tournament
+    |> Tournament.changeset(attrs)
+  end
+
   def list_players_by_id(nil), do: list_players_by_id([])
 
   def list_players_by_id(player_ids) when is_list(player_ids) do
@@ -137,10 +142,11 @@ defmodule Elswisser.Tournaments do
   end
 
   def calculate_length(players) when is_list(players) do
-    players
-    |> length()
-    |> Math.log2()
-    |> ceil()
+    if Enum.empty?(players) do
+      0
+    else
+      length(players) |> Math.log2() |> ceil()
+    end
   end
 
   def calculate_length(_), do: 0
