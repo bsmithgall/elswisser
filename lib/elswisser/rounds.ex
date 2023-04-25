@@ -28,6 +28,24 @@ defmodule Elswisser.Rounds do
   end
 
   @doc """
+  Creates a round.
+
+  ## Examples
+
+      iex> create_round(%{field: value})
+      {:ok, %Round{}}
+
+      iex> create_round(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_round(attrs \\ %{}) do
+    %Round{}
+    |> Round.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
   Updates a round.
 
   ## Examples

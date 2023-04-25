@@ -1,4 +1,6 @@
 defmodule Elswisser.RoundsFixtures do
+  alias Elswisser.Tournaments
+
   @moduledoc """
   This module defines test helpers for creating
   entities via the `Elswisser.Rounds` context.
@@ -8,11 +10,13 @@ defmodule Elswisser.RoundsFixtures do
   Generate a round.
   """
   def round_fixture(attrs \\ %{}) do
+    {:ok, tournament} = Tournaments.create_tournament(%{name: "test"})
+
     {:ok, round} =
       attrs
       |> Enum.into(%{
         number: 42,
-        tournament_id: 42
+        tournament_id: tournament.id
       })
       |> Elswisser.Rounds.create_round()
 

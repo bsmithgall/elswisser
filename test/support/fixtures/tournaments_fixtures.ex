@@ -15,6 +15,7 @@ defmodule Elswisser.TournamentsFixtures do
       })
       |> Elswisser.Tournaments.create_tournament()
 
-    tournament
+
+    Elswisser.Tournaments.get_tournament!(tournament.id)
   end
 end

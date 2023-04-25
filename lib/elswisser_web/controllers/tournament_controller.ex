@@ -4,10 +4,11 @@ defmodule ElswisserWeb.TournamentController do
   import Phoenix.Controller
 
   alias Elswisser.Tournaments
+  alias Elswisser.Scores
   alias Elswisser.Tournaments.Tournament
 
   plug :put_root_layout,
-       [html: {ElswisserWeb.TournamentLayouts, :root}] when action in [:show, :edit]
+       [html: {ElswisserWeb.TournamentLayouts, :root}] when action in [:show, :edit, :crosstable]
 
   def index(conn, _params) do
     tournaments = Tournaments.list_tournaments()
@@ -32,7 +33,7 @@ defmodule ElswisserWeb.TournamentController do
   end
 
   def show(conn, %{"id" => id}) do
-    tournament = Tournaments.get_tournament_with_players!(id)
+    tournament = Tournaments.get_tournament_with_all!(id)
 
     conn
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
@@ -40,7 +41,7 @@ defmodule ElswisserWeb.TournamentController do
   end
 
   def edit(conn, %{"id" => id}) do
-    tournament = Tournaments.get_tournament_with_players!(id)
+    tournament = Tournaments.get_tournament_with_all!(id)
     changeset = Tournaments.empty_changeset(tournament)
 
     conn
@@ -69,5 +70,24 @@ defmodule ElswisserWeb.TournamentController do
     conn
     |> put_flash(:info, "Tournament deleted successfully.")
     |> redirect(to: ~p"/tournaments")
+  end
+
+  def crosstable(conn, %{"tournament_id" => id}) do
+    tournament = Tournaments.get_tournament_with_all!(id)
+    games = Tournaments.get_all_games_in_tournament!(id)
+
+    conn
+    |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
+    |> render(:crosstable, tournament: tournament, games: games)
+  end
+
+  def scores(conn, %{"tournament_id" => id}) do
+    tournament = Tournaments.get_tournament_with_all!(id)
+    games = Tournaments.get_all_games_in_tournament!(id)
+    scores = Scores.raw_scores(games)
+
+    conn
+    |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
+    |> render(:scores, tournament: tournament, games: games, scores: scores)
   end
 end
