@@ -9,6 +9,7 @@ defmodule Elswisser.Tournaments do
   alias Elswisser.Tournaments.Tournament
   alias Elswisser.Players.Player
   alias Elswisser.Rounds.Round
+  alias Elswisser.Rounds.Game
 
   @doc """
   Returns the list of tournaments.
@@ -40,14 +41,32 @@ defmodule Elswisser.Tournaments do
   def get_tournament!(id) do
     Tournament
     |> Repo.get!(id)
-    |> Repo.preload(:rounds)
   end
 
   def get_tournament_with_players!(id) do
     Tournament
     |> Repo.get!(id)
     |> Repo.preload(:players)
+  end
+
+  def get_tournament_with_all!(id) do
+    Tournament
+    |> Repo.get!(id)
+    |> Repo.preload(:players)
     |> Repo.preload(:rounds)
+  end
+
+  def get_all_games_in_tournament!(id) do
+    Repo.all(
+      from g in Game,
+        join: r in Round,
+        on: g.round_id == r.id,
+        join: t in Tournament,
+        on: r.tournament_id == t.id,
+        where: t.id == ^id,
+        select: {g, r.number}
+    )
+    |> Enum.map(fn x -> %{game: elem(x, 0), rnd: elem(x, 1)} end)
   end
 
   @doc """
@@ -125,7 +144,7 @@ defmodule Elswisser.Tournaments do
     tournament
     |> Repo.preload(:players)
     |> Repo.preload(:rounds)
-    |> Tournament.changeset(Map.merge(attrs, %{length: len}))
+    |> Tournament.changeset(attrs |> ensure_atom |> Map.merge(%{length: len}))
     |> Ecto.Changeset.put_assoc(:players, players)
     |> Ecto.Changeset.put_assoc(:rounds, rounds)
   end
@@ -160,16 +179,23 @@ defmodule Elswisser.Tournaments do
   pushed over the previous threshold for number of swiss games.
   """
   def ensure_rounds(len, id) do
-    max_rounds = Repo.aggregate(from(r in Round, where: r.tournament_id == ^id), :max, :number)
+    rounds = Repo.all(from(r in Round, where: r.tournament_id == ^id))
 
     cond do
-      max_rounds < len ->
-        Enum.map((max_rounds + 1)..len, fn n ->
+      length(rounds) < len ->
+        rounds ++ Enum.map((length(rounds) + 1)..len, fn n ->
           %{tournament_id: id, number: n}
         end)
 
       true ->
-        []
+        rounds
     end
+  end
+
+  defp ensure_atom(attrs) when is_map(attrs) do
+    Enum.reduce(attrs, %{}, fn
+      {key, value}, acc when is_atom(key) -> Map.put(acc, key, value)
+      {key, value}, acc when is_binary(key) -> Map.put(acc, String.to_existing_atom(key), value)
+    end)
   end
 end

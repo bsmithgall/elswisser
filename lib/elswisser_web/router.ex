@@ -20,6 +20,9 @@ defmodule ElswisserWeb.Router do
     get "/", PageController, :home
 
     resources "/tournaments", TournamentController do
+      get "/crosstable", TournamentController, :crosstable, as: :crosstable
+      get "/scores", TournamentController, :scores, as: :scores
+
       resources "/rounds", RoundController, only: [:show, :edit, :update]
     end
 

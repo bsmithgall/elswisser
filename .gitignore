@@ -40,3 +40,4 @@ npm-debug.log
 *.db-*
 
 .elixir_ls
+.DS_Store

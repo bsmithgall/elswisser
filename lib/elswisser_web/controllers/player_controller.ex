@@ -16,10 +16,10 @@ defmodule ElswisserWeb.PlayerController do
 
   def create(conn, %{"player" => player_params}) do
     case Players.create_player(player_params) do
-      {:ok, _player} ->
+      {:ok, player} ->
         conn
         |> put_flash(:info, "Player created successfully.")
-        |> redirect(to: ~p"/players")
+        |> redirect(to: ~p"/players/#{player}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :new, changeset: changeset)
@@ -41,10 +41,10 @@ defmodule ElswisserWeb.PlayerController do
     player = Players.get_player!(id)
 
     case Players.update_player(player, player_params) do
-      {:ok, _player} ->
+      {:ok, player} ->
         conn
         |> put_flash(:info, "Player updated successfully.")
-        |> redirect(to: ~p"/players")
+        |> redirect(to: ~p"/players/#{player}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :edit, player: player, changeset: changeset)

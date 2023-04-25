@@ -12,14 +12,22 @@ defmodule ElswisserWeb.TournamentLayouts do
     <aside class="flex flex-col grow px-4 pt-2 border-r border-r-slate-200 h-[calc(100vh-62px)] overflow-y">
       <div class="flex place-content-center pb-2">
         <h1 class="text-lg font-semibold leading-8 text-zinc-800">
-        <.link href={~p"/tournaments/#{@tournament}"}><%= @tournament.name %></.link>
+          <.link href={~p"/tournaments/#{@tournament}"}><%= @tournament.name %></.link>
         </h1>
       </div>
       <hr />
       <div>
         <.navlink label="Roster" href="#" icon="hero-user-group" />
-        <.navlink label="Scores" href="#" icon="hero-list-bullet" />
-        <.navlink label="Crosstable" href="#" icon="hero-table-cells" />
+        <.navlink
+          label="Scores"
+          href={~p"/tournaments/#{@tournament}/scores"}
+          icon="hero-list-bullet"
+        />
+        <.navlink
+          label="Crosstable"
+          href={~p"/tournaments/#{@tournament}/crosstable"}
+          icon="hero-table-cells"
+        />
         <.navlink label="Stats" href="#" icon="hero-chart-bar-square" />
       </div>
       <hr />

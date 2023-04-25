@@ -3,7 +3,7 @@ defmodule ElswisserWeb.TournamentControllerTest do
 
   import Elswisser.TournamentsFixtures
 
-  @create_attrs %{name: "some name"}
+  @create_attrs %{name: "some name", player_ids: [1,2]}
   @update_attrs %{name: "some updated name"}
   @invalid_attrs %{name: nil}
 

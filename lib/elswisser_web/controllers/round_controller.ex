@@ -16,7 +16,7 @@ defmodule ElswisserWeb.RoundController do
       |> halt()
     end
 
-    tournament = Elswisser.Tournaments.get_tournament_with_players!(tournament_id)
+    tournament = Elswisser.Tournaments.get_tournament_with_all!(tournament_id)
 
     player_map =
       tournament.players
