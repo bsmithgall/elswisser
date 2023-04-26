@@ -145,7 +145,7 @@ defmodule Elswisser.Tournaments do
     |> Repo.preload(:players)
     |> Repo.preload(:rounds)
     |> Tournament.changeset(attrs |> ensure_atom |> Map.merge(%{length: len}))
-    |> Ecto.Changeset.put_assoc(:players, players)
+    |> maybe_put_players(players)
     |> Ecto.Changeset.put_assoc(:rounds, rounds)
   end
 
@@ -183,9 +183,10 @@ defmodule Elswisser.Tournaments do
 
     cond do
       length(rounds) < len ->
-        rounds ++ Enum.map((length(rounds) + 1)..len, fn n ->
-          %{tournament_id: id, number: n}
-        end)
+        rounds ++
+          Enum.map((length(rounds) + 1)..len, fn n ->
+            %{tournament_id: id, number: n}
+          end)
 
       true ->
         rounds
@@ -197,5 +198,13 @@ defmodule Elswisser.Tournaments do
       {key, value}, acc when is_atom(key) -> Map.put(acc, key, value)
       {key, value}, acc when is_binary(key) -> Map.put(acc, String.to_existing_atom(key), value)
     end)
+  end
+
+  defp maybe_put_players(changeset, players) do
+    if Enum.empty?(players) do
+      changeset
+    else
+      changeset |> Ecto.Changeset.put_assoc(:players, players)
+    end
   end
 end

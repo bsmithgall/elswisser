@@ -3,13 +3,13 @@ defmodule Elswisser.ScoresTest do
 
   alias Elswisser.Rounds.Game
 
-  describe "raw_scores" do
+  describe "calculate" do
     # set up a tournament with four players and two rounds.
     # black wins every game.
     setup %{} do
       {:ok,
        scores:
-         Elswisser.Scores.raw_scores([
+         Elswisser.Scores.calculate([
            %{
              game: %Game{
                white: 1,
@@ -57,10 +57,10 @@ defmodule Elswisser.ScoresTest do
     end
 
     test "calculates opponents for each player correctly", context do
-      assert context[:scores][1].opponents == [2,3]
-      assert context[:scores][2].opponents == [1,4]
-      assert context[:scores][3].opponents == [4,1]
-      assert context[:scores][4].opponents == [3,2]
+      assert context[:scores][1].opponents == [2, 3]
+      assert context[:scores][2].opponents == [1, 4]
+      assert context[:scores][3].opponents == [4, 1]
+      assert context[:scores][4].opponents == [3, 2]
     end
 
     test "calculate number of black games correctly", context do
@@ -71,11 +71,27 @@ defmodule Elswisser.ScoresTest do
     end
 
     test "calculates cumulative scores correctly", context do
-      assert context[:scores][1].cumsum == 0
-      assert context[:scores][2].cumsum == 1
-      assert context[:scores][3].cumsum == 2
-      assert context[:scores][4].cumsum == 3
+      assert context[:scores][1].cumulative_sum == 0
+      assert context[:scores][2].cumulative_sum == 1
+      assert context[:scores][3].cumulative_sum == 2
+      assert context[:scores][4].cumulative_sum == 3
     end
 
+    test "calculates opposition scores correctly", context do
+      # funnily enough, they all end up having three because of the way the
+      # fixture is set up
+      assert context[:scores][1].cumulative_opp == 3
+      assert context[:scores][2].cumulative_opp == 3
+      assert context[:scores][3].cumulative_opp == 3
+      assert context[:scores][4].cumulative_opp == 3
+    end
+
+    test "calculates solkoff score correctly", context do
+      # these also all end up with the same score!
+      assert context[:scores][1].solkoff == 2
+      assert context[:scores][2].solkoff == 2
+      assert context[:scores][3].solkoff == 2
+      assert context[:scores][4].solkoff == 2
+    end
   end
 end
