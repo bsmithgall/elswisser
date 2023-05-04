@@ -86,10 +86,33 @@ defmodule Elswisser.Scores do
           k,
           Map.merge(v, %{
             cumulative_opp: cumulative_opp(v, scores),
-            solkoff: solkoff(v, scores)
+            solkoff: solkoff(v, scores),
+            modmed: modified_median(v, scores)
           })
         }
   end
+
+  @doc """
+  Calculate the "Modified Median" tiebreaker: drop lowest/highest depending on median value
+  This is just the solkoff value subtracted by the appropriate score
+  """
+  def modified_median(%Elswisser.Scores{} = v, scores) when is_map(scores) do
+    opp_score = v.opponents
+
+    {min_score, max_score} = Enum.map(opp_score, fn opp -> scores[opp].score end)
+      |> Enum.min_max()
+
+    cond do
+      v.score > (length(v.opponents) / 2) ->
+        solkoff(v, scores) - min_score
+      v.score < (length(v.opponents) / 2) ->
+        solkoff(v, scores) - max_score
+      true ->
+        solkoff(v, scores) - (min_score + max_score)
+    end
+  end
+
+
 
   @doc """
   Caculate the "cumulative opposition" tiebreaker: sum the cumulative sum of the
