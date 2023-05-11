@@ -16,3 +16,9 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
   * Docs: https://hexdocs.pm/phoenix
   * Forum: https://elixirforum.com/c/phoenix-forum
   * Source: https://github.com/phoenixframework/phoenix
+
+## (Re) build your development database
+
+```sh
+rm elswisser_dev.db* ||: && mix ecto.migrate && mix run priv/repo/seeds.exs
+```
