@@ -45,7 +45,7 @@ defmodule Elswisser.ScoresTest do
          ])}
     end
 
-    test "creates an entry in the scores map for each directly", context do
+      test "creates an entry in the scores map for each directly", context do
       assert map_size(context[:scores]) == 4
     end
 
@@ -92,6 +92,13 @@ defmodule Elswisser.ScoresTest do
       assert context[:scores][2].solkoff == 2
       assert context[:scores][3].solkoff == 2
       assert context[:scores][4].solkoff == 2
+    end
+
+    test "calculates modified median correctly", context do
+      assert context[:scores][1].modmed == 1
+      assert context[:scores][2].modmed == 0
+      assert context[:scores][3].modmed == 0
+      assert context[:scores][4].modmed == 1
     end
   end
 end
