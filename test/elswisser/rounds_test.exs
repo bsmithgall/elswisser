@@ -42,6 +42,5 @@ defmodule Elswisser.RoundsTest do
       assert {:error, %Ecto.Changeset{}} = Rounds.update_round(round, @invalid_attrs)
       assert round == Rounds.get_round!(round.id)
     end
-
   end
 end

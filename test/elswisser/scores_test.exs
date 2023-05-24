@@ -9,106 +9,105 @@ defmodule Elswisser.ScoresTest do
     # player IDs are just their relative position in alphabetical order
     setup %{} do
       {:ok,
-        scores:
-          Elswisser.Scores.calculate([
-            %{
-              game: %Game{
-                white: 4,
-                black: 1,
-                result: -1
-              },
-              rnd: 1
-            },
-            %{
-              game: %Game{
-                white: 3,
-                black: 2,
-                result: -1
-              },
-              rnd: 1
-            },
-            %{
-              game: %Game{
-                white: 8,
-                black: 6,
-                result: 1
-              },
-              rnd: 1
-            },
-            %{
-              game: %Game{
-                white: 7,
-                black: 5,
-                result: 1
-              },
-              rnd: 1
-            },
-            %{
-              game: %Game{
-                white: 2,
-                black: 1,
-                result: 1
-              },
-              rnd: 2
-            },
-            %{
-              game: %Game{
-                white: 8,
-                black: 7,
-                result: -1
-              },
-              rnd: 2
-            },
-            %{
-              game: %Game{
-                white: 6,
-                black: 3,
-                result: -1
-              },
-              rnd: 2
-            },
-            %{
-              game: %Game{
-                white: 5,
-                black: 4,
-                result: -1
-              },
-              rnd: 2
-            },
-            %{
-              game: %Game{
-                white: 7,
-                black: 2,
-                result: 1
-              },
-              rnd: 3
-            },
-            %{
-              game: %Game{
-                white: 4,
-                black: 3,
-                result: 1
-              },
-              rnd: 3
-            },
-            %{
-              game: %Game{
-                white: 1,
-                black: 8,
-                result: -1
-              },
-              rnd: 3
-            },
-            %{
-              game: %Game{
-                white: 6,
-                black: 5,
-                result: -1
-              },
-              rnd: 3
-            }
-          ])
-    }
+       scores:
+         Elswisser.Scores.calculate([
+           %{
+             game: %Game{
+               white: 4,
+               black: 1,
+               result: -1
+             },
+             rnd: 1
+           },
+           %{
+             game: %Game{
+               white: 3,
+               black: 2,
+               result: -1
+             },
+             rnd: 1
+           },
+           %{
+             game: %Game{
+               white: 8,
+               black: 6,
+               result: 1
+             },
+             rnd: 1
+           },
+           %{
+             game: %Game{
+               white: 7,
+               black: 5,
+               result: 1
+             },
+             rnd: 1
+           },
+           %{
+             game: %Game{
+               white: 2,
+               black: 1,
+               result: 1
+             },
+             rnd: 2
+           },
+           %{
+             game: %Game{
+               white: 8,
+               black: 7,
+               result: -1
+             },
+             rnd: 2
+           },
+           %{
+             game: %Game{
+               white: 6,
+               black: 3,
+               result: -1
+             },
+             rnd: 2
+           },
+           %{
+             game: %Game{
+               white: 5,
+               black: 4,
+               result: -1
+             },
+             rnd: 2
+           },
+           %{
+             game: %Game{
+               white: 7,
+               black: 2,
+               result: 1
+             },
+             rnd: 3
+           },
+           %{
+             game: %Game{
+               white: 4,
+               black: 3,
+               result: 1
+             },
+             rnd: 3
+           },
+           %{
+             game: %Game{
+               white: 1,
+               black: 8,
+               result: -1
+             },
+             rnd: 3
+           },
+           %{
+             game: %Game{
+               white: 6,
+               black: 5,
+               result: -1
+             },
+             rnd: 3
+           }
+         ])}
     end
 
     test "creates an entry in the scores map for each directly", context do

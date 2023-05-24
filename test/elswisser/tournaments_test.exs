@@ -31,12 +31,10 @@ defmodule Elswisser.TournamentsTest do
       assert {:error, %Ecto.Changeset{}} = Tournaments.create_tournament(@invalid_attrs)
     end
 
-
     test "delete_tournament/1 deletes the tournament" do
       tournament = tournament_fixture()
       assert {:ok, %Tournament{}} = Tournaments.delete_tournament(tournament)
       assert_raise Ecto.NoResultsError, fn -> Tournaments.get_tournament!(tournament.id) end
     end
-
   end
 end
