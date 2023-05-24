@@ -16,6 +16,14 @@ defmodule Elswisser.Scores do
     |> tiebreaks()
   end
 
+  def with_players(scores, players) do
+    Enum.map(players, fn player -> Map.merge(player, scores[player.id]) end)
+    |> Enum.sort_by(fn r -> r.nblack end, :desc)
+    |> Enum.sort_by(fn r -> r.solkoff end, :desc)
+    |> Enum.sort_by(fn r -> r.modmed end, :desc)
+    |> Enum.sort_by(fn r -> r.score end, :desc)
+  end
+
   @doc """
   Given the struct representing a game + a round, build out all available
   scores, including tiebreak scores that can be calculated at this point. The
@@ -99,20 +107,21 @@ defmodule Elswisser.Scores do
   def modified_median(%Elswisser.Scores{} = v, scores) when is_map(scores) do
     opp_score = v.opponents
 
-    {min_score, max_score} = Enum.map(opp_score, fn opp -> scores[opp].score end)
+    {min_score, max_score} =
+      Enum.map(opp_score, fn opp -> scores[opp].score end)
       |> Enum.min_max()
 
     cond do
-      v.score > (length(v.opponents) / 2) ->
+      v.score > length(v.opponents) / 2 ->
         solkoff(v, scores) - min_score
-      v.score < (length(v.opponents) / 2) ->
+
+      v.score < length(v.opponents) / 2 ->
         solkoff(v, scores) - max_score
+
       true ->
         solkoff(v, scores) - (min_score + max_score)
     end
   end
-
-
 
   @doc """
   Caculate the "cumulative opposition" tiebreaker: sum the cumulative sum of the

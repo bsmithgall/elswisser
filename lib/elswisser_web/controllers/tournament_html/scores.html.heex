@@ -1,3 +1,14 @@
-<pre>
-  <%= @scores |> Jason.encode! |> Jason.Formatter.pretty_print() %>
-</pre>
+<div class="mx-auto max-w-2xl">
+  <div class="py-4">
+    <.header>Score Details</.header>
+  </div>
+
+  <.scores_table id="scores" rows={@scores}>
+    <:col :let={score} label="Name" bold><%= score.name %></:col>
+    <:col :let={score} label="Score" center><%= score.score %></:col>
+    <:col :let={score} label="Modified Median" center><%= score.modmed %></:col>
+    <:col :let={score} label="Solkoff" center><%= score.solkoff %></:col>
+    <:col :let={score} label="Cumulative of Opposition" center><%= score.cumulative_opp %></:col>
+    <:col :let={score} label="# Black Games" center><%= score.nblack %></:col>
+  </.scores_table>
+</div>

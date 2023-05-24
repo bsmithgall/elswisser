@@ -84,7 +84,7 @@ defmodule ElswisserWeb.TournamentController do
   def scores(conn, %{"tournament_id" => id}) do
     tournament = Tournaments.get_tournament_with_all!(id)
     games = Tournaments.get_all_games_in_tournament!(id)
-    scores = Scores.calculate(games)
+    scores = Scores.calculate(games) |> Scores.with_players(tournament.players)
 
     conn
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
