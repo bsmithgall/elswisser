@@ -76,15 +76,17 @@ defmodule ElswisserWeb.TournamentController do
     tournament = Tournaments.get_tournament_with_all!(id)
     games = Tournaments.get_all_games_in_tournament!(id)
 
+    scores = Scores.calculate(games) |> Scores.with_players(tournament.players) |> Scores.sort()
+
     conn
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
-    |> render(:crosstable, tournament: tournament, games: games)
+    |> render(:crosstable, tournament: tournament, games: games, scores: scores)
   end
 
   def scores(conn, %{"tournament_id" => id}) do
     tournament = Tournaments.get_tournament_with_all!(id)
     games = Tournaments.get_all_games_in_tournament!(id)
-    scores = Scores.calculate(games) |> Scores.with_players(tournament.players)
+    scores = Scores.calculate(games) |> Scores.with_players(tournament.players) |> Scores.sort()
 
     conn
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})

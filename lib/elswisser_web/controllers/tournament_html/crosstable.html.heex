@@ -1,1 +1,28 @@
-<table></table>
+<.header class="py-4">Score Crosstable</.header>
+
+<div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
+  <table class="w-[40rem] sm:w-full text-center table-fixed">
+    <thead class="text-sm leading-4 text-zinc-500">
+      <tr>
+        <th class="border-r border-zinc-200"></th>
+        <%= for player <- @scores do %>
+          <th class="border-r border-zinc-200 p-1 break-words -rotate-12">
+            <%= player.name %>
+          </th>
+        <% end %>
+      </tr>
+    </thead>
+    <tbody class="relative divide-y divide-zinc-100 border-t border-b border-zinc-200 text-sm leading-6 text-zinc-700">
+      <%= for outer <- @scores do %>
+        <tr class="group">
+          <td class="text-sm text-zinc-500 border-r border-r-zinc-200 break-words">
+            <%= outer.name %>
+          </td>
+          <%= for inner <- @scores do %>
+            <.crosscell outer={outer} inner={inner} />
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

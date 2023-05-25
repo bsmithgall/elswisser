@@ -26,6 +26,9 @@ defmodule ElswisserWeb.TournamentHTML do
 
   def tournament_form(assigns)
 
+  @doc """
+  Renders the score detail table
+  """
   attr :id, :string, required: true
   attr :rows, :list, required: true
 
@@ -64,6 +67,31 @@ defmodule ElswisserWeb.TournamentHTML do
         </tbody>
       </table>
     </div>
+    """
+  end
+
+  attr :outer, :map, required: true
+  attr :inner, :map, required: true
+
+  def crosscell(assigns) do
+    result_idx = Enum.find_index(assigns.outer.opponents, fn o -> o == assigns.inner.id end)
+
+    result =
+      case is_nil(result_idx) do
+        true -> nil
+        false -> Enum.at(assigns.outer.results, result_idx)
+      end
+
+    assigns = assign(assigns, :is_self, assigns.outer.id == assigns.inner.id)
+    assigns = assign(assigns, :result, result)
+
+    ~H"""
+    <td class="border-r border-zinc-200 hover:bg-zinc-100">
+      <span :if={@is_self}><.icon name="hero-x-mark-solid" /></span>
+      <span :if={is_nil(@result)}></span>
+      <span :if={@result == 0.5}>&half;</span>
+      <span :if={@result != 0.5}><%= @result %></span>
+    </td>
     """
   end
 end
