@@ -3,6 +3,7 @@ defmodule Elswisser.Scores do
   defstruct player_id: -1,
             score: -1,
             opponents: [],
+            results: [],
             solkoff: 0,
             modmed: 0,
             cumulative_sum: 0,
@@ -17,7 +18,13 @@ defmodule Elswisser.Scores do
   end
 
   def with_players(scores, players) do
-    Enum.map(players, fn player -> Map.merge(player, scores[player.id]) end)
+    Enum.reduce(players, %{}, fn p, acc ->
+      Map.put(acc, p.id, Map.merge(p, scores[p.id]))
+    end)
+  end
+
+  def sort(scores) when is_map(scores) do
+    Map.values(scores)
     |> Enum.sort_by(fn r -> r.nblack end, :desc)
     |> Enum.sort_by(fn r -> r.solkoff end, :desc)
     |> Enum.sort_by(fn r -> r.modmed end, :desc)
@@ -44,12 +51,14 @@ defmodule Elswisser.Scores do
             player_id: g.game.white,
             score: white_score,
             opponents: [g.game.black],
+            results: [white_score],
             cumulative_sum: white_score * g.rnd
           },
           fn ex ->
             Map.merge(ex, %{
               score: ex.score + white_score,
               opponents: ex.opponents ++ [g.game.black],
+              results: ex.results ++ [white_score],
               cumulative_sum: ex.cumulative_sum + white_score * g.rnd
             })
           end
@@ -64,6 +73,7 @@ defmodule Elswisser.Scores do
             player_id: g.game.black,
             score: black_score,
             opponents: [g.game.white],
+            results: [black_score],
             cumulative_sum: black_score * g.rnd,
             nblack: 1
           },
@@ -71,6 +81,7 @@ defmodule Elswisser.Scores do
             Map.merge(ex, %{
               score: ex.score + black_score,
               opponents: ex.opponents ++ [g.game.white],
+              results: ex.results ++ [black_score],
               cumulative_sum: ex.cumulative_sum + black_score * g.rnd,
               nblack: ex.nblack + 1
             })
@@ -82,7 +93,6 @@ defmodule Elswisser.Scores do
   end
 
   @doc """
-  @TODO
   Calculates a variety of known tiebreaks. For a detailed breakdown of how these
   work in practice, see:
   https://midwestchess.com/pdf/USCF_ChessTie-Break_%20Systems.pdf

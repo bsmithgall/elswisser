@@ -52,7 +52,7 @@ defmodule ElswisserWeb.TournamentLayouts do
 
   def navlink(assigns) do
     ~H"""
-    <div class="hover:bg-slate-300 cursor-pointer rounded-md p-1">
+    <div class="hover:bg-slate-300 cursor-pointer rounded-md p-1" phx-click={JS.navigate(@href)}>
       <.icon :if={@icon != nil} name={@icon} />
       <a href={@href}><%= @label %></a>
     </div>
