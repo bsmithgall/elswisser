@@ -9,7 +9,7 @@ defmodule Elswisser.Tournaments do
   alias Elswisser.Tournaments.Tournament
   alias Elswisser.Players.Player
   alias Elswisser.Rounds.Round
-  alias Elswisser.Rounds.Game
+  alias Elswisser.Games.Game
 
   @doc """
   Returns the list of tournaments.

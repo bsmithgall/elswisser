@@ -2,7 +2,7 @@ defmodule Elswisser.Rounds.Round do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Elswisser.Rounds.Game
+  alias Elswisser.Games.Game
 
   schema "rounds" do
     field :number, :integer

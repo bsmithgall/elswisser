@@ -3,8 +3,11 @@ defmodule Elswisser.Players.Player do
   import Ecto.Changeset
 
   schema "players" do
-    field :name, :string
-    field :rating, :integer
+    field(:name, :string)
+    field(:rating, :integer)
+
+    has_many(:white_games, Elswisser.Games.Game, foreign_key: :white_id)
+    has_many(:black_games, Elswisser.Games.Game, foreign_key: :black_id)
 
     timestamps()
   end

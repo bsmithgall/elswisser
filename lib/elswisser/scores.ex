@@ -46,18 +46,18 @@ defmodule Elswisser.Scores do
       acc =
         Map.update(
           acc,
-          g.game.white,
+          g.game.white_id,
           %Elswisser.Scores{
-            player_id: g.game.white,
+            player_id: g.game.white_id,
             score: white_score,
-            opponents: [g.game.black],
+            opponents: [g.game.black_id],
             results: [white_score],
             cumulative_sum: white_score * g.rnd
           },
           fn ex ->
             Map.merge(ex, %{
               score: ex.score + white_score,
-              opponents: ex.opponents ++ [g.game.black],
+              opponents: ex.opponents ++ [g.game.black_id],
               results: ex.results ++ [white_score],
               cumulative_sum: ex.cumulative_sum + white_score * g.rnd
             })
@@ -68,11 +68,11 @@ defmodule Elswisser.Scores do
       acc =
         Map.update(
           acc,
-          g.game.black,
+          g.game.black_id,
           %Elswisser.Scores{
-            player_id: g.game.black,
+            player_id: g.game.black_id,
             score: black_score,
-            opponents: [g.game.white],
+            opponents: [g.game.white_id],
             results: [black_score],
             cumulative_sum: black_score * g.rnd,
             nblack: 1
@@ -80,7 +80,7 @@ defmodule Elswisser.Scores do
           fn ex ->
             Map.merge(ex, %{
               score: ex.score + black_score,
-              opponents: ex.opponents ++ [g.game.white],
+              opponents: ex.opponents ++ [g.game.white_id],
               results: ex.results ++ [black_score],
               cumulative_sum: ex.cumulative_sum + black_score * g.rnd,
               nblack: ex.nblack + 1
