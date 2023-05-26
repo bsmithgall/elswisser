@@ -1,7 +1,7 @@
-defmodule ElswisserWeb.GameLive.Round do
+defmodule ElswisserWeb.RoundLive.Round do
   use ElswisserWeb, :live_view
 
-  alias Elswisser.Rounds
+  alias Elswisser.Games
 
   @impl true
   def mount(_params, session, socket) do
@@ -10,9 +10,9 @@ defmodule ElswisserWeb.GameLive.Round do
 
   @impl true
   def handle_event("save-result", params, socket) do
-    game = Rounds.get_game!(params["id"])
+    game = Games.get_game!(params["id"])
 
-    case Rounds.update_game(game, params) do
+    case Games.update_game(game, params) do
       {:ok, game} ->
         {:noreply, socket |> assign(:games, fetch_games(game.round_id))}
 
@@ -22,6 +22,6 @@ defmodule ElswisserWeb.GameLive.Round do
   end
 
   defp fetch_games(round_id) do
-    Rounds.get_games_for_round!(round_id)
+    Games.get_games_for_round!(round_id)
   end
 end

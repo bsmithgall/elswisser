@@ -1,7 +1,7 @@
 defmodule Elswisser.ScoresTest do
   use Elswisser.DataCase
 
-  alias Elswisser.Rounds.Game
+  alias Elswisser.Games.Game
 
   describe "calculate" do
     # set up a tournament with 8 players and 3 rounds.
@@ -13,96 +13,96 @@ defmodule Elswisser.ScoresTest do
          Elswisser.Scores.calculate([
            %{
              game: %Game{
-               white: 4,
-               black: 1,
+               white_id: 4,
+               black_id: 1,
                result: -1
              },
              rnd: 1
            },
            %{
              game: %Game{
-               white: 3,
-               black: 2,
+               white_id: 3,
+               black_id: 2,
                result: -1
              },
              rnd: 1
            },
            %{
              game: %Game{
-               white: 8,
-               black: 6,
+               white_id: 8,
+               black_id: 6,
                result: 1
              },
              rnd: 1
            },
            %{
              game: %Game{
-               white: 7,
-               black: 5,
+               white_id: 7,
+               black_id: 5,
                result: 1
              },
              rnd: 1
            },
            %{
              game: %Game{
-               white: 2,
-               black: 1,
+               white_id: 2,
+               black_id: 1,
                result: 1
              },
              rnd: 2
            },
            %{
              game: %Game{
-               white: 8,
-               black: 7,
+               white_id: 8,
+               black_id: 7,
                result: -1
              },
              rnd: 2
            },
            %{
              game: %Game{
-               white: 6,
-               black: 3,
+               white_id: 6,
+               black_id: 3,
                result: -1
              },
              rnd: 2
            },
            %{
              game: %Game{
-               white: 5,
-               black: 4,
+               white_id: 5,
+               black_id: 4,
                result: -1
              },
              rnd: 2
            },
            %{
              game: %Game{
-               white: 7,
-               black: 2,
+               white_id: 7,
+               black_id: 2,
                result: 1
              },
              rnd: 3
            },
            %{
              game: %Game{
-               white: 4,
-               black: 3,
+               white_id: 4,
+               black_id: 3,
                result: 1
              },
              rnd: 3
            },
            %{
              game: %Game{
-               white: 1,
-               black: 8,
+               white_id: 1,
+               black_id: 8,
                result: -1
              },
              rnd: 3
            },
            %{
              game: %Game{
-               white: 6,
-               black: 5,
+               white_id: 6,
+               black_id: 5,
                result: -1
              },
              rnd: 3

@@ -16,7 +16,6 @@ alias Elswisser.Players
 alias Elswisser.Tournaments
 alias Elswisser.Tournaments.Tournament
 alias Elswisser.Rounds
-alias Elswisser.Rounds.Game
 alias Elswisser.Players.Player
 
 # Generate twelve players
@@ -58,7 +57,12 @@ for tourn <- Repo.all(Tournament) |> Repo.preload(:rounds) do
     for pair <- Enum.shuffle(players) |> Enum.chunk_every(2) do
       [white, black] = pair
 
-      game = %{white: white.id, black: black.id, result: Enum.random([-1, 0, 1])}
+      game = %{
+        white_id: white.id,
+        black_id: black.id,
+        result: Enum.random([-1, 0, 1]),
+        tournament_id: tourn.id
+      }
 
       Rounds.add_game(round, game)
     end
