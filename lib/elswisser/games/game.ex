@@ -4,6 +4,7 @@ defmodule Elswisser.Games.Game do
 
   schema "games" do
     field(:game_link, :string)
+    field(:pgn, :string)
     field(:result, :integer)
 
     belongs_to(:round, Elswisser.Rounds.Round)
@@ -17,7 +18,7 @@ defmodule Elswisser.Games.Game do
   @doc false
   def changeset(game, attrs) do
     game
-    |> cast(attrs, [:white_id, :black_id, :result, :round_id, :game_link, :tournament_id])
+    |> cast(attrs, [:white_id, :black_id, :result, :round_id, :game_link, :tournament_id, :pgn])
     |> validate_required([:white_id, :black_id, :result, :round_id, :tournament_id])
   end
 end
