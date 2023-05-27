@@ -41,3 +41,4 @@ npm-debug.log
 
 .elixir_ls
 .DS_Store
+node_modules/
