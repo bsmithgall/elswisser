@@ -1,5 +1,6 @@
 import { Chessboard2 } from "@chrisoakman/chessboard2/dist/chessboard2.min.js";
 import { Chess } from "chess.js";
+import hotkeys from "hotkeys-js";
 
 // handle the time between the page loading and the mount completing.
 if (document.getElementById("pgn-board")) {
@@ -28,6 +29,7 @@ class PgnNavigator {
     this._moveNumber = 0;
 
     this.initializeListeners();
+    this.initializeHotkeys();
   }
 
   clone() {
@@ -69,6 +71,11 @@ class PgnNavigator {
         }
       });
     });
+  }
+
+  initializeHotkeys() {
+    hotkeys("right", () => this.forward());
+    hotkeys("left", () => this.back());
   }
 
   start() {
