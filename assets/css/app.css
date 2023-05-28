@@ -2,4 +2,6 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+@import "../node_modules/@chrisoakman/chessboard2/dist/chessboard2.min.css";
+
 /* This file is for your main application CSS */

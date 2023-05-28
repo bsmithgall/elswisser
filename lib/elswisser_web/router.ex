@@ -24,7 +24,7 @@ defmodule ElswisserWeb.Router do
       get("/scores", TournamentController, :scores, as: :scores)
 
       resources("/rounds", RoundController, only: [:show, :edit, :update])
-      resources("/games", GameController, only: [:show])
+      resources("/games", GameController, only: [:show, :edit, :update])
     end
 
     resources("/players", PlayerController)

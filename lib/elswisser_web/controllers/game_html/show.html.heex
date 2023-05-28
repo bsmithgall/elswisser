@@ -2,4 +2,27 @@
   Game <%= @game.id %>
 </.header>
 
+<.list>
+  <:item title="Result">
+    <.result white={@game.white.name} black={@game.black.name} result={@game.result} />
+  </:item>
+  <:item :if={!is_nil(@game.game_link)} title="PGN">
+    <%= live_render(@conn, ElswisserWeb.GameLive.Pgn,
+      id: "pgn",
+      session: %{
+        "game_link" => @game.game_link,
+        "pgn" => @game.pgn,
+        "game_id" => @game.id,
+        "white_player" => @game.white.name,
+        "black_player" => @game.black.name
+      }
+    ) %>
+  </:item>
+  <:item title="Game Link">
+    <.link class="text-cyan-600 underline" href={@game.game_link} target="_blank">
+      Link to game
+    </.link>
+  </:item>
+</.list>
+
 <.back navigate={~p"/tournaments/#{@game.tournament_id}"}>Back to tournament</.back>

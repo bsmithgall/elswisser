@@ -1,0 +1,10 @@
+<.header class="pt-4">
+  Edit Game <%= @game.id %>
+</.header>
+
+<.game_form
+  changeset={@changeset}
+  action={~p"/tournaments/#{@game.tournament_id}/games/#{@game}"}
+/>
+
+<.back navigate={~p"/tournaments/#{@game.tournament_id}"}>Back to tournament</.back>

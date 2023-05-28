@@ -50,7 +50,8 @@ defmodule Elswisser.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
-      {:math, "~> 0.7.0"}
+      {:math, "~> 0.7.0"},
+      {:httpoison, "~> 2.0"}
     ]
   end
 
