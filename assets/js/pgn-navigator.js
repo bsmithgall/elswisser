@@ -6,21 +6,42 @@ if (document.getElementById("pgn-board")) {
   Chessboard2("pgn-board", { position: "start" });
 }
 
+let navigator;
+
 export const GameNavigatorHook = {
   mounted() {
-    new PgnNavigator(this.el.getAttribute("phx-value-pgn"));
+    navigator = new PgnNavigator(this.el.getAttribute("phx-value-pgn"));
+  },
+
+  beforeUpdate() {
+    navigator = navigator.clone();
   },
 };
 
 class PgnNavigator {
   constructor(rawPgn) {
+    this.rawPgn = rawPgn;
     this.chessboard = Chessboard2("pgn-board", { position: "start" });
     this.game = new Chess();
     this.game.loadPgn(rawPgn);
     this.moves = this.game.history({ verbose: true });
-    this.moveNumber = 0;
+    this._moveNumber = 0;
 
     this.initializeListeners();
+  }
+
+  clone() {
+    navigator = new PgnNavigator(this.rawPgn);
+    navigator.moveNumber = this.moveNumber;
+    return navigator;
+  }
+
+  get moveNumber() {
+    return this._moveNumber;
+  }
+
+  set moveNumber(_moveNumber) {
+    this._moveNumber = _moveNumber;
   }
 
   initializeListeners() {

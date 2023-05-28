@@ -1,15 +1,15 @@
 defmodule ElswisserWeb.GameLive.Pgn do
   use ElswisserWeb, :live_view
 
-  attr(:icon, :string, required: true)
-  attr(:navigate, :string, required: true)
-
-  def game_nav(assigns) do
-    ~H"""
-    <.button data-js-navigate={@navigate}>
-      <.icon name={@icon} />
-    </.button>
-    """
+  @impl true
+  def mount(_params, session, socket) do
+    {:ok,
+     socket
+     |> assign(:game_link, session["game_link"])
+     |> assign(:game_id, session["game_id"])
+     |> assign(:white_player, session["white_player"])
+     |> assign(:black_player, session["black_player"])
+     |> assign(:pgn, session["pgn"]), layout: false}
   end
 
   @impl true
@@ -39,15 +39,15 @@ defmodule ElswisserWeb.GameLive.Pgn do
     """
   end
 
-  @impl true
-  def mount(_params, session, socket) do
-    {:ok,
-     socket
-     |> assign(:game_link, session["game_link"])
-     |> assign(:game_id, session["game_id"])
-     |> assign(:white_player, session["white_player"])
-     |> assign(:black_player, session["black_player"])
-     |> assign(:pgn, session["pgn"]), layout: false}
+  attr(:icon, :string, required: true)
+  attr(:navigate, :string, required: true)
+
+  def game_nav(assigns) do
+    ~H"""
+    <.button data-js-navigate={@navigate}>
+      <.icon name={@icon} />
+    </.button>
+    """
   end
 
   @impl true
@@ -90,6 +90,6 @@ defmodule ElswisserWeb.GameLive.Pgn do
 
   @impl true
   def handle_info({:pgn_error, msg}, socket) do
-    {:noreply, socket |> put_flash(:error, "Error getting PGN from game link! " + msg)}
+    {:noreply, socket |> put_flash(:error, "Error getting PGN from game link: #{msg}")}
   end
 end
