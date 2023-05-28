@@ -71,6 +71,13 @@ defmodule ElswisserWeb.GameLive.Pgn do
       String.contains?(params["game-link"], "lichess.org/") ->
         socket = put_flash(socket, :info, "Fetching PGN from lichess.org")
 
+        Task.start(fn ->
+          case Elswisser.Games.Lichess.fetch_pgn(params["game-link"]) do
+            {:ok, pgn} -> send(pid, {:pgn_result, [pgn: pgn, id: params["game-id"]]})
+            {:error, error} -> send(pid, {:pgn_error, error})
+          end
+        end)
+
         {:noreply, socket}
     end
   end
