@@ -1,0 +1,33 @@
+<.header class="py-4">
+  Roster for <%= @tournament.name %>
+  <:actions>
+    <.button phx-click={show_modal("confirm-modal")}>Add new player</.button>
+  </:actions>
+</.header>
+
+<.form for={@changeset} action={~p"/tournaments/#{@tournament}/roster"}>
+  <div class="flex flex-row">
+    <div class="basis-1/2">
+      <.header>Registered</.header>
+      <%= for player <- @in_players do %>
+        <.player_checkbox player={player} checked />
+      <% end %>
+    </div>
+    <div class="basis-1/2">
+      <.header>Unregistered</.header>
+      <%= for player <- @out_players do %>
+        <.player_checkbox player={player} />
+      <% end %>
+    </div>
+  </div>
+  <.button class="mt-8">Submit</.button>
+</.form>
+
+<.modal id="confirm-modal">
+  <.header>Add new player</.header>
+  <.player_form
+    changeset={@new_player}
+    action={~p"/players"}
+    redirect_to={~p"/tournaments/#{@tournament}/roster"}
+  />
+</.modal>

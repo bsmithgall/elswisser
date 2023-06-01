@@ -75,7 +75,6 @@ defmodule ElswisserWeb.TournamentController do
   def crosstable(conn, %{"tournament_id" => id}) do
     tournament = Tournaments.get_tournament_with_all!(id)
     games = Tournaments.get_all_games_in_tournament!(id)
-
     scores = Scores.calculate(games) |> Scores.with_players(tournament.players) |> Scores.sort()
 
     conn

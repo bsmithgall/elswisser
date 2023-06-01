@@ -9,6 +9,10 @@ defmodule Elswisser.Players.Player do
     has_many(:white_games, Elswisser.Games.Game, foreign_key: :white_id)
     has_many(:black_games, Elswisser.Games.Game, foreign_key: :black_id)
 
+    many_to_many :tournaments, Elswisser.Tournaments.Tournament,
+      join_through: Elswisser.Tournaments.TournamentPlayer,
+      on_replace: :delete
+
     timestamps()
   end
 

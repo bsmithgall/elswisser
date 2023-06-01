@@ -17,9 +17,15 @@ defmodule ElswisserWeb.PlayerController do
   def create(conn, %{"player" => player_params}) do
     case Players.create_player(player_params) do
       {:ok, player} ->
+        redirect_to =
+          case Map.has_key?(player_params, "redirect_to") do
+            true -> player_params["redirect_to"]
+            false -> ~p"/players/#{player}"
+          end
+
         conn
         |> put_flash(:info, "Player created successfully.")
-        |> redirect(to: ~p"/players/#{player}")
+        |> redirect(external: redirect_to)
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :new, changeset: changeset)

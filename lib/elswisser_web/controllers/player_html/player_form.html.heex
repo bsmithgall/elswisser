@@ -2,8 +2,10 @@
   <.error :if={@changeset.action}>
     Oops, something went wrong! Please check the errors below.
   </.error>
-  <.input field={f[:name]} type="text" label="Name" />
-  <.input field={f[:rating]} type="number" label="Rating" />
+  <.input field={f[:name]} required type="text" label="Name" />
+  <.input field={f[:rating]} required type="number" label="Rating" />
+  <.input :if={assigns[:redirect_to]} field={f[:redirect_to]} value={@redirect_to} type="hidden" />
+
   <:actions>
     <.button>Save Player</.button>
   </:actions>

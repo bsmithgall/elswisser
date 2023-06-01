@@ -37,4 +37,35 @@ defmodule Elswisser.TournamentsTest do
       assert_raise Ecto.NoResultsError, fn -> Tournaments.get_tournament!(tournament.id) end
     end
   end
+
+  describe "rosters" do
+    import Elswisser.TournamentsFixtures
+    import Elswisser.PlayersFixtures
+
+    test "get_roster/1 with null returns all false" do
+      _tournament = tournament_with_players_fixture()
+      {in_, out_} = Tournaments.get_roster(nil)
+
+      assert(length(in_) == 0)
+
+      assert(
+        out_,
+        Enum.map(Elswisser.Players.list_players(), fn p ->
+          Map.merge(p, %{in_tournament: false})
+        end)
+      )
+    end
+
+    test "get_roster/1 with tournament_id returns correct mapping" do
+      tournament = tournament_with_players_fixture()
+      not_in_tournament = player_fixture()
+      {in_, out_} = Tournaments.get_roster(tournament.id)
+
+      assert(
+        in_ == Enum.map(tournament.players, fn p -> Map.merge(p, %{in_tournament: true}) end)
+      )
+
+      assert(out_ == [Map.merge(not_in_tournament, %{in_tournament: false})])
+    end
+  end
 end

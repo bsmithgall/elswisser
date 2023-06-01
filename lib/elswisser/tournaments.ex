@@ -43,6 +43,12 @@ defmodule Elswisser.Tournaments do
     |> Repo.get!(id)
   end
 
+  def get_tournament_with_rounds!(id) do
+    Tournament
+    |> Repo.get!(id)
+    |> Repo.preload(:rounds)
+  end
+
   def get_tournament_with_players!(id) do
     Tournament
     |> Repo.get!(id)
@@ -158,6 +164,30 @@ defmodule Elswisser.Tournaments do
 
   def list_players_by_id(player_ids) when is_list(player_ids) do
     Repo.all(from p in Player, where: p.id in ^player_ids)
+  end
+
+  def get_roster(tournament_id) when is_nil(tournament_id) do
+    Elswisser.Players.list_players()
+    |> Enum.map(fn p -> Map.merge(p, %{in_tournament: false}) end)
+    |> Enum.split(0)
+  end
+
+  def get_roster(tournament_id) do
+    from(
+      p in Elswisser.Players.Player,
+      left_join:
+        t in subquery(
+          from(
+            t in Elswisser.Tournaments.TournamentPlayer,
+            where: t.tournament_id == ^tournament_id
+          )
+        ),
+      on: p.id == t.player_id,
+      select: {p, t.tournament_id}
+    )
+    |> Repo.all()
+    |> Enum.map(fn {p, tid} -> Map.merge(p, %{in_tournament: !is_nil(tid)}) end)
+    |> Enum.split_with(fn p -> p.in_tournament end)
   end
 
   def calculate_length(players) when is_list(players) do
