@@ -17,7 +17,7 @@ defmodule ElswisserWeb.TournamentLayouts do
       </div>
       <hr />
       <div>
-        <.navlink label="Roster" href="#" icon="hero-user-group" />
+        <.navlink label="Roster" href={~p"/tournaments/#{@tournament}/roster"} icon="hero-user-group" />
         <.navlink
           label="Scores"
           href={~p"/tournaments/#{@tournament}/scores"}

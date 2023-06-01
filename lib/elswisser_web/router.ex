@@ -25,6 +25,10 @@ defmodule ElswisserWeb.Router do
 
       resources("/rounds", RoundController, only: [:show, :edit, :update])
       resources("/games", GameController, only: [:show, :edit, :update])
+
+      get("/roster", RosterController, :index)
+      put("/roster", RosterController, :update)
+      patch("/roster", RosterController, :update)
     end
 
     resources("/players", PlayerController)

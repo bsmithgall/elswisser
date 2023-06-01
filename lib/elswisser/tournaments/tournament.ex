@@ -8,7 +8,10 @@ defmodule Elswisser.Tournaments.Tournament do
     field :name, :string
     field :length, :integer
 
-    many_to_many :players, Player, join_through: "tournament_players", on_replace: :delete
+    many_to_many :players, Player,
+      join_through: Elswisser.Tournaments.TournamentPlayer,
+      on_replace: :delete
+
     has_many :rounds, Elswisser.Rounds.Round
 
     timestamps()

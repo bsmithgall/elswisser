@@ -1,9 +1,7 @@
 defmodule ElswisserWeb.TournamentHTML do
   use ElswisserWeb, :html
 
-  import Phoenix.HTML.Form
-
-  embed_templates "tournament_html/*"
+  embed_templates("tournament_html/*")
 
   def player_select(f, changeset) do
     existing_ids =
@@ -15,27 +13,27 @@ defmodule ElswisserWeb.TournamentHTML do
       for player <- Elswisser.Players.list_players(),
           do: [key: player.name, value: player.id, selected: player.id in existing_ids]
 
-    multiple_select(f, :player_ids, player_opts)
+    Phoenix.HTML.Form.multiple_select(f, :player_ids, player_opts)
   end
 
   @doc """
   Renders a tournament form.
   """
-  attr :changeset, Ecto.Changeset, required: true
-  attr :action, :string, required: true
+  attr(:changeset, Ecto.Changeset, required: true)
+  attr(:action, :string, required: true)
 
   def tournament_form(assigns)
 
   @doc """
   Renders the score detail table
   """
-  attr :id, :string, required: true
-  attr :rows, :list, required: true
+  attr(:id, :string, required: true)
+  attr(:rows, :list, required: true)
 
   slot :col, required: true do
-    attr :label, :string
-    attr :center, :boolean
-    attr :bold, :boolean
+    attr(:label, :string)
+    attr(:center, :boolean)
+    attr(:bold, :boolean)
   end
 
   def scores_table(assigns) do
@@ -70,8 +68,8 @@ defmodule ElswisserWeb.TournamentHTML do
     """
   end
 
-  attr :outer, :map, required: true
-  attr :inner, :map, required: true
+  attr(:outer, :map, required: true)
+  attr(:inner, :map, required: true)
 
   def crosscell(assigns) do
     result_idx = Enum.find_index(assigns.outer.opponents, fn o -> o == assigns.inner.id end)
