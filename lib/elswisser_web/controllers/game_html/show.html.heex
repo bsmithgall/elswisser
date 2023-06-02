@@ -1,5 +1,10 @@
 <.header class="pt-4">
   Game <%= @game.id %>
+  <:actions>
+    <.link href={~p"/tournaments/#{@game.tournament_id}/games/#{@game}/edit"}>
+      <.button>Edit game</.button>
+    </.link>
+  </:actions>
 </.header>
 
 <.list>
@@ -18,7 +23,7 @@
       }
     ) %>
   </:item>
-  <:item title="Game Link">
+  <:item :if={!is_nil(@game.game_link)} title="Game Link">
     <.link class="text-cyan-600 underline" href={@game.game_link} target="_blank">
       Link to game
     </.link>

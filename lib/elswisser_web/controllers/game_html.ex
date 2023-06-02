@@ -27,9 +27,11 @@ defmodule ElswisserWeb.GameHTML do
     assigns = assign(assigns, :black_result, black_result)
 
     ~H"""
-    <span class={["pr-1", @result == 1 && "font-bold"]}><%= @white %> <%= @white_result %></span>
+    <span class={["pr-1", @result == 1 && "font-bold"]}><%= @white %> <%= raw(@white_result) %></span>
     <span>&#8212;</span>
-    <span class={["pl-1", @result == -1 && "font-bold"]}><%= @black %> <%= @black_result %></span>
+    <span class={["pl-1", @result == -1 && "font-bold"]}>
+      <%= @black %> <%= raw(@black_result) %>
+    </span>
     """
   end
 end

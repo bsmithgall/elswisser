@@ -8,66 +8,61 @@ defmodule Elswisser.Games.Chesscom do
   Glad that this is the biggest chess website!
   """
   def fetch_pgn(game_link) do
-    captures = Regex.named_captures(link_regexp(), game_link)
-    game_id = captures["id"]
-
-    if is_nil(game_id) do
-      {:error, "Could not find extract game ID from game link!"}
+    with {:ok, game_id} <- extract_id(game_link),
+         {:ok, httpbody} <- fetch_callback_info(game_id),
+         {:ok, username, archive_month} <- parse_callback_info(httpbody),
+         {:ok, archive_body} <- fetch_archive(username, archive_month),
+         {:ok, archive} <- parse_archive(archive_body),
+         {:ok, games} <- extract_pgn(archive, game_id) do
+      {:ok, games}
     else
-      case extract_date(game_id) do
-        {:ok, extract} ->
-          case extract_archive(extract[:username], extract[:archive_month]) do
-            {:ok, games} ->
-              extract_pgn(games, game_id)
-
-            {:error, msg} ->
-              {:error, msg}
-          end
-
-        {:error, msg} ->
-          {:error, msg}
-      end
+      {:error, reason} -> {:error, reason}
     end
   end
 
-  def extract_date(game_id) do
+  def extract_id(game_link) do
+    case Regex.named_captures(~r/chess\.com\/game\/live\/(?<id>\d+)/, game_link) do
+      %{"id" => game_id} when not is_nil(game_id) -> {:ok, game_id}
+      _ -> {:error, "Could not find game ID in game link!"}
+    end
+  end
+
+  def fetch_callback_info(game_id) do
     case HTTPoison.get("https://www.chess.com/callback/live/game/#{game_id}") do
-      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        case Jason.decode(body) do
-          {:ok, parsed} ->
-            dt = parsed["game"]["pgnHeaders"]["Date"]
+      {:ok, %HTTPoison.Response{status_code: 200, body: body}} -> {:ok, body}
+      _ -> {:error, "Something bad happened requesting callback from chesscom"}
+    end
+  end
 
-            {:ok,
-             username: parsed["players"]["top"]["username"],
-             archive_month:
-               Calendar.strftime(Date.from_iso8601!(String.replace(dt, ".", "-")), "%Y/%m")}
-
-          _ ->
-            {:error, "Could not decode Chess.com JSON response"}
-        end
+  def parse_callback_info(httpbody) do
+    case Jason.decode(httpbody) do
+      {:ok, parsed} ->
+        {:ok, parsed["players"]["top"]["username"],
+         Calendar.strftime(
+           Date.from_iso8601!(String.replace(parsed["game"]["pgnHeaders"]["Date"], ".", "-")),
+           "%Y/%m"
+         )}
 
       _ ->
-        {:error, "Something bad happened requesting callback from chesscom"}
+        {:error, "Could not decode Chess.com JSON response"}
     end
   end
 
-  def extract_archive(username, archive_month) do
+  def fetch_archive(username, archive_month) do
     case HTTPoison.get(
            "https://api.chess.com/pub/player/#{username}/games/#{archive_month}",
            [],
            follow_redirect: true
          ) do
-      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        case Jason.decode(body) do
-          {:ok, parsed} ->
-            {:ok, parsed["games"]}
+      {:ok, %HTTPoison.Response{status_code: 200, body: body}} -> {:ok, body}
+      _ -> {:error, "Error fetching game archive from chesscom"}
+    end
+  end
 
-          _ ->
-            {:error, "Could not decode Chess.com JSON response"}
-        end
-
-      _ ->
-        {:error, "Something bad happened requesting callback from chesscom"}
+  def parse_archive(httpbody) do
+    case Jason.decode(httpbody) do
+      {:ok, parsed} -> {:ok, parsed["games"]}
+      _ -> {:error, "Could not decode Chess.com JSON response"}
     end
   end
 
@@ -75,12 +70,8 @@ defmodule Elswisser.Games.Chesscom do
     game_link = "https://www.chess.com/game/live/#{game_id}"
 
     case Enum.find(games, fn g -> g["url"] == game_link end) do
-      nil -> {:error, "Could not find PGN for game"}
+      nil -> {:error, "Could not find PGN for game (id: #{game_id}, link: #{game_link})"}
       game -> {:ok, game["pgn"]}
     end
-  end
-
-  defp link_regexp do
-    ~r/chess\.com\/game\/live\/(?<id>\d+)/
   end
 end
