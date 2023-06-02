@@ -21,11 +21,9 @@ defmodule Elswisser.Games.Chesscom do
   end
 
   def extract_id(game_link) do
-    captures = Regex.named_captures(link_regexp(), game_link)
-
-    case captures["id"] do
-      nil -> {:error, "Could not find game ID in game link!"}
-      game_id -> {:ok, game_id}
+    case Regex.named_captures(~r/chess\.com\/game\/live\/(?<id>\d+)/, game_link) do
+      %{"id" => game_id} when not is_nil(game_id) -> {:ok, game_id}
+      _ -> {:error, "Could not find game ID in game link!"}
     end
   end
 
@@ -75,9 +73,5 @@ defmodule Elswisser.Games.Chesscom do
       nil -> {:error, "Could not find PGN for game (id: #{game_id}, link: #{game_link})"}
       game -> {:ok, game["pgn"]}
     end
-  end
-
-  defp link_regexp do
-    ~r/chess\.com\/game\/live\/(?<id>\d+)/
   end
 end
