@@ -16,6 +16,7 @@ defmodule Elswisser.RoundsFixtures do
       attrs
       |> Enum.into(%{
         number: 42,
+        status: :playing,
         tournament_id: tournament.id
       })
       |> Elswisser.Rounds.create_round()

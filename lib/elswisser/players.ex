@@ -21,6 +21,12 @@ defmodule Elswisser.Players do
     Repo.all(Player)
   end
 
+  def list_by_id(nil), do: list_by_id([])
+
+  def list_by_id(ids) when is_list(ids) do
+    from(p in Player) |> Player.where_id(ids) |> Repo.all()
+  end
+
   @doc """
   Gets a single player.
 
