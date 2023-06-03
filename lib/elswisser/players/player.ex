@@ -1,6 +1,7 @@
 defmodule Elswisser.Players.Player do
   use Ecto.Schema
   import Ecto.Changeset
+  import Ecto.Query, warn: false
 
   schema "players" do
     field(:name, :string)
@@ -21,5 +22,13 @@ defmodule Elswisser.Players.Player do
     player
     |> cast(attrs, [:name, :rating])
     |> validate_required([:name, :rating])
+  end
+
+  def where_id(query, id) when is_integer(id) do
+    from p in query, where: p.id == ^id
+  end
+
+  def where_id(query, ids) when is_list(ids) do
+    from p in query, where: p.id in ^ids
   end
 end

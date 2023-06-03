@@ -6,6 +6,7 @@ defmodule ElswisserWeb.RosterController do
 
   def index(conn, %{"tournament_id" => id}) do
     tournament = Tournaments.get_tournament_with_rounds!(id)
+    current_round = Tournaments.current_round(tournament)
     changeset = Tournaments.empty_changeset(tournament)
     {in_players, out_players} = Tournaments.get_roster(id)
 
@@ -15,6 +16,8 @@ defmodule ElswisserWeb.RosterController do
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
     |> render(:index,
       tournament: tournament,
+      current_round: current_round,
+      active: "roster",
       changeset: changeset,
       in_players: in_players,
       out_players: out_players,

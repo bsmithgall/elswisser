@@ -7,8 +7,11 @@ defmodule ElswisserWeb.TournamentController do
   alias Elswisser.Scores
   alias Elswisser.Tournaments.Tournament
 
-  plug :put_root_layout,
-       [html: {ElswisserWeb.TournamentLayouts, :root}] when action in [:show, :edit, :crosstable]
+  plug :normalize_id
+  plug :fetch_with_all when action in [:show, :edit, :scores, :crosstable]
+  plug :get_current_round when action in [:show, :edit, :scores, :crosstable]
+  plug :fetch_games when action in [:scores, :crosstable]
+  plug :calculate_scores when action in [:scores, :crosstable]
 
   def index(conn, _params) do
     tournaments = Tournaments.list_tournaments()
@@ -32,21 +35,25 @@ defmodule ElswisserWeb.TournamentController do
     end
   end
 
-  def show(conn, %{"id" => id}) do
-    tournament = Tournaments.get_tournament_with_all!(id)
-
+  def show(conn, _params) do
     conn
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
-    |> render(:show, tournament: tournament)
+    |> render(:show,
+      tournament: conn.assigns[:tournament],
+      current_round: conn.assigns[:current_round]
+    )
   end
 
-  def edit(conn, %{"id" => id}) do
-    tournament = Tournaments.get_tournament_with_all!(id)
-    changeset = Tournaments.empty_changeset(tournament)
+  def edit(conn, _params) do
+    changeset = Tournaments.empty_changeset(conn.assigns[:tournament])
 
     conn
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
-    |> render(:edit, tournament: tournament, changeset: changeset)
+    |> render(:edit,
+      tournament: conn.assigns[:tournament],
+      current_round: conn.assigns[:current_round],
+      changeset: changeset
+    )
   end
 
   def update(conn, %{"id" => id, "tournament" => tournament_params}) do
@@ -72,23 +79,58 @@ defmodule ElswisserWeb.TournamentController do
     |> redirect(to: ~p"/tournaments")
   end
 
-  def crosstable(conn, %{"tournament_id" => id}) do
-    tournament = Tournaments.get_tournament_with_all!(id)
-    games = Tournaments.get_all_games_in_tournament!(id)
-    scores = Scores.calculate(games) |> Scores.with_players(tournament.players) |> Scores.sort()
-
+  def crosstable(conn, _params) do
     conn
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
-    |> render(:crosstable, tournament: tournament, games: games, scores: scores)
+    |> render(:crosstable,
+      tournament: conn.assigns[:tournament],
+      current_round: conn.assigns[:current_round],
+      games: conn.assigns[:games],
+      scores: conn.assigns[:scores],
+      active: "crosstable"
+    )
   end
 
-  def scores(conn, %{"tournament_id" => id}) do
-    tournament = Tournaments.get_tournament_with_all!(id)
-    games = Tournaments.get_all_games_in_tournament!(id)
-    scores = Scores.calculate(games) |> Scores.with_players(tournament.players) |> Scores.sort()
-
+  def scores(conn, _params) do
     conn
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
-    |> render(:scores, tournament: tournament, games: games, scores: scores)
+    |> render(:scores,
+      tournament: conn.assigns[:tournament],
+      current_round: conn.assigns[:current_round],
+      games: conn.assigns[:games],
+      scores: conn.assigns[:scores],
+      active: "scores"
+    )
+  end
+
+  defp normalize_id(conn, _) do
+    case is_nil(conn.params["id"]) do
+      true -> assign(conn, :tournament_id, conn.params["tournament_id"])
+      false -> assign(conn, :tournament_id, conn.params["id"])
+    end
+  end
+
+  defp fetch_with_all(conn, _) do
+    tournament = Tournaments.get_tournament_with_all!(conn.assigns[:tournament_id])
+    assign(conn, :tournament, tournament)
+  end
+
+  defp get_current_round(conn, _) do
+    current_round = Tournaments.current_round(conn.assigns[:tournament])
+    assign(conn, :current_round, current_round)
+  end
+
+  defp fetch_games(conn, _) do
+    games = Tournaments.get_all_games_in_tournament!(conn.assigns[:tournament_id])
+    assign(conn, :games, games)
+  end
+
+  defp calculate_scores(conn, _) do
+    scores =
+      Scores.calculate(conn.assigns[:games])
+      |> Scores.with_players(conn.assigns[:tournament].players)
+      |> Scores.sort()
+
+    assign(conn, :scores, scores)
   end
 end

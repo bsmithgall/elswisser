@@ -10,13 +10,13 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
-import Ecto.Query
 alias Elswisser.Repo
 alias Elswisser.Players
 alias Elswisser.Tournaments
 alias Elswisser.Tournaments.Tournament
 alias Elswisser.Rounds
 alias Elswisser.Players.Player
+require Logger
 
 # Generate twelve players
 for name <- [
@@ -44,27 +44,34 @@ for name <- ["Now THIS is Podracing", "Mos Eisley Cantina Championship 2023"] do
   Tournaments.create_tournament(%{name: name, player_ids: player_ids})
 end
 
-# Fill in tournament number one with games, tourn two with one round
-for tourn <- Repo.all(Tournament) |> Repo.preload(:rounds) do
-  rounds =
-    if tourn.name == "Now THIS is Podracing" do
-      tourn.rounds
-    else
-      Enum.take(tourn.rounds, 1)
+for tourn <- Repo.all(Tournament) do
+  len =
+    case tourn.name do
+      "Now THIS is Podracing" -> tourn.length
+      _ -> 1
     end
 
-  for round <- rounds do
-    for pair <- Enum.shuffle(players) |> Enum.chunk_every(2) do
-      [white, black] = pair
+  for number <- 0..(len - 1) do
+    case Rounds.create_round(%{tournament_id: tourn.id, number: number + 1, status: :complete}) do
+      {:ok, rnd} ->
+        for pair <- Enum.shuffle(players) |> Enum.chunk_every(2) do
+          [white, black] = pair
 
-      game = %{
-        white_id: white.id,
-        black_id: black.id,
-        result: Enum.random([-1, 0, 1]),
-        tournament_id: tourn.id
-      }
+          game = %{
+            white_id: white.id,
+            black_id: black.id,
+            result: Enum.random([-1, 0, 1]),
+            tournament_id: tourn.id
+          }
 
-      Rounds.add_game(round, game)
+          Rounds.add_game(rnd, game)
+        end
+
+      {:error, changeset} ->
+        Logger.error("Failed to create a round! #{changeset}")
+        exit(:shutdown)
     end
   end
 end
+
+Logger.info("Done!")

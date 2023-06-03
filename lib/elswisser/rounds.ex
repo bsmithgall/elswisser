@@ -27,6 +27,16 @@ defmodule Elswisser.Rounds do
     Repo.get!(Round, id)
   end
 
+  def get_round_with_games!(id) do
+    from(r in Round)
+    |> Round.where_id(id)
+    |> Round.with_games()
+    |> Game.with_white_player()
+    |> Game.with_black_player()
+    |> Game.preload_players()
+    |> Repo.one!()
+  end
+
   @doc """
   Creates a round.
 

@@ -7,7 +7,6 @@ defmodule Elswisser.Tournaments do
   alias Elswisser.Repo
 
   alias Elswisser.Tournaments.Tournament
-  alias Elswisser.Players.Player
   alias Elswisser.Rounds.Round
   alias Elswisser.Games.Game
 
@@ -47,6 +46,10 @@ defmodule Elswisser.Tournaments do
     Tournament
     |> Repo.get!(id)
     |> Repo.preload(:rounds)
+  end
+
+  def current_round(%Tournament{} = tournament) do
+    Enum.max_by(tournament.rounds, fn r -> r.number end)
   end
 
   def get_tournament_with_players!(id) do
@@ -137,33 +140,19 @@ defmodule Elswisser.Tournaments do
 
   """
   def change_tournament(%Tournament{} = tournament, attrs \\ %{}) do
-    players = list_players_by_id(attrs[:player_ids])
+    players = Elswisser.Players.list_by_id(attrs[:player_ids])
     len = calculate_length(players)
-
-    rounds =
-      if is_nil(tournament.id) do
-        ensure_rounds(len)
-      else
-        ensure_rounds(len, tournament.id)
-      end
 
     tournament
     |> Repo.preload(:players)
     |> Repo.preload(:rounds)
     |> Tournament.changeset(attrs |> ensure_atom |> Map.merge(%{length: len}))
     |> maybe_put_players(players)
-    |> Ecto.Changeset.put_assoc(:rounds, rounds)
   end
 
   def empty_changeset(%Tournament{} = tournament, attrs \\ %{}) do
     tournament
     |> Tournament.changeset(attrs)
-  end
-
-  def list_players_by_id(nil), do: list_players_by_id([])
-
-  def list_players_by_id(player_ids) when is_list(player_ids) do
-    Repo.all(from p in Player, where: p.id in ^player_ids)
   end
 
   def get_roster(tournament_id) when is_nil(tournament_id) do
@@ -199,29 +188,6 @@ defmodule Elswisser.Tournaments do
   end
 
   def calculate_length(_), do: 0
-
-  def ensure_rounds(len) do
-    Enum.map(1..len, fn n -> %{number: n} end)
-  end
-
-  @doc """
-  Ensures that there are sufficient rounds if we add a new player and it gets
-  pushed over the previous threshold for number of swiss games.
-  """
-  def ensure_rounds(len, id) do
-    rounds = Repo.all(from(r in Round, where: r.tournament_id == ^id))
-
-    cond do
-      length(rounds) < len ->
-        rounds ++
-          Enum.map((length(rounds) + 1)..len, fn n ->
-            %{tournament_id: id, number: n}
-          end)
-
-      true ->
-        rounds
-    end
-  end
 
   defp ensure_atom(attrs) when is_map(attrs) do
     Enum.reduce(attrs, %{}, fn

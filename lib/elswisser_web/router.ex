@@ -23,7 +23,7 @@ defmodule ElswisserWeb.Router do
       get("/crosstable", TournamentController, :crosstable, as: :crosstable)
       get("/scores", TournamentController, :scores, as: :scores)
 
-      resources("/rounds", RoundController, only: [:show, :edit, :update])
+      resources("/rounds", RoundController, only: [:show, :new, :update])
       resources("/games", GameController, only: [:show, :edit, :update])
 
       get("/roster", RosterController, :index)

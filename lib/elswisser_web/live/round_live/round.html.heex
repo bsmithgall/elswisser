@@ -1,4 +1,4 @@
-<%= for game <- @games do %>
+<%= for game <- @round.games do %>
   <form id={"game-#{game.id}"} phx-change="save-result" />
 <% end %>
 
@@ -13,33 +13,35 @@
   </thead>
   <tbody class="relative divide-y divide-zinc-100 border-t border-zinc-200
   text-sm leading-6 text-zinc-700">
-    <%= for game <- @games do %>
+    <%= for game <- @round.games do %>
       <input type="hidden" name="id" value={game.id} form={"game-#{game.id}"} />
       <tr class="border-zinc-200 border-b group hover:bg-zinc-50">
         <td>
           <span class="w-6 inline-block">
-            <.icon :if={game.game.result == 1} name="hero-trophy" />
-            <.icon :if={game.game.result == 0} name="hero-scale" />
+            <.icon :if={game.result == 1} name="hero-trophy" />
+            <.icon :if={game.result == 0} name="hero-scale" />
           </span>
           <%= game.white.name %>
         </td>
         <td>
           <span class="w-6 inline-block">
-            <.icon :if={game.game.result == -1} name="hero-trophy" />
-            <.icon :if={game.game.result == 0} name="hero-scale" />
+            <.icon :if={game.result == -1} name="hero-trophy" />
+            <.icon :if={game.result == 0} name="hero-scale" />
           </span>
           <%= game.black.name %>
         </td>
         <td>
-          <.input
-            id={"game-#{game.id}-result"}
-            name="result"
-            type="select"
-            options={["White won": "1", "Black won": -1, Draw: 0]}
-            value={game.game.result}
-            phx-value-id={game.game.id}
-            form={"game-#{game.id}"}
-          />
+          <div class="-mt-1">
+            <.input
+              id={"game-#{game.id}-result"}
+              name="result"
+              type="select"
+              options={["White won": "1", "Black won": -1, Draw: 0]}
+              value={game.result}
+              phx-value-id={game.id}
+              form={"game-#{game.id}"}
+            />
+          </div>
         </td>
         <td></td>
       </tr>

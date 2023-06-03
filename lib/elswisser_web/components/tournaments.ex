@@ -5,57 +5,65 @@ defmodule ElswisserWeb.TournamentLayouts do
 
   embed_templates("tournaments/*")
 
-  attr(:tournament, :map, required: true)
-
-  def sidenav(assigns) do
-    ~H"""
-    <aside class="flex flex-col grow px-4 pt-2 border-r border-r-slate-200 h-[calc(100vh-62px)] overflow-y">
-      <div class="flex place-content-center pb-2">
-        <h1 class="text-lg font-semibold leading-8 text-zinc-800">
-          <.link href={~p"/tournaments/#{@tournament}"}><%= @tournament.name %></.link>
-        </h1>
-      </div>
-      <hr />
-      <div>
-        <.navlink label="Roster" href={~p"/tournaments/#{@tournament}/roster"} icon="hero-user-group" />
-        <.navlink
-          label="Scores"
-          href={~p"/tournaments/#{@tournament}/scores"}
-          icon="hero-list-bullet"
-        />
-        <.navlink
-          label="Crosstable"
-          href={~p"/tournaments/#{@tournament}/crosstable"}
-          icon="hero-table-cells"
-        />
-        <.navlink label="Stats" href="#" icon="hero-chart-bar-square" />
-      </div>
-      <hr />
-      <div>
-        <h2 class="mt-2 text-sm leading-6 text-zinc-600 pl-1 pb-1">
-          Rounds
-        </h2>
-        <%= for rnd <- @tournament.rounds do %>
-          <.navlink
-            href={~p"/tournaments/#{rnd.tournament_id}/rounds/#{rnd}"}
-            label={"Round #{rnd.number}"}
-          />
-        <% end %>
-      </div>
-    </aside>
-    """
-  end
-
   attr(:href, :string, required: true)
   attr(:label, :string, required: true)
   attr(:icon, :string, default: nil)
+  attr(:icon_class, :string, default: nil)
+  attr(:active, :boolean, default: false)
 
   def navlink(assigns) do
     ~H"""
-    <div class="hover:bg-slate-300 cursor-pointer rounded-md p-1" phx-click={JS.navigate(@href)}>
-      <.icon :if={@icon != nil} name={@icon} />
+    <div
+      class={["hover:bg-slate-300 cursor-pointer rounded-md p-1", @active && "bg-slate-200"]}
+      phx-click={JS.navigate(@href)}
+    >
+      <span :if={@icon != nil} class={[@icon, @icon_class, "-mt-1"]} />
       <a href={@href}><%= @label %></a>
     </div>
     """
+  end
+
+  attr(:tournament, :map, required: true)
+  attr(:current_round, :map, required: true)
+
+  def new_round_form(assigns) do
+    ~H"""
+    <form
+      :if={@tournament.length != @current_round.number}
+      class="mt-4"
+      action={~p"/tournaments/#{@tournament}/rounds/new"}
+    >
+      <input type="hidden" value={@current_round.number + 1} name="number" />
+      <.button
+        type="submit"
+        class="text-center disabled:bg-zinc-400"
+        disabled={@current_round.status != :complete}
+      >
+        <.icon class="mr-2 -mt-1" name="hero-plus" />Add new round
+      </.button>
+    </form>
+    """
+  end
+
+  attr(:tournament, :map, required: true)
+  attr(:current_round, :map, required: true)
+  attr(:active, :string, default: nil)
+
+  def sidenav(assigns)
+
+  defp icon_by_round_status(rnd) do
+    case rnd.status do
+      :pairing -> "hero-adjustments-horizontal-mini"
+      :playing -> "hero-play-circle-mini"
+      :complete -> "hero-check-circle-mini"
+      _ -> "hero-question-mark-circle-mini"
+    end
+  end
+
+  defp icon_class_by_round_status(rnd) do
+    case rnd.status do
+      :complete -> "bg-emerald-800"
+      _ -> nil
+    end
   end
 end
