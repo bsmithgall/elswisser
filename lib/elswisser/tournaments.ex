@@ -48,8 +48,12 @@ defmodule Elswisser.Tournaments do
     |> Repo.preload(:rounds)
   end
 
-  def current_round(%Tournament{} = tournament) do
+  def current_round(%Tournament{} = tournament) when is_map_key(tournament, "rounds") do
     Enum.max_by(tournament.rounds, fn r -> r.number end)
+  end
+
+  def current_round(%Tournament{} = tournament) when not is_map_key(tournament, "rounds") do
+    %Elswisser.Rounds.Round{number: 0}
   end
 
   def get_tournament_with_players!(id) do
