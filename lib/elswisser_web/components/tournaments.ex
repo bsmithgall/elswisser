@@ -31,7 +31,8 @@ defmodule ElswisserWeb.TournamentLayouts do
     <form
       :if={@tournament.length != @current_round.number}
       class="mt-4"
-      action={~p"/tournaments/#{@tournament}/rounds/new"}
+      action={~p"/tournaments/#{@tournament}/rounds"}
+      method="POST"
     >
       <input type="hidden" value={@current_round.number + 1} name="number" />
       <.button

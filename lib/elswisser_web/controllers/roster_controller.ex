@@ -4,10 +4,10 @@ defmodule ElswisserWeb.RosterController do
   alias Elswisser.Tournaments
   alias Elswisser.Players
 
+  plug ElswisserWeb.Plugs.EnsureTournament, "rounds" when action in [:index]
+
   def index(conn, %{"tournament_id" => id}) do
-    tournament = Tournaments.get_tournament_with_rounds!(id)
-    current_round = Tournaments.current_round(tournament)
-    changeset = Tournaments.empty_changeset(tournament)
+    changeset = Tournaments.empty_changeset(conn.assigns[:tournament])
     {in_players, out_players} = Tournaments.get_roster(id)
 
     new_player = Players.change_player(%Players.Player{})
@@ -15,8 +15,8 @@ defmodule ElswisserWeb.RosterController do
     conn
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
     |> render(:index,
-      tournament: tournament,
-      current_round: current_round,
+      tournament: conn.assigns[:tournament],
+      current_round: conn.assigns[:current_round],
       active: "roster",
       changeset: changeset,
       in_players: in_players,
