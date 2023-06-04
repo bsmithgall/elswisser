@@ -3,7 +3,7 @@ defmodule ElswisserWeb.RoundController do
 
   alias Elswisser.Rounds
 
-  plug(:fetch_round when action in [:show, :pairings])
+  plug(:fetch_round)
   plug(:ensure_round_in_tournament when action in [:show, :pairings])
 
   plug ElswisserWeb.Plugs.EnsureTournament,
@@ -39,21 +39,26 @@ defmodule ElswisserWeb.RoundController do
     end
   end
 
-  def pairings(conn, %{"tournament_id" => tournament_id, "id" => round_id}) do
+  def pairings(conn, %{"id" => id}) do
     conn
+    |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
+    |> render(:pairing,
+      round: conn.assigns[:round],
+      tournament: conn.assigns[:tournament],
+      current_round: conn.assigns[:current_round],
+      active: "round-#{id}"
+    )
   end
 
-  def update(conn, %{"id" => id, "round" => round_params}) do
-    round = Rounds.get_round!(id)
-
-    case Rounds.update_round(round, round_params) do
+  def update(conn, %{"round" => round_params}) do
+    case Rounds.update_round(conn.assigns[:round], round_params) do
       {:ok, round} ->
         conn
         |> put_flash(:info, "Round updated successfully.")
         |> redirect(to: ~p"/tournaments/#{round.tournament}/rounds/#{round}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, :edit, round: round, changeset: changeset)
+        render(conn, :edit, round: conn.assigns[:round], changeset: changeset)
     end
   end
 

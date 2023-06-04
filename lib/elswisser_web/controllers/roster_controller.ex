@@ -6,7 +6,7 @@ defmodule ElswisserWeb.RosterController do
 
   plug ElswisserWeb.Plugs.EnsureTournament, "rounds" when action in [:index]
 
-  def index(conn, %{"tournament_id" => id}) do
+  def index(conn, %{"id" => id}) do
     changeset = Tournaments.empty_changeset(conn.assigns[:tournament])
     {in_players, out_players} = Tournaments.get_roster(id)
 
@@ -25,7 +25,7 @@ defmodule ElswisserWeb.RosterController do
     )
   end
 
-  def update(conn, %{"tournament_id" => id, "player_ids" => player_ids}) do
+  def update(conn, %{"id" => id, "player_ids" => player_ids}) do
     tournament = Tournaments.get_tournament!(id)
 
     case Tournaments.update_tournament(tournament, %{player_ids: player_ids}) do
