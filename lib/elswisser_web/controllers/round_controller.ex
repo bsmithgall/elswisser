@@ -4,10 +4,8 @@ defmodule ElswisserWeb.RoundController do
   alias Elswisser.Rounds
 
   plug(:fetch_round)
-  plug(:ensure_round_in_tournament when action in [:show, :pairings])
-
-  plug ElswisserWeb.Plugs.EnsureTournament,
-       "rounds" when action in [:show, :pairings]
+  plug(:ensure_round_in_tournament)
+  plug(ElswisserWeb.Plugs.EnsureTournament, "rounds" when action in [:show, :pairings])
 
   plug(
     :put_root_layout,
