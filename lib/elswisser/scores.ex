@@ -32,6 +32,18 @@ defmodule Elswisser.Scores do
   end
 
   @doc """
+  Given a list of games, collapse into an individual score.
+  """
+  def raw_score_for_player(games, player_id) when is_list(games) do
+    Enum.reduce(games, 0, fn g, acc ->
+      case player_id == g.white_id do
+        true -> acc + white_score_from_result(g.result)
+        false -> acc + black_score_from_result(g.result)
+      end
+    end)
+  end
+
+  @doc """
   Given the struct representing a game + a round, build out all available
   scores, including tiebreak scores that can be calculated at this point. The
   additional tiebreaks will be calculated later once the raw score mapping is

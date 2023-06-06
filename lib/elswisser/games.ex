@@ -5,11 +5,18 @@ defmodule Elswisser.Games do
   alias Elswisser.Games.Game
 
   def get_game!(id) do
-    Repo.get!(Game, id)
+    Game.from() |> Game.where_id(id) |> Repo.one!()
+  end
+
+  def get_games_from_tournament_for_player(tournament_id, player_id) do
+    Game.from()
+    |> Game.where_tournament_id(tournament_id)
+    |> Game.where_player_id(player_id)
+    |> Repo.all()
   end
 
   def get_game_with_players!(id) do
-    from(g in Game)
+    Game.from()
     |> Game.where_id(id)
     |> Game.with_black_player()
     |> Game.with_white_player()

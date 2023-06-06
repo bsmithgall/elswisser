@@ -1,1 +1,14 @@
-TODO
+<.header class="pt-4">
+  Round <%= @round.number %> pairings
+  <:actions>
+    <.link href={~p"/tournaments/#{@round.tournament_id}/rounds/#{@round}"}>
+      <.button>View games</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<%= live_render(
+  @conn,
+  ElswisserWeb.RoundLive.Pairing,
+  session: %{"round_id" => @round.id, "tournament_id" => @round.tournament_id}
+) %>

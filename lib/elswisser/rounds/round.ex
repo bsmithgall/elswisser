@@ -6,12 +6,12 @@ defmodule Elswisser.Rounds.Round do
   alias Elswisser.Games.Game
 
   schema "rounds" do
-    field :number, :integer
-    field :expected_games, :integer, virtual: true
-    field :status, Ecto.Enum, values: [:pairing, :playing, :complete]
+    field(:number, :integer)
+    field(:expected_games, :integer, virtual: true)
+    field(:status, Ecto.Enum, values: [:pairing, :playing, :complete])
 
-    belongs_to :tournament, Elswisser.Tournaments.Tournament
-    has_many :games, Game
+    belongs_to(:tournament, Elswisser.Tournaments.Tournament)
+    has_many(:games, Game)
 
     timestamps()
   end
@@ -23,11 +23,19 @@ defmodule Elswisser.Rounds.Round do
     |> validate_required([:number, :tournament_id, :status])
   end
 
+  def from() do
+    from(r in Elswisser.Rounds.Round, as: :round)
+  end
+
   def where_id(query, id) do
-    from r in query, where: r.id == ^id
+    from(r in query, where: r.id == ^id)
   end
 
   def with_games(query) do
-    from r in query, left_join: g in assoc(r, :games), as: :game, preload: [games: g]
+    from(r in query, left_join: g in assoc(r, :games), as: :game)
+  end
+
+  def preload_games_and_players(query) do
+    from([game: g, white: w, black: b] in query, preload: [games: {g, white: w, black: b}])
   end
 end

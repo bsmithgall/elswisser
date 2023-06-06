@@ -35,11 +35,7 @@ defmodule ElswisserWeb.TournamentLayouts do
       method="POST"
     >
       <input type="hidden" value={@current_round.number + 1} name="number" />
-      <.button
-        type="submit"
-        class="text-center disabled:bg-zinc-400"
-        disabled={@current_round.status != :complete}
-      >
+      <.button type="submit" class="text-center" disabled={@current_round.status != :complete}>
         <.icon class="mr-2 -mt-1" name="hero-plus" />Add new round
       </.button>
     </form>

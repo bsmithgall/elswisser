@@ -23,12 +23,24 @@ defmodule Elswisser.Games.Game do
     |> validate_required([:white_id, :black_id, :result, :round_id, :tournament_id])
   end
 
+  def from() do
+    from g in Elswisser.Games.Game, as: :game
+  end
+
   def where_id(query, id) do
     from g in query, where: g.id == ^id
   end
 
+  def where_tournament_id(query, tournament_id) do
+    from [..., game: g] in query, where: g.tournament_id == ^tournament_id
+  end
+
   def where_round_id(query, round_id) do
     from g in query, where: g.round_id == ^round_id
+  end
+
+  def where_player_id(query, player_id) do
+    from [..., game: g] in query, where: g.white_id == ^player_id or g.black_id == ^player_id
   end
 
   def with_white_player(query) do
@@ -44,6 +56,6 @@ defmodule Elswisser.Games.Game do
   end
 
   def preload_players(query) do
-    from [game: g, white: w, black: b] in query, preload: [games: {g, white: w, black: b}]
+    from [game: g, white: w, black: b] in query, preload: [white: w, black: b]
   end
 end

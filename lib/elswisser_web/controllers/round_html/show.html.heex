@@ -1,5 +1,10 @@
 <.header class="pt-4">
-  Round <%= @round.number %>
+  Round <%= @round.number %> games
+  <:actions>
+    <.link href={~p"/tournaments/#{@round.tournament_id}/rounds/#{@round}/pairings"}>
+      <.button>View pairings</.button>
+    </.link>
+  </:actions>
 </.header>
 
 <%= live_render(

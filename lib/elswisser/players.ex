@@ -7,6 +7,7 @@ defmodule Elswisser.Players do
   alias Elswisser.Repo
 
   alias Elswisser.Players.Player
+  alias Elswisser.Games.Game
 
   @doc """
   Returns the list of players.
@@ -42,6 +43,20 @@ defmodule Elswisser.Players do
 
   """
   def get_player!(id), do: Repo.get!(Player, id)
+
+  def get_player_with_tournament_history(id, tournament_id) do
+    games = Elswisser.Games.get_games_from_tournament_for_player(tournament_id, id)
+
+    from(p in Player)
+    |> Player.where_id(id)
+    |> preload(
+      white_games:
+        ^fn player_id -> Enum.filter(games, fn g -> Enum.member?(player_id, g.white_id) end) end,
+      black_games:
+        ^fn player_id -> Enum.filter(games, fn g -> Enum.member?(player_id, g.black_id) end) end
+    )
+    |> Repo.one()
+  end
 
   @doc """
   Creates a player.

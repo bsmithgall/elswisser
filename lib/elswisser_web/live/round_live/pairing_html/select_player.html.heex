@@ -1,0 +1,28 @@
+<table class="table-auto w-full">
+  <thead>
+    <tr class="border-b text-sm leading-6 text-left">
+      <th></th>
+      <th>Player</th>
+    </tr>
+  </thead>
+  <tbody class="text-sm leading-6">
+    <%= for player <- @players do %>
+      <tr class="border-b group hover:bg-zinc-100">
+        <td>
+          <button
+            phx-click="select-player"
+            phx-value-player-id={player.id}
+            phx-value-tournament-id={@tournament_id}
+            disabled={(@white && @white.id == player.id) or (@black && @black.id == player.id)}
+            class="hover:cursor-pointer bg-zinc-700 hover:bg-zinc-900
+            disabled:bg-zinc-500 disabled:cursor-auto"
+          >
+            <.icon :if={@color == :white} name="hero-plus-circle" class="-mt-1 ml-1 -mr-1" />
+            <.icon :if={@color == :black} name="hero-plus-circle-solid" class="hover:bg-zinc-600" />
+          </button>
+        </td>
+        <td><%= player.name %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
