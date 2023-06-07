@@ -8,6 +8,12 @@ defmodule Elswisser.Games do
     Game.from() |> Game.where_id(id) |> Repo.one!()
   end
 
+  def create_game(attrs \\ %{}) do
+    %Game{}
+    |> Game.changeset(attrs)
+    |> Repo.insert()
+  end
+
   def get_games_from_tournament_for_player(tournament_id, player_id) do
     Game.from()
     |> Game.where_tournament_id(tournament_id)

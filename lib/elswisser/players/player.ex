@@ -10,9 +10,10 @@ defmodule Elswisser.Players.Player do
     has_many(:white_games, Elswisser.Games.Game, foreign_key: :white_id)
     has_many(:black_games, Elswisser.Games.Game, foreign_key: :black_id)
 
-    many_to_many :tournaments, Elswisser.Tournaments.Tournament,
+    many_to_many(:tournaments, Elswisser.Tournaments.Tournament,
       join_through: Elswisser.Tournaments.TournamentPlayer,
       on_replace: :delete
+    )
 
     timestamps()
   end
@@ -25,15 +26,15 @@ defmodule Elswisser.Players.Player do
   end
 
   def from do
-    from p in Elswisser.Players.Player, as: :player
+    from(p in Elswisser.Players.Player, as: :player)
   end
 
   def where_id(query, id) when is_binary(id) when is_integer(id) do
-    from p in query, where: p.id == ^id
+    from(p in query, where: p.id == ^id)
   end
 
   def where_id(query, ids) when is_list(ids) do
-    from p in query, where: p.id in ^ids
+    from(p in query, where: p.id in ^ids)
   end
 
   def with_games(query) do
@@ -41,32 +42,19 @@ defmodule Elswisser.Players.Player do
   end
 
   defp with_white_games(query) do
-    from p in query,
+    from(p in query,
       left_join: w in assoc(p, :white_games),
       as: :white_games,
       preload: [white_games: w]
+    )
   end
 
   defp with_black_games(query) do
-    from p in query,
+    from(p in query,
       left_join: b in assoc(p, :black_games),
       as: :black_games,
       preload: [black_games: b]
-  end
-
-  def with_games_for_tournament(query, tournament_id) do
-    tournament_games =
-      from(g in Elswisser.Games.Game, as: :game)
-      |> Elswisser.Games.Game.where_tournament_id(tournament_id)
-
-    from p in query,
-      left_join: w in subquery(tournament_games),
-      on: p.id == w.white_id,
-      as: :white_games,
-      left_join: b in subquery(tournament_games),
-      on: p.id == b.white_id,
-      as: :black_games,
-      preload: [black_games: b, white_games: w]
+    )
   end
 
   @doc """

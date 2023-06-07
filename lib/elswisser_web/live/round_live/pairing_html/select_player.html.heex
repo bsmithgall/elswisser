@@ -12,8 +12,10 @@
           <button
             phx-click="select-player"
             phx-value-player-id={player.id}
-            phx-value-tournament-id={@tournament_id}
-            disabled={(@white && @white.id == player.id) or (@black && @black.id == player.id)}
+            disabled={
+              (not is_nil(@white) && @white.id == player.id) or
+                (not is_nil(@black) && @black.id == player.id)
+            }
             class="hover:cursor-pointer bg-zinc-700 hover:bg-zinc-900
             disabled:bg-zinc-500 disabled:cursor-auto"
           >

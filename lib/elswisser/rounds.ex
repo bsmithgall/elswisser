@@ -28,7 +28,7 @@ defmodule Elswisser.Rounds do
   end
 
   def get_round(id) do
-    from(r in Round) |> Round.where_id(id) |> Repo.one()
+    Round.from() |> Round.where_id(id) |> Repo.one()
   end
 
   def get_round_with_games!(id) do
@@ -78,7 +78,7 @@ defmodule Elswisser.Rounds do
   end
 
   def add_game(%Round{} = r, game_attrs) do
-    %Game{round_id: r.id}
+    %Game{}
     |> Game.changeset(game_attrs)
     |> Ecto.Changeset.put_assoc(:round, r)
     |> Repo.insert()

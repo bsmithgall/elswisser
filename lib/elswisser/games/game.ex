@@ -20,7 +20,7 @@ defmodule Elswisser.Games.Game do
   def changeset(game, attrs) do
     game
     |> cast(attrs, [:white_id, :black_id, :result, :round_id, :game_link, :tournament_id, :pgn])
-    |> validate_required([:white_id, :black_id, :result, :round_id, :tournament_id])
+    |> validate_required([:white_id, :black_id, :round_id, :tournament_id])
   end
 
   def from() do

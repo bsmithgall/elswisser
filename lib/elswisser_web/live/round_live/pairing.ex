@@ -3,6 +3,7 @@ defmodule ElswisserWeb.RoundLive.Pairing do
 
   alias Elswisser.Tournaments
   alias Elswisser.Players
+  alias Elswisser.Games
 
   embed_templates("pairing_html/*")
 
@@ -12,19 +13,21 @@ defmodule ElswisserWeb.RoundLive.Pairing do
      socket
      |> switch_color()
      |> assign(:round_id, session["round_id"])
+     |> assign(:tournament_id, session["tournament_id"])
      |> assign(:white, Players.get_player_with_tournament_history(4, session["tournament_id"]))
+     |> assign(:black, Players.get_player_with_tournament_history(5, session["tournament_id"]))
      |> assign(:tournament, fetch_games(session["tournament_id"])), layout: false}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
+    <.flash_group flash={@flash} />
     <div class="mt-8 flex">
       <div class="w-2/5 box-border border-r border-r-zinc-400 pr-4 mr-4">
         <h3>Select players for pairing</h3>
         <.select_player
           players={@tournament.players}
-          tournament_id={@tournament.id}
           color={@color}
           white={assigns[:white]}
           black={assigns[:black]}
@@ -34,7 +37,6 @@ defmodule ElswisserWeb.RoundLive.Pairing do
         <.actions
           white_id={assigns[:white] && assigns[:white].id}
           black_id={assigns[:black] && assigns[:black].id}
-          round_id={@round_id}
         />
         <.player_card :if={assigns[:white]} player={@white} />
         <.player_card :if={assigns[:black]} player={@black} />
@@ -45,29 +47,42 @@ defmodule ElswisserWeb.RoundLive.Pairing do
 
   @impl true
   def handle_event("select-player", params, socket) do
-    case Players.get_player_with_tournament_history(params["player-id"], params["tournament-id"]) do
+    case Players.get_player_with_tournament_history(
+           params["player-id"],
+           socket.assigns[:tournament_id]
+         ) do
       nil -> {:error, socket}
       player -> {:noreply, socket |> switch_color() |> assign(socket.assigns[:color], player)}
     end
   end
 
   @impl true
-  def handle_event("do-match", _params, socket) do
-    {:noreply, socket}
+  def handle_event("switch-colors", _params, socket) do
+    {:noreply,
+     socket |> assign(:white, socket.assigns[:black]) |> assign(:black, socket.assigns[:white])}
   end
 
-  def switch_color(socket) do
-    case socket.assigns[:color] do
-      :white -> assign(socket, :color, :black)
-      _ -> assign(socket, :color, :white)
+  @impl true
+  def handle_event("do-match", params, socket) do
+    case Games.create_game(%{
+           white_id: params["white-id"],
+           black_id: params["black-id"],
+           tournament_id: socket.assigns[:tournament_id],
+           round_id: socket.assigns[:round_id]
+         }) do
+      {:ok, _game} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Successfully paired players!")
+         |> switch_color()
+         |> assign(:white, nil)
+         |> assign(:black, nil)}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:error, socket |> put_flash(:error, "Could not create Game: #{changeset}")}
     end
   end
 
-  defp fetch_games(tournament_id) do
-    Tournaments.get_tournament_with_players!(tournament_id)
-  end
-
-  attr(:tournament_id, :integer, required: true)
   attr(:players, :list, required: true)
   attr(:color, :atom, required: true, values: [:white, :black])
   attr(:white, :map, default: nil, required: false)
@@ -75,7 +90,6 @@ defmodule ElswisserWeb.RoundLive.Pairing do
 
   def select_player(assigns)
 
-  attr(:round_id, :integer, required: true)
   attr(:white_id, :integer, default: nil, required: false)
   attr(:black_id, :integer, default: nil, required: false)
 
@@ -84,12 +98,14 @@ defmodule ElswisserWeb.RoundLive.Pairing do
 
     ~H"""
     <div class="text-center">
+      <.button disabled={@disabled} phx-click="switch-colors">
+        Swap colors
+      </.button>
       <.button
         disabled={@disabled}
         phx-click="do-match"
         phx-value-white-id={@white_id}
         phx-value-black-id={@black_id}
-        phx-value-round-id={@round_id}
       >
         Match players
       </.button>
@@ -134,5 +150,16 @@ defmodule ElswisserWeb.RoundLive.Pairing do
       </div>
     </div>
     """
+  end
+
+  defp switch_color(socket) do
+    case socket.assigns[:color] do
+      :white -> assign(socket, :color, :black)
+      _ -> assign(socket, :color, :white)
+    end
+  end
+
+  defp fetch_games(tournament_id) do
+    Tournaments.get_tournament_with_players!(tournament_id)
   end
 end

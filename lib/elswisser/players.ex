@@ -7,7 +7,6 @@ defmodule Elswisser.Players do
   alias Elswisser.Repo
 
   alias Elswisser.Players.Player
-  alias Elswisser.Games.Game
 
   @doc """
   Returns the list of players.
@@ -47,7 +46,7 @@ defmodule Elswisser.Players do
   def get_player_with_tournament_history(id, tournament_id) do
     games = Elswisser.Games.get_games_from_tournament_for_player(tournament_id, id)
 
-    from(p in Player)
+    Player.from()
     |> Player.where_id(id)
     |> preload(
       white_games:

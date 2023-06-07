@@ -9,7 +9,13 @@
 
 <.list>
   <:item title="Result">
-    <.result white={@game.white.name} black={@game.black.name} result={@game.result} />
+    <.result
+      :if={@game.result}
+      white={@game.white.name}
+      black={@game.black.name}
+      result={@game.result}
+    />
+    <span :if={is_nil(@game.result)}>Not played yet</span>
   </:item>
   <:item :if={!is_nil(@game.game_link)} title="PGN">
     <%= live_render(@conn, ElswisserWeb.GameLive.Pgn,

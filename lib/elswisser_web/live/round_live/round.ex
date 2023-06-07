@@ -50,7 +50,7 @@ defmodule ElswisserWeb.RoundLive.Round do
                   id={"game-#{game.id}-result"}
                   name="result"
                   type="select"
-                  options={["White won": "1", "Black won": -1, Draw: 0]}
+                  options={["Select Result": nil, "White won": "1", "Black won": -1, Draw: 0]}
                   value={game.result}
                   phx-value-id={game.id}
                   form={"game-#{game.id}"}

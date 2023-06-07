@@ -165,6 +165,7 @@ defmodule Elswisser.Scores do
       -1 -> 1
       0 -> 0.5
       1 -> 0
+      nil -> 0
     end
   end
 
@@ -173,6 +174,7 @@ defmodule Elswisser.Scores do
       -1 -> 0
       0 -> 0.5
       1 -> 1
+      nil -> 0
     end
   end
 end
