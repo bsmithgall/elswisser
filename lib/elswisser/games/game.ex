@@ -58,4 +58,12 @@ defmodule Elswisser.Games.Game do
   def preload_players(query) do
     from [game: g, white: w, black: b] in query, preload: [white: w, black: b]
   end
+
+  def select_white_id(query) do
+    from [game: g] in query, select: g.white_id
+  end
+
+  def select_black_id(query) do
+    from [game: g] in query, select: g.white_id
+  end
 end

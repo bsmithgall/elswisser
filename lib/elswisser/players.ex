@@ -7,6 +7,7 @@ defmodule Elswisser.Players do
   alias Elswisser.Repo
 
   alias Elswisser.Players.Player
+  alias Elswisser.Games.Game
 
   @doc """
   Returns the list of players.
@@ -24,7 +25,7 @@ defmodule Elswisser.Players do
   def list_by_id(nil), do: list_by_id([])
 
   def list_by_id(ids) when is_list(ids) do
-    from(p in Player) |> Player.where_id(ids) |> Repo.all()
+    Player.from() |> Player.where_id(ids) |> Repo.all()
   end
 
   @doc """
@@ -55,6 +56,31 @@ defmodule Elswisser.Players do
         ^fn player_id -> Enum.filter(games, fn g -> Enum.member?(player_id, g.black_id) end) end
     )
     |> Repo.one()
+  end
+
+  @doc """
+  For a given tournament_id and round_id, find all players that have yet to be
+  paired into a game together.
+  """
+  def get_unpaired_players(tournament_id, round_id) do
+    white_games =
+      Game.from()
+      |> Game.where_tournament_id(tournament_id)
+      |> Game.where_round_id(round_id)
+      |> Game.select_white_id()
+
+    black_games =
+      Game.from()
+      |> Game.where_tournament_id(tournament_id)
+      |> Game.where_round_id(round_id)
+      |> Game.select_black_id()
+
+    all_games = white_games |> union(^black_games)
+
+    Player.from()
+    |> Player.where_tournament_id(tournament_id)
+    |> Player.where_not_matching(all_games)
+    |> Repo.all()
   end
 
   @doc """

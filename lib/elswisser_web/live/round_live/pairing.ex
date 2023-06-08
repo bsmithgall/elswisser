@@ -1,7 +1,6 @@
 defmodule ElswisserWeb.RoundLive.Pairing do
   use ElswisserWeb, :live_view
 
-  alias Elswisser.Tournaments
   alias Elswisser.Players
   alias Elswisser.Games
 
@@ -16,7 +15,8 @@ defmodule ElswisserWeb.RoundLive.Pairing do
      |> assign(:tournament_id, session["tournament_id"])
      |> assign(:white, Players.get_player_with_tournament_history(4, session["tournament_id"]))
      |> assign(:black, Players.get_player_with_tournament_history(5, session["tournament_id"]))
-     |> assign(:tournament, fetch_games(session["tournament_id"])), layout: false}
+     |> assign(:players, fetch_unpaired_players(session["tournament_id"], session["round_id"])),
+     layout: false}
   end
 
   @impl true
@@ -27,7 +27,7 @@ defmodule ElswisserWeb.RoundLive.Pairing do
       <div class="w-2/5 box-border border-r border-r-zinc-400 pr-4 mr-4">
         <h3>Select players for pairing</h3>
         <.select_player
-          players={@tournament.players}
+          players={@players}
           color={@color}
           white={assigns[:white]}
           black={assigns[:black]}
@@ -70,11 +70,12 @@ defmodule ElswisserWeb.RoundLive.Pairing do
            tournament_id: socket.assigns[:tournament_id],
            round_id: socket.assigns[:round_id]
          }) do
-      {:ok, _game} ->
+      {:ok, game} ->
         {:noreply,
          socket
          |> put_flash(:info, "Successfully paired players!")
          |> switch_color()
+         |> assign(:players, filter_just_matched(socket.assigns[:players], game))
          |> assign(:white, nil)
          |> assign(:black, nil)}
 
@@ -159,7 +160,16 @@ defmodule ElswisserWeb.RoundLive.Pairing do
     end
   end
 
-  defp fetch_games(tournament_id) do
-    Tournaments.get_tournament_with_players!(tournament_id)
+  defp fetch_unpaired_players(tournament_id, round_id) do
+    Players.get_unpaired_players(tournament_id, round_id)
+  end
+
+  defp filter_just_matched(pairings, _game) when is_nil(pairings), do: []
+  defp filter_just_matched(pairings, game) when is_nil(game), do: pairings
+
+  defp filter_just_matched(pairings, game) when is_list(pairings) do
+    Enum.filter(pairings, fn p ->
+      p.id != game.white_id && p.id != game.black_id
+    end)
   end
 end

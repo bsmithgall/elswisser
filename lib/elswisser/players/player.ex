@@ -30,11 +30,23 @@ defmodule Elswisser.Players.Player do
   end
 
   def where_id(query, id) when is_binary(id) when is_integer(id) do
-    from(p in query, where: p.id == ^id)
+    from([player: p] in query, where: p.id == ^id)
   end
 
   def where_id(query, ids) when is_list(ids) do
-    from(p in query, where: p.id in ^ids)
+    from([player: p] in query, where: p.id in ^ids)
+  end
+
+  def where_tournament_id(query, id) do
+    from [player: p] in query,
+      join: t in assoc(p, :tournaments),
+      as: :tournament,
+      where: t.id == ^id
+  end
+
+  def where_not_matching(query, match_query) do
+    from [player: p] in query,
+      where: p.id not in subquery(match_query)
   end
 
   def with_games(query) do

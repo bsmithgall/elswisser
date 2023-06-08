@@ -6,6 +6,7 @@ defmodule Elswisser.Rounds do
   import Ecto.Query, warn: false
   alias Elswisser.Repo
 
+  alias Elswisser.Players.Player
   alias Elswisser.Rounds.Round
   alias Elswisser.Games.Game
 
