@@ -1,5 +1,6 @@
 defmodule ElswisserWeb.RoundLive.Pairing do
   use ElswisserWeb, :live_view
+  import ElswisserWeb.GameHTML, only: [result: 1]
 
   alias Elswisser.Players
   alias Elswisser.Games
@@ -12,9 +13,16 @@ defmodule ElswisserWeb.RoundLive.Pairing do
      socket
      |> switch_color()
      |> assign(:round_id, session["round_id"])
+     |> assign(:roster, session["tournament"].players)
      |> assign(:tournament_id, session["tournament_id"])
-     |> assign(:white, Players.get_player_with_tournament_history(4, session["tournament_id"]))
-     |> assign(:black, Players.get_player_with_tournament_history(5, session["tournament_id"]))
+     |> assign(
+       :white,
+       fetch_player_with_history(4, session["tournament_id"], session["tournament"].players)
+     )
+     |> assign(
+       :black,
+       fetch_player_with_history(5, session["tournament_id"], session["tournament"].players)
+     )
      |> assign(:players, fetch_unpaired_players(session["tournament_id"], session["round_id"])),
      layout: false}
   end
@@ -38,8 +46,10 @@ defmodule ElswisserWeb.RoundLive.Pairing do
           white_id={assigns[:white] && assigns[:white].id}
           black_id={assigns[:black] && assigns[:black].id}
         />
-        <.player_card :if={assigns[:white]} player={@white} />
-        <.player_card :if={assigns[:black]} player={@black} />
+        <div class="flex">
+          <.player_card :if={assigns[:white]} player={@white} color="White" />
+          <.player_card :if={assigns[:black]} player={@black} color="Black" />
+        </div>
       </div>
     </div>
     """
@@ -47,9 +57,10 @@ defmodule ElswisserWeb.RoundLive.Pairing do
 
   @impl true
   def handle_event("select-player", params, socket) do
-    case Players.get_player_with_tournament_history(
+    case fetch_player_with_history(
            params["player-id"],
-           socket.assigns[:tournament_id]
+           socket.assigns[:tournament_id],
+           socket.assigns[:roster]
          ) do
       nil -> {:error, socket}
       player -> {:noreply, socket |> switch_color() |> assign(socket.assigns[:color], player)}
@@ -114,6 +125,7 @@ defmodule ElswisserWeb.RoundLive.Pairing do
     """
   end
 
+  attr(:color, :string, values: ~w(White Black), required: true)
   attr(:player, :map, required: true)
 
   def player_card(assigns) do
@@ -126,9 +138,9 @@ defmodule ElswisserWeb.RoundLive.Pairing do
       })
 
     ~H"""
-    <div class="w-full flex mt-4">
-      <div class="w-3/5 pr-8">
-        <%= @player.name %>
+    <div class={["w-1/2 mt-4 pr-4", @color == "White" && "border-r mr-4"]}>
+      <div class="w-full pb-8">
+        <.section_title><%= @player.name %></.section_title>
 
         <.condensed_list>
           <:item title="Score"><%= @score %></:item>
@@ -137,17 +149,22 @@ defmodule ElswisserWeb.RoundLive.Pairing do
           <:item title="Black Games"><%= length(@player.black_games) %></:item>
         </.condensed_list>
       </div>
-      <div class="w-2/5">
-        <span>Games</span>
-        <ul>
+      <div class="w-full">
+        <.section_title class="mb-4">Tournament History</.section_title>
+        <ol reversed class="list-decimal list-insid text-sm pl-4">
           <%= for game <- @games do %>
-            <li>
+            <li class="pb-1">
               <.link href={~p"/tournaments/#{game.tournament_id}/games/#{game.id}"}>
-                <%= game.id %>
+                <.result
+                  white={game.white.name}
+                  black={game.black.name}
+                  result={game.result}
+                  class="underline text-cyan-600 inline"
+                />
               </.link>
             </li>
           <% end %>
-        </ul>
+        </ol>
       </div>
     </div>
     """
@@ -162,6 +179,12 @@ defmodule ElswisserWeb.RoundLive.Pairing do
 
   defp fetch_unpaired_players(tournament_id, round_id) do
     Players.get_unpaired_players(tournament_id, round_id)
+  end
+
+  defp fetch_player_with_history(player_id, tournament_id, roster) do
+    games = Games.get_games_from_tournament_for_player(tournament_id, player_id, roster)
+
+    Players.get_player_with_tournament_history(player_id, games)
   end
 
   defp filter_just_matched(pairings, _game) when is_nil(pairings), do: []

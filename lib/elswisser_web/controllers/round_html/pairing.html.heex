@@ -10,5 +10,9 @@
 <%= live_render(
   @conn,
   ElswisserWeb.RoundLive.Pairing,
-  session: %{"round_id" => @round.id, "tournament_id" => @round.tournament_id}
+  session: %{
+    "round_id" => @round.id,
+    "tournament" => @tournament,
+    "tournament_id" => @tournament.id
+  }
 ) %>

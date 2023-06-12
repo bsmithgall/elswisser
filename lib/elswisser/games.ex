@@ -21,6 +21,12 @@ defmodule Elswisser.Games do
     |> Repo.all()
   end
 
+  def get_games_from_tournament_for_player(tournament_id, player_id, roster) do
+    Enum.map(get_games_from_tournament_for_player(tournament_id, player_id), fn game ->
+      Game.load_players_from_roster(game, roster)
+    end)
+  end
+
   def get_game_with_players!(id) do
     Game.from()
     |> Game.where_id(id)

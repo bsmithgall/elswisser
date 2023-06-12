@@ -64,6 +64,23 @@ defmodule Elswisser.Games.Game do
   end
 
   def select_black_id(query) do
-    from [game: g] in query, select: g.white_id
+    from [game: g] in query, select: g.black_id
+  end
+
+  @doc """
+  Given a game and an existing roster, load a :white and :black player. We do it
+  this way because we don't really have an easy way of doing this with a
+  preloads from a query unfortunately; since we have multiple :belongs_to, there
+  isn't really a clean way of dealing with it.
+  """
+  def load_players_from_roster(%Elswisser.Games.Game{} = game, roster) when is_list(roster) do
+    from_roster =
+      Enum.reduce(roster, %{}, fn
+        white, acc when white.id == game.white_id -> Map.put(acc, :white, white)
+        black, acc when black.id == game.black_id -> Map.put(acc, :black, black)
+        _, acc -> acc
+      end)
+
+    Map.merge(game, from_roster)
   end
 end

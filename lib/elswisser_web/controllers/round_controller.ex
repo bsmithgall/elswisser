@@ -5,7 +5,7 @@ defmodule ElswisserWeb.RoundController do
 
   plug(:fetch_round when action not in [:create])
   plug(:ensure_round_in_tournament when action not in [:create])
-  plug(ElswisserWeb.Plugs.EnsureTournament, "rounds" when action in [:show, :pairings])
+  plug(ElswisserWeb.Plugs.EnsureTournament, "all" when action in [:show, :pairings])
 
   plug(
     :put_root_layout,

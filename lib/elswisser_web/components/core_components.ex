@@ -409,6 +409,20 @@ defmodule ElswisserWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a title for an inner section
+  """
+  slot :inner_block, required: true
+  attr :class, :string, default: nil
+
+  def section_title(assigns) do
+    ~H"""
+    <h2 class={["text-md font-semibold leading-4 text-zinc-600", @class]}>
+      <%= render_slot(@inner_block) %>
+    </h2>
+    """
+  end
+
   @doc ~S"""
   Renders a table with generic styling.
 

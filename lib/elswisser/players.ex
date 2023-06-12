@@ -44,9 +44,7 @@ defmodule Elswisser.Players do
   """
   def get_player!(id), do: Repo.get!(Player, id)
 
-  def get_player_with_tournament_history(id, tournament_id) do
-    games = Elswisser.Games.get_games_from_tournament_for_player(tournament_id, id)
-
+  def get_player_with_tournament_history(id, games) do
     Player.from()
     |> Player.where_id(id)
     |> preload(
