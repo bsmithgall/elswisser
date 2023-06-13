@@ -42,5 +42,19 @@ defmodule Elswisser.RoundsTest do
       assert {:error, %Ecto.Changeset{}} = Rounds.update_round(round, @invalid_attrs)
       assert round == Rounds.get_round!(round.id)
     end
+
+    test "set_playing/1 updates status properly" do
+      round = round_fixture()
+
+      assert {:ok, %Round{} = round} = Rounds.set_playing(round.id)
+      assert Rounds.get_round!(round.id).status == :playing
+    end
+
+    test "set_complete/1 updates status properly" do
+      round = round_fixture()
+
+      assert {:ok, %Round{} = round} = Rounds.set_complete(round.id)
+      assert Rounds.get_round!(round.id).status == :complete
+    end
   end
 end

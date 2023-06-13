@@ -4,6 +4,7 @@ defmodule ElswisserWeb.RoundLive.Pairing do
 
   alias Elswisser.Players
   alias Elswisser.Games
+  alias Elswisser.Rounds
 
   embed_templates("pairing_html/*")
 
@@ -22,7 +23,8 @@ defmodule ElswisserWeb.RoundLive.Pairing do
   @impl true
   def render(assigns) do
     ~H"""
-    <.flash_group flash={@flash} />
+    <.flash kind={:info} title="Success!" flash={@flash} />
+    <.flash kind={:error} title="Error!" flash={@flash} />
     <div class="mt-8 flex">
       <div class="w-2/5 box-border border-r border-r-zinc-400 pr-4 mr-4">
         <.section_title class="text-xs uppercase mb-4">
@@ -84,16 +86,38 @@ defmodule ElswisserWeb.RoundLive.Pairing do
            round_id: socket.assigns[:round_id]
          }) do
       {:ok, game} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Successfully paired players!")
-         |> switch_color()
-         |> assign(:players, filter_just_matched(socket.assigns[:players], game))
-         |> assign(:white, nil)
-         |> assign(:black, nil)}
+        remaining = filter_just_matched(socket.assigns[:players], game)
+
+        if length(remaining) == 0 do
+          handle_pairing_finished(socket)
+        else
+          {:noreply,
+           socket
+           |> put_flash(:info, "Successfully paired players!")
+           |> switch_color()
+           |> assign(:players, remaining)
+           |> assign(:white, nil)
+           |> assign(:black, nil)}
+        end
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:error, socket |> put_flash(:error, "Could not create Game: #{changeset}")}
+    end
+  end
+
+  defp handle_pairing_finished(socket) do
+    case Rounds.set_playing(socket.assigns[:round_id]) do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "All pairings finished!")
+         |> redirect(
+           to:
+             ~p"/tournaments/#{socket.assigns[:tournament_id]}/rounds/#{socket.assigns[:round_id]}"
+         )}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:error, socket |> put_flash(:error, "Could not start playing Round: #{changeset}")}
     end
   end
 
