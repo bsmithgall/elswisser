@@ -25,7 +25,9 @@ defmodule ElswisserWeb.RoundLive.Pairing do
     <.flash_group flash={@flash} />
     <div class="mt-8 flex">
       <div class="w-2/5 box-border border-r border-r-zinc-400 pr-4 mr-4">
-        <.section_title class="text-xs uppercase mb-4">Select players for pairing</.section_title>
+        <.section_title class="text-xs uppercase mb-4">
+          Select players for pairing (<%= @color %> pieces)
+        </.section_title>
         <.select_player
           players={@players}
           color={@color}
@@ -38,13 +40,13 @@ defmodule ElswisserWeb.RoundLive.Pairing do
           white_id={assigns[:white] && assigns[:white].id}
           black_id={assigns[:black] && assigns[:black].id}
         />
-        <div class="flex">
-          <div class="w-1/2 mt-4 mr-4 p-4 pr-6 bg-zinc-50 rounded-md border border-solid border-zinc-400">
+        <div class="flex flex-row justify-center gap-2">
+          <div class="w-1/2 p-4 bg-zinc-50 rounded-md border border-solid border-zinc-400">
             <.section_title class="text-xs text-center uppercase mb-4">White</.section_title>
             <.player_card_skeleton :if={is_nil(assigns[:white])} />
             <.player_card :if={assigns[:white]} player={@white} />
           </div>
-          <div class="w-1/2 mt-4 p-4 bg-indigo-200 rounded-md border-solid border border-zinc-400">
+          <div class="w-1/2 p-4 bg-indigo-200 rounded-md border border-solid border-zinc-400">
             <.section_title class="text-xs text-center uppercase mb-4">Black</.section_title>
             <.player_card_skeleton :if={is_nil(assigns[:black])} />
             <.player_card :if={assigns[:black]} player={@black} />
@@ -138,11 +140,12 @@ defmodule ElswisserWeb.RoundLive.Pairing do
     assigns = assign(assigns, :disabled, is_nil(assigns[:white_id]) || is_nil(assigns[:black_id]))
 
     ~H"""
-    <div class="text-center">
-      <.light_button disabled={@disabled} phx-click="switch-colors">
+    <div class="flex flex-row justify-center gap-2 mb-4">
+      <.light_button disabled={@disabled} phx-click="switch-colors" class="w-36 px-1">
         <.icon name="hero-arrows-right-left-mini" class="-mt-1" /> Swap colors
       </.light_button>
       <.success_button
+        class="w-36 px-1"
         disabled={@disabled}
         phx-click="do-match"
         phx-value-white-id={@white_id}
