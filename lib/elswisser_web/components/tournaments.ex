@@ -31,14 +31,11 @@ defmodule ElswisserWeb.TournamentLayouts do
     <form
       :if={@tournament.length != @current_round.number}
       class="mt-4"
-      action={~p"/tournaments/#{@tournament}/rounds/new"}
+      action={~p"/tournaments/#{@tournament}/rounds"}
+      method="POST"
     >
       <input type="hidden" value={@current_round.number + 1} name="number" />
-      <.button
-        type="submit"
-        class="text-center disabled:bg-zinc-400"
-        disabled={@current_round.status != :complete}
-      >
+      <.button type="submit" class="text-center" disabled={@current_round.status != :complete}>
         <.icon class="mr-2 -mt-1" name="hero-plus" />Add new round
       </.button>
     </form>

@@ -7,9 +7,9 @@ defmodule ElswisserWeb.TournamentController do
   alias Elswisser.Scores
   alias Elswisser.Tournaments.Tournament
 
-  plug :normalize_id
-  plug :fetch_with_all when action in [:show, :edit, :scores, :crosstable]
-  plug :get_current_round when action in [:show, :edit, :scores, :crosstable]
+  plug ElswisserWeb.Plugs.EnsureTournament,
+       "all" when action in [:show, :edit, :scores, :crosstable]
+
   plug :fetch_games when action in [:scores, :crosstable]
   plug :calculate_scores when action in [:scores, :crosstable]
 
@@ -101,23 +101,6 @@ defmodule ElswisserWeb.TournamentController do
       scores: conn.assigns[:scores],
       active: "scores"
     )
-  end
-
-  defp normalize_id(conn, _) do
-    case is_nil(conn.params["id"]) do
-      true -> assign(conn, :tournament_id, conn.params["tournament_id"])
-      false -> assign(conn, :tournament_id, conn.params["id"])
-    end
-  end
-
-  defp fetch_with_all(conn, _) do
-    tournament = Tournaments.get_tournament_with_all!(conn.assigns[:tournament_id])
-    assign(conn, :tournament, tournament)
-  end
-
-  defp get_current_round(conn, _) do
-    current_round = Tournaments.current_round(conn.assigns[:tournament])
-    assign(conn, :current_round, current_round)
   end
 
   defp fetch_games(conn, _) do

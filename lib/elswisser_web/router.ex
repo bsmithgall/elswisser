@@ -20,15 +20,22 @@ defmodule ElswisserWeb.Router do
     get("/", PageController, :home)
 
     resources "/tournaments", TournamentController do
-      get("/crosstable", TournamentController, :crosstable, as: :crosstable)
-      get("/scores", TournamentController, :scores, as: :scores)
+      resources("/rounds", RoundController, only: [:show, :create, :update])
 
-      resources("/rounds", RoundController, only: [:show, :new, :update])
+      scope("/rounds") do
+        get("/:id/pairings", RoundController, :pairings)
+      end
+
       resources("/games", GameController, only: [:show, :edit, :update])
+    end
 
-      get("/roster", RosterController, :index)
-      put("/roster", RosterController, :update)
-      patch("/roster", RosterController, :update)
+    scope("/tournaments") do
+      get("/:id/crosstable", TournamentController, :crosstable, as: :crosstable)
+      get("/:id/scores", TournamentController, :scores, as: :scores)
+
+      get("/:id/roster", RosterController, :index)
+      put("/:id/roster", RosterController, :update)
+      patch("/:id/roster", RosterController, :update)
     end
 
     resources("/players", PlayerController)

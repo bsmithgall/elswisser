@@ -213,8 +213,73 @@ defmodule ElswisserWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
-        "text-sm font-semibold leading-6 text-white active:text-white/80",
+        "py-2 px-3 rounded-lg text-sm font-semibold leading-6 text-white active:text-white/80",
+        "bg-zinc-900 hover:bg-zinc-700 disabled:bg-zinc-500",
+        "phx-submit-loading:opacity-75",
+        @class
+      ]}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </button>
+    """
+  end
+
+  @doc """
+  Renders a light button.
+
+  ## Examples
+
+      <.button>Send!</.button>
+      <.button phx-click="go" class="ml-2">Send!</.button>
+  """
+  attr :type, :string, default: nil
+  attr :class, :string, default: nil
+  attr :rest, :global, include: ~w(disabled form name value)
+
+  slot :inner_block, required: true
+
+  def light_button(assigns) do
+    ~H"""
+    <button
+      type={@type}
+      class={[
+        "py-2 px-3 text-sm font-semibold leading-6 rounded-lg text-zinc-900 active:text-zinc-900/80",
+        "border-solid border border-zinc-900 active:border-zinc-900/80 hover:bg-zinc-100",
+        "disabled:text-zinc-500 disabled:border-zinc-500 disabled:hover:bg-transparent",
+        "phx-submit-loading:opacity-75",
+        @class
+      ]}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </button>
+    """
+  end
+
+  @doc """
+  Renders a button.
+
+  ## Examples
+
+      <.button>Send!</.button>
+      <.button phx-click="go" class="ml-2">Send!</.button>
+  """
+  attr :type, :string, default: nil
+  attr :class, :string, default: nil
+  attr :rest, :global, include: ~w(disabled form name value)
+
+  slot :inner_block, required: true
+
+  def success_button(assigns) do
+    ~H"""
+    <button
+      type={@type}
+      class={[
+        "py-2 px-3 text-sm font-semibold leading-6 rounded-lg text-white active:text-white/80",
+        "bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-700",
+        "disabled:bg-emerald-600 disabled:hover:bg-emerald-600",
+        "phx-submit-loading:opacity-75",
         @class
       ]}
       {@rest}
@@ -409,6 +474,20 @@ defmodule ElswisserWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a title for an inner section
+  """
+  slot :inner_block, required: true
+  attr :class, :string, default: nil
+
+  def section_title(assigns) do
+    ~H"""
+    <h2 class={["text-md font-semibold leading-4 text-zinc-600", @class]}>
+      <%= render_slot(@inner_block) %>
+    </h2>
+    """
+  end
+
   @doc ~S"""
   Renders a table with generic styling.
 
@@ -503,6 +582,33 @@ defmodule ElswisserWeb.CoreComponents do
       <dl class="-my-4 divide-y divide-zinc-100">
         <div :for={item <- @item} class="flex gap-4 py-4 text-sm leading-6 sm:gap-8">
           <dt class="w-1/4 flex-none text-zinc-500"><%= item.title %></dt>
+          <dd class="text-zinc-700"><%= render_slot(item) %></dd>
+        </div>
+      </dl>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a data list.
+
+  ## Examples
+
+      <.list>
+        <:item title="Title"><%= @post.title %></:item>
+        <:item title="Views"><%= @post.views %></:item>
+      </.list>
+  """
+  slot :item, required: true do
+    attr :title, :string, required: true
+  end
+
+  def condensed_list(assigns) do
+    ~H"""
+    <div class="mt-4">
+      <dl class="-my-1 divide-y divide-zinc-100">
+        <div :for={item <- @item} class="flex gap-1 py-1 text-sm leading-6 sm:gap-6">
+          <dt class="w-2/5 flex-none text-zinc-500"><%= item.title %></dt>
           <dd class="text-zinc-700"><%= render_slot(item) %></dd>
         </div>
       </dl>
