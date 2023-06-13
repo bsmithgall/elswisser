@@ -77,6 +77,14 @@ defmodule Elswisser.Rounds do
     |> Repo.update()
   end
 
+  def set_playing(id) when is_integer(id) do
+    get_round!(id) |> update_round(%{status: :playing})
+  end
+
+  def set_complete(id) when is_integer(id) do
+    get_round!(id) |> update_round(%{status: :complete})
+  end
+
   def add_game(%Round{} = r, game_attrs) do
     %Game{}
     |> Game.changeset(game_attrs)
