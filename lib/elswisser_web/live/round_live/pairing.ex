@@ -15,14 +15,6 @@ defmodule ElswisserWeb.RoundLive.Pairing do
      |> assign(:round_id, session["round_id"])
      |> assign(:roster, session["tournament"].players)
      |> assign(:tournament_id, session["tournament_id"])
-     |> assign(
-       :white,
-       fetch_player_with_history(4, session["tournament_id"], session["tournament"].players)
-     )
-     |> assign(
-       :black,
-       fetch_player_with_history(5, session["tournament_id"], session["tournament"].players)
-     )
      |> assign(:players, fetch_unpaired_players(session["tournament_id"], session["round_id"])),
      layout: false}
   end
@@ -33,12 +25,12 @@ defmodule ElswisserWeb.RoundLive.Pairing do
     <.flash_group flash={@flash} />
     <div class="mt-8 flex">
       <div class="w-2/5 box-border border-r border-r-zinc-400 pr-4 mr-4">
-        <h3>Select players for pairing</h3>
+        <.section_title class="text-xs uppercase mb-4">Select players for pairing</.section_title>
         <.select_player
           players={@players}
           color={@color}
-          white={assigns[:white]}
-          black={assigns[:black]}
+          white_id={assigns[:white] && assigns[:white].id}
+          black_id={assigns[:black] && assigns[:black].id}
         />
       </div>
       <div class="w-3/5">
@@ -47,8 +39,16 @@ defmodule ElswisserWeb.RoundLive.Pairing do
           black_id={assigns[:black] && assigns[:black].id}
         />
         <div class="flex">
-          <.player_card :if={assigns[:white]} player={@white} color="White" />
-          <.player_card :if={assigns[:black]} player={@black} color="Black" />
+          <div class="w-1/2 mt-4 mr-4 p-4 pr-6 bg-zinc-50 rounded-md border border-solid border-zinc-400">
+            <.section_title class="text-xs text-center uppercase mb-4">White</.section_title>
+            <.player_card_skeleton :if={is_nil(assigns[:white])} />
+            <.player_card :if={assigns[:white]} player={@white} />
+          </div>
+          <div class="w-1/2 mt-4 p-4 bg-indigo-200 rounded-md border-solid border border-zinc-400">
+            <.section_title class="text-xs text-center uppercase mb-4">Black</.section_title>
+            <.player_card_skeleton :if={is_nil(assigns[:black])} />
+            <.player_card :if={assigns[:black]} player={@black} />
+          </div>
         </div>
       </div>
     </div>
@@ -97,35 +97,65 @@ defmodule ElswisserWeb.RoundLive.Pairing do
 
   attr(:players, :list, required: true)
   attr(:color, :atom, required: true, values: [:white, :black])
-  attr(:white, :map, default: nil, required: false)
-  attr(:black, :map, default: nil, required: false)
+  attr(:white_id, :integer, default: nil, required: false)
+  attr(:black_id, :integer, default: nil, required: false)
 
-  def select_player(assigns)
+  def select_player(assigns) do
+    ~H"""
+    <table class="table-auto w-full">
+      <thead>
+        <tr class="border-b text-sm leading-6 text-left">
+          <th></th>
+          <th>Player</th>
+        </tr>
+      </thead>
+      <tbody class="text-sm leading-6">
+        <%= for player <- @players do %>
+          <.player_row
+            id={player.id}
+            name={player.name}
+            color={@color}
+            disabled={player.id == @white_id or player.id == @black_id}
+          />
+        <% end %>
+      </tbody>
+    </table>
+    """
+  end
+
+  attr(:id, :integer, required: true)
+  attr(:disabled, :boolean, required: true)
+  attr(:name, :string, required: true)
+  attr(:color, :atom, required: true, values: [:white, :black])
+
+  def player_row(assigns)
 
   attr(:white_id, :integer, default: nil, required: false)
   attr(:black_id, :integer, default: nil, required: false)
+  attr(:disabled, :boolean, default: false)
 
   def actions(assigns) do
     assigns = assign(assigns, :disabled, is_nil(assigns[:white_id]) || is_nil(assigns[:black_id]))
 
     ~H"""
     <div class="text-center">
-      <.button disabled={@disabled} phx-click="switch-colors">
-        Swap colors
-      </.button>
-      <.button
+      <.light_button disabled={@disabled} phx-click="switch-colors">
+        <.icon name="hero-arrows-right-left-mini" class="-mt-1" /> Swap colors
+      </.light_button>
+      <.success_button
         disabled={@disabled}
         phx-click="do-match"
         phx-value-white-id={@white_id}
         phx-value-black-id={@black_id}
       >
-        Match players
-      </.button>
+        <.icon name="hero-check-mini" class="-mt-1" /> Match players
+      </.success_button>
     </div>
     """
   end
 
-  attr(:color, :string, values: ~w(White Black), required: true)
+  def player_card_skeleton(assigns)
+
   attr(:player, :map, required: true)
 
   def player_card(assigns) do
@@ -138,34 +168,32 @@ defmodule ElswisserWeb.RoundLive.Pairing do
       })
 
     ~H"""
-    <div class={["w-1/2 mt-4 pr-4", @color == "White" && "border-r mr-4"]}>
-      <div class="w-full pb-8">
-        <.section_title><%= @player.name %></.section_title>
+    <div class="w-full pb-8">
+      <.section_title><%= @player.name %></.section_title>
 
-        <.condensed_list>
-          <:item title="Score"><%= @score %></:item>
-          <:item title="Rating"><%= @player.rating %></:item>
-          <:item title="White Games"><%= length(@player.white_games) %></:item>
-          <:item title="Black Games"><%= length(@player.black_games) %></:item>
-        </.condensed_list>
-      </div>
-      <div class="w-full">
-        <.section_title class="mb-4">Tournament History</.section_title>
-        <ol reversed class="list-decimal list-insid text-sm pl-4">
-          <%= for game <- @games do %>
-            <li class="pb-1">
-              <.link href={~p"/tournaments/#{game.tournament_id}/games/#{game.id}"}>
-                <.result
-                  white={game.white.name}
-                  black={game.black.name}
-                  result={game.result}
-                  class="underline text-cyan-600 inline"
-                />
-              </.link>
-            </li>
-          <% end %>
-        </ol>
-      </div>
+      <.condensed_list>
+        <:item title="Score"><%= @score %></:item>
+        <:item title="Rating"><%= @player.rating %></:item>
+        <:item title="# White"><%= length(@player.white_games) %></:item>
+        <:item title="# Black"><%= length(@player.black_games) %></:item>
+      </.condensed_list>
+    </div>
+    <div class="w-full">
+      <.section_title class="mb-4">Tournament History</.section_title>
+      <ol reversed class="list-decimal list-inside text-sm">
+        <%= for game <- @games do %>
+          <li class="pb-1">
+            <.link href={~p"/tournaments/#{game.tournament_id}/games/#{game.id}"}>
+              <.result
+                white={game.white.name}
+                black={game.black.name}
+                result={game.result}
+                class="underline text-cyan-600 inline"
+              />
+            </.link>
+          </li>
+        <% end %>
+      </ol>
     </div>
     """
   end

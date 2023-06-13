@@ -213,8 +213,73 @@ defmodule ElswisserWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
-        "text-sm font-semibold leading-6 text-white active:text-white/80 disabled:bg-zinc-500",
+        "py-2 px-3 rounded-lg text-sm font-semibold leading-6 text-white active:text-white/80",
+        "bg-zinc-900 hover:bg-zinc-700 disabled:bg-zinc-500",
+        "phx-submit-loading:opacity-75",
+        @class
+      ]}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </button>
+    """
+  end
+
+  @doc """
+  Renders a light button.
+
+  ## Examples
+
+      <.button>Send!</.button>
+      <.button phx-click="go" class="ml-2">Send!</.button>
+  """
+  attr :type, :string, default: nil
+  attr :class, :string, default: nil
+  attr :rest, :global, include: ~w(disabled form name value)
+
+  slot :inner_block, required: true
+
+  def light_button(assigns) do
+    ~H"""
+    <button
+      type={@type}
+      class={[
+        "py-2 px-3 text-sm font-semibold leading-6 rounded-lg text-zinc-900 active:text-zinc-900/80",
+        "border-solid border border-zinc-900 active:border-zinc-900/80 hover:bg-zinc-100",
+        "disabled:text-zinc-500 disabled:border-zinc-500 disabled:hover:bg-transparent",
+        "phx-submit-loading:opacity-75",
+        @class
+      ]}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </button>
+    """
+  end
+
+  @doc """
+  Renders a button.
+
+  ## Examples
+
+      <.button>Send!</.button>
+      <.button phx-click="go" class="ml-2">Send!</.button>
+  """
+  attr :type, :string, default: nil
+  attr :class, :string, default: nil
+  attr :rest, :global, include: ~w(disabled form name value)
+
+  slot :inner_block, required: true
+
+  def success_button(assigns) do
+    ~H"""
+    <button
+      type={@type}
+      class={[
+        "py-2 px-3 text-sm font-semibold leading-6 rounded-lg text-white active:text-white/80",
+        "bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-700",
+        "disabled:bg-emerald-600 disabled:hover:bg-emerald-600",
+        "phx-submit-loading:opacity-75",
         @class
       ]}
       {@rest}
