@@ -1,0 +1,42 @@
+<input type="hidden" name="id" value={@game.id} form={"game-#{@game.id}"} />
+<tr class="border-zinc-200 border-b group hover:bg-zinc-50">
+  <td>
+    <span class="w-6 inline-block">
+      <.icon :if={@game.result == 1} name="hero-trophy" />
+      <.icon :if={@game.result == 0} name="hero-scale" />
+    </span>
+    <%= @game.white.name %>
+  </td>
+  <td>
+    <span class="w-6 inline-block">
+      <.icon :if={@game.result == -1} name="hero-trophy" />
+      <.icon :if={@game.result == 0} name="hero-scale" />
+    </span>
+    <%= @game.black.name %>
+  </td>
+  <td>
+    <div class="-mt-1">
+      <.input
+        id={"game-#{@game.id}-result"}
+        name="result"
+        type="select"
+        options={["Select Result": nil, "White won": "1", "Black won": -1, Draw: 0]}
+        value={@game.result}
+        phx-value-id={@game.id}
+        form={"game-#{@game.id}"}
+      />
+    </div>
+  </td>
+  <td>
+    <button
+      phx-click={show_modal("game-#{@game.id}-edit-modal")}
+      disabled={is_nil(@game.result)}
+      class="disabled:text-zinc-400 disabled:cursor-not-allowed"
+    >
+      <.icon class="-mt-1 ml-4" name="hero-ellipsis-horizontal-circle" />
+    </button>
+    <a href={~p"/tournaments/#{@game.tournament_id}/games/#{@game}"}>
+      <.icon class="-mt-1 ml-2" name="hero-link" />
+    </a>
+  </td>
+</tr>

@@ -28,5 +28,15 @@ defmodule Elswisser.GamesTest do
       assert loaded.white == white
       assert loaded.black == black
     end
+
+    test "add_pgn/2 properly updates a pgn when the game is present" do
+      game = game_fixture()
+      Games.add_pgn(game.id, "TEST PGN")
+      assert Games.get_game!(game.id).pgn == "TEST PGN"
+    end
+
+    test "add_pgn/2 properly returns an error when no game is found" do
+      assert Games.add_pgn(-1, "TEST PGN") == {:error, "Could not find game!"}
+    end
   end
 end
