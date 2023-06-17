@@ -16,6 +16,9 @@ defmodule ElswisserWeb.RoundLive.Round do
   @impl true
   def render(assigns) do
     ~H"""
+    <.flash kind={:info} title="Success!" flash={@flash} />
+    <.flash kind={:error} title="Error!" flash={@flash} />
+
     <%= for game <- @games do %>
       <.game_form game={game} />
     <% end %>
@@ -48,7 +51,11 @@ defmodule ElswisserWeb.RoundLive.Round do
          socket
          |> assign(
            :games,
-           update_session_game(socket.assigns[:games], game.id, %{result: game.result})
+           update_session_game(socket.assigns[:games], game.id, %{
+             result: game.result,
+             pgn: game.pgn,
+             game_link: game.game_link
+           })
          )}
 
       {:error, %Ecto.Changeset{} = _changeset} ->
