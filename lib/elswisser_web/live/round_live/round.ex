@@ -4,16 +4,23 @@ defmodule ElswisserWeb.RoundLive.Round do
   alias Elswisser.Games
   alias Elswisser.Rounds
 
+  embed_templates("round_html/*")
+
   @impl true
   def mount(_params, session, socket) do
-    {:ok, socket |> assign(:round, fetch_games(session["round_id"])), layout: false}
+    rnd = fetch_round(session["round_id"])
+
+    {:ok, socket |> assign(:round, rnd) |> assign(:games, rnd.games), layout: false}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <%= for game <- @round.games do %>
-      <form id={"game-#{game.id}"} phx-change="save-result" />
+    <.flash kind={:info} title="Success!" flash={@flash} />
+    <.flash kind={:error} title="Error!" flash={@flash} />
+
+    <%= for game <- @games do %>
+      <.game_form game={game} />
     <% end %>
 
     <table class="w-[40rem] mt-11 sm:w-full">
@@ -25,40 +32,9 @@ defmodule ElswisserWeb.RoundLive.Round do
           <th class="pl-2 pr-6 pb-2 font-normal">Actions</th>
         </tr>
       </thead>
-      <tbody class="relative divide-y divide-zinc-100 border-t border-zinc-200
-    text-sm leading-6 text-zinc-700">
-        <%= for game <- @round.games do %>
-          <input type="hidden" name="id" value={game.id} form={"game-#{game.id}"} />
-          <tr class="border-zinc-200 border-b group hover:bg-zinc-50">
-            <td>
-              <span class="w-6 inline-block">
-                <.icon :if={game.result == 1} name="hero-trophy" />
-                <.icon :if={game.result == 0} name="hero-scale" />
-              </span>
-              <%= game.white.name %>
-            </td>
-            <td>
-              <span class="w-6 inline-block">
-                <.icon :if={game.result == -1} name="hero-trophy" />
-                <.icon :if={game.result == 0} name="hero-scale" />
-              </span>
-              <%= game.black.name %>
-            </td>
-            <td>
-              <div class="-mt-1">
-                <.input
-                  id={"game-#{game.id}-result"}
-                  name="result"
-                  type="select"
-                  options={["Select Result": nil, "White won": "1", "Black won": -1, Draw: 0]}
-                  value={game.result}
-                  phx-value-id={game.id}
-                  form={"game-#{game.id}"}
-                />
-              </div>
-            </td>
-            <td></td>
-          </tr>
+      <tbody class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700">
+        <%= for game <- @games do %>
+          <.game_result_table_row game={game} />
         <% end %>
       </tbody>
     </table>
@@ -71,14 +47,64 @@ defmodule ElswisserWeb.RoundLive.Round do
 
     case Games.update_game(game, params) do
       {:ok, game} ->
-        {:noreply, socket |> assign(:round, fetch_games(game.round_id))}
+        {:noreply,
+         socket
+         |> assign(
+           :games,
+           update_session_game(socket.assigns[:games], game.id, %{
+             result: game.result,
+             pgn: game.pgn,
+             game_link: game.game_link
+           })
+         )}
 
       {:error, %Ecto.Changeset{} = _changeset} ->
         {:error, socket}
     end
   end
 
-  defp fetch_games(round_id) do
+  @impl true
+  def handle_event("generate-pgn", params, socket) do
+    pid = self()
+
+    Task.start(fn ->
+      case Games.fetch_pgn(params["game-id"], params["game-link"]) do
+        {:ok, result} -> send(pid, {:pgn_result, result})
+        {:error, msg} -> send(pid, {:pgn_error, msg})
+      end
+    end)
+
+    {:noreply, socket |> put_flash(:info, "Trying to fetch PGN!")}
+  end
+
+  @impl true
+  def handle_info({:pgn_result, %{pgn: pgn, game_id: game_id}}, socket) do
+    {:noreply,
+     socket |> assign(:games, update_session_game(socket.assigns[:games], game_id, %{pgn: pgn}))}
+  end
+
+  @impl true
+  def handle_info({:pgn_error, msg}, socket) do
+    {:noreply, socket |> put_flash(:error, "Error getting PGN from game link: #{msg}")}
+  end
+
+  attr(:game, :map, required: true)
+
+  def game_form(assigns)
+
+  attr(:game, :map, required: true)
+
+  def game_result_table_row(assigns)
+
+  defp fetch_round(round_id) do
     Rounds.get_round_with_games!(round_id)
+  end
+
+  # Given an update to an individual game, merge the update into the socket's
+  # round property to avoid a fetch roundtrip to the database.
+  defp update_session_game(games, game_id, game_attributes) when is_map(game_attributes) do
+    Enum.map(games, fn g ->
+      if g.id == game_id, do: Map.merge(g, game_attributes), else: g
+    end)
   end
 end

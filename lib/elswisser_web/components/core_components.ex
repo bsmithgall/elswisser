@@ -482,7 +482,7 @@ defmodule ElswisserWeb.CoreComponents do
 
   def section_title(assigns) do
     ~H"""
-    <h2 class={["text-md font-semibold leading-4 text-zinc-600", @class]}>
+    <h2 class={["text-md font-semibold leading-4 text-zinc-600 text-xs uppercase mb-4", @class]}>
       <%= render_slot(@inner_block) %>
     </h2>
     """

@@ -1,6 +1,8 @@
 defmodule ElswisserWeb.GameLive.Pgn do
   use ElswisserWeb, :live_view
 
+  alias Elswisser.Games
+
   @impl true
   def mount(_params, session, socket) do
     {:ok,
@@ -54,45 +56,19 @@ defmodule ElswisserWeb.GameLive.Pgn do
   def handle_event("generate-pgn", params, socket) do
     pid = self()
 
-    cond do
-      is_nil(params["game-link"]) ->
-        {:noreply, socket |> put_flash(:error, "Could not find game link!")}
+    Task.start(fn ->
+      case Games.fetch_pgn(params["game-id"], params["game-link"]) do
+        {:ok, result} -> send(pid, {:pgn_result, result})
+        {:error, msg} -> send(pid, {:pgn_error, msg})
+      end
+    end)
 
-      String.contains?(params["game-link"], "chess.com/") ->
-        Task.start(fn ->
-          case Elswisser.Games.Chesscom.fetch_pgn(params["game-link"]) do
-            {:ok, pgn} -> send(pid, {:pgn_result, [pgn: pgn, id: params["game-id"]]})
-            {:error, error} -> send(pid, {:pgn_error, error})
-          end
-        end)
-
-        {:noreply, socket |> put_flash(:info, "Fetching PGN from chess.com")}
-
-      String.contains?(params["game-link"], "lichess.org/") ->
-        socket = put_flash(socket, :info, "Fetching PGN from lichess.org")
-
-        Task.start(fn ->
-          case Elswisser.Games.Lichess.fetch_pgn(params["game-link"]) do
-            {:ok, pgn} -> send(pid, {:pgn_result, [pgn: pgn, id: params["game-id"]]})
-            {:error, error} -> send(pid, {:pgn_error, error})
-          end
-        end)
-
-        {:noreply, socket}
-    end
+    {:noreply, socket |> put_flash(:info, "Trying to fetch PGN!")}
   end
 
   @impl true
-  def handle_info({:pgn_result, result}, socket) do
-    game = Elswisser.Games.get_game!(result[:id])
-
-    case Elswisser.Games.update_game(game, %{pgn: result[:pgn]}) do
-      {:ok, _game} ->
-        {:noreply, assign(socket, pgn: result[:pgn])}
-
-      {:error, %Ecto.Changeset{} = _changeset} ->
-        {:error, socket}
-    end
+  def handle_info({:pgn_result, %{game_id: _game_id, pgn: pgn}}, socket) do
+    {:noreply, assign(socket, :pgn, pgn)}
   end
 
   @impl true
