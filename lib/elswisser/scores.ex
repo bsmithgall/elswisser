@@ -8,7 +8,9 @@ defmodule Elswisser.Scores do
             modmed: 0,
             cumulative_sum: 0,
             cumulative_opp: 0,
-            nblack: 0
+            nblack: 0,
+            rating: 0,
+            lastwhite: false
 
   def calculate(nil), do: calculate([])
 
@@ -19,12 +21,13 @@ defmodule Elswisser.Scores do
 
   def with_players(scores, players) do
     Enum.reduce(players, %{}, fn p, acc ->
-      Map.put(acc, p.id, Map.merge(p, scores[p.id]))
+      Map.put(acc, p.id, Map.merge(Map.get(scores, p.id, %Elswisser.Scores{}), p))
     end)
   end
 
   def sort(scores) when is_map(scores) do
     Map.values(scores)
+    |> Enum.sort_by(fn r -> r.rating end, :desc)
     |> Enum.sort_by(fn r -> r.nblack end, :desc)
     |> Enum.sort_by(fn r -> r.solkoff end, :desc)
     |> Enum.sort_by(fn r -> r.modmed end, :desc)
@@ -64,14 +67,16 @@ defmodule Elswisser.Scores do
             score: white_score,
             opponents: [g.game.black_id],
             results: [white_score],
-            cumulative_sum: white_score * g.rnd
+            cumulative_sum: white_score * g.rnd,
+            lastwhite: true
           },
           fn ex ->
             Map.merge(ex, %{
               score: ex.score + white_score,
               opponents: ex.opponents ++ [g.game.black_id],
               results: ex.results ++ [white_score],
-              cumulative_sum: ex.cumulative_sum + white_score * g.rnd
+              cumulative_sum: ex.cumulative_sum + white_score * g.rnd,
+              lastwhite: true
             })
           end
         )
@@ -87,7 +92,8 @@ defmodule Elswisser.Scores do
             opponents: [g.game.white_id],
             results: [black_score],
             cumulative_sum: black_score * g.rnd,
-            nblack: 1
+            nblack: 1,
+            lastwhite: false
           },
           fn ex ->
             Map.merge(ex, %{
@@ -95,7 +101,8 @@ defmodule Elswisser.Scores do
               opponents: ex.opponents ++ [g.game.white_id],
               results: ex.results ++ [black_score],
               cumulative_sum: ex.cumulative_sum + black_score * g.rnd,
-              nblack: ex.nblack + 1
+              nblack: ex.nblack + 1,
+              lastwhite: false
             })
           end
         )

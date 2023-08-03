@@ -1,113 +1,11 @@
 defmodule Elswisser.ScoresTest do
   use Elswisser.DataCase
 
-  alias Elswisser.Games.Game
-
   describe "calculate" do
-    # set up a tournament with 8 players and 3 rounds.
-    # game results chosen in no specific way
-    # player IDs are just their relative position in alphabetical order
+    import Elswisser.ScoresFixtures
+
     setup %{} do
-      {:ok,
-       scores:
-         Elswisser.Scores.calculate([
-           %{
-             game: %Game{
-               white_id: 4,
-               black_id: 1,
-               result: -1
-             },
-             rnd: 1
-           },
-           %{
-             game: %Game{
-               white_id: 3,
-               black_id: 2,
-               result: -1
-             },
-             rnd: 1
-           },
-           %{
-             game: %Game{
-               white_id: 8,
-               black_id: 6,
-               result: 1
-             },
-             rnd: 1
-           },
-           %{
-             game: %Game{
-               white_id: 7,
-               black_id: 5,
-               result: 1
-             },
-             rnd: 1
-           },
-           %{
-             game: %Game{
-               white_id: 2,
-               black_id: 1,
-               result: 1
-             },
-             rnd: 2
-           },
-           %{
-             game: %Game{
-               white_id: 8,
-               black_id: 7,
-               result: -1
-             },
-             rnd: 2
-           },
-           %{
-             game: %Game{
-               white_id: 6,
-               black_id: 3,
-               result: -1
-             },
-             rnd: 2
-           },
-           %{
-             game: %Game{
-               white_id: 5,
-               black_id: 4,
-               result: -1
-             },
-             rnd: 2
-           },
-           %{
-             game: %Game{
-               white_id: 7,
-               black_id: 2,
-               result: 1
-             },
-             rnd: 3
-           },
-           %{
-             game: %Game{
-               white_id: 4,
-               black_id: 3,
-               result: 1
-             },
-             rnd: 3
-           },
-           %{
-             game: %Game{
-               white_id: 1,
-               black_id: 8,
-               result: -1
-             },
-             rnd: 3
-           },
-           %{
-             game: %Game{
-               white_id: 6,
-               black_id: 5,
-               result: -1
-             },
-             rnd: 3
-           }
-         ])}
+      {:ok, scores: scores_fixture()}
     end
 
     test "creates an entry in the scores map for each directly", context do
