@@ -17,7 +17,9 @@ defmodule Elswisser.Application do
       # Start Finch
       {Finch, name: Elswisser.Finch},
       # Start the Endpoint (http/https)
-      ElswisserWeb.Endpoint
+      ElswisserWeb.Endpoint,
+      # Start the python processes to calculate pairings
+      :poolboy.child_spec(:worker, python_poolboy_config())
       # Start a worker by calling: Elswisser.Worker.start_link(arg)
       # {Elswisser.Worker, arg}
     ]
@@ -34,5 +36,14 @@ defmodule Elswisser.Application do
   def config_change(changed, _new, removed) do
     ElswisserWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp python_poolboy_config do
+    [
+      {:name, {:local, :pairing_worker}},
+      {:worker_module, Elswisser.Pairings.Worker},
+      {:size, 3},
+      {:max_overflow, 0}
+    ]
   end
 end

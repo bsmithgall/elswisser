@@ -1,5 +1,6 @@
 defmodule Elswisser.Pairings.Pairing do
   alias Elswisser.Pairings.PairWeight
+  alias Elswisser.Pairings.Worker
 
   @moduledoc """
   Pair players according (as best as possible) to the USCF [pairing rules].
@@ -35,7 +36,7 @@ defmodule Elswisser.Pairings.Pairing do
   def pair(scores) when is_list(scores) do
     max_score = max_score(scores)
 
-    scores |> partition() |> cartesian_product(max_score) |> to_graph()
+    scores |> partition() |> cartesian_product(max_score)
   end
 
   def partition(scores) when is_list(scores) do
@@ -63,10 +64,19 @@ defmodule Elswisser.Pairings.Pairing do
     for p1 <- pairings,
         p2 <- pairings,
         p1.player_id != p2.player_id,
-        do: {p1.player_id, p2.player_id, weight: PairWeight.score(p1, p2, max_score)}
-  end
-
-  def to_graph(scored_pairings) when is_list(scored_pairings) do
-    Graph.new(type: :undirected) |> Graph.add_edges(scored_pairings)
+        reduce: %{} do
+      acc ->
+        if Map.has_key?(acc, {p1.player_id, p2.player_id}) or
+             Map.has_key?(acc, {p2.player_id, p1.player_id}) do
+          acc
+        else
+          Map.put(
+            acc,
+            {p1.player_id, p2.player_id},
+            {p1.player_id, p2.player_id, PairWeight.score(p1, p2, max_score)}
+          )
+        end
+    end
+    |> Map.values()
   end
 end

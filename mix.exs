@@ -52,7 +52,8 @@ defmodule Elswisser.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:math, "~> 0.7.0"},
       {:httpoison, "~> 2.0"},
-      {:libgraph, "~> 0.16.0"}
+      {:erlport, "~> 0.10.1"},
+      {:poolboy, "~> 1.5.2"}
     ]
   end
 

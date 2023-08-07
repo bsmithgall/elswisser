@@ -3,6 +3,7 @@ defmodule Elswisser.PairingsTest do
 
   alias Elswisser.Pairings.Pairing
   alias Elswisser.Pairings.PairWeight
+  alias Elswisser.Pairings.Worker
 
   import Elswisser.ScoresFixtures
 
@@ -42,8 +43,9 @@ defmodule Elswisser.PairingsTest do
     end
 
     test "cartesian_product creates the correct number of outcomes", %{partition: partition} do
-      # 8 * 8 - self-matches
-      assert length(Pairing.cartesian_product(partition)) == 8 * 7
+      # number of unqiue pairs
+      assert length(Pairing.cartesian_product(partition)) ==
+               length(partition) * (length(partition) - 1) / 2
     end
   end
 
@@ -77,12 +79,40 @@ defmodule Elswisser.PairingsTest do
     end
 
     test "cartesian_product creates the correct number of outcomes", %{partition: partition} do
-      # 8 * 8 - self-matches
-      assert length(Pairing.cartesian_product(partition, 3)) == 8 * 7
+      # number of unqiue pairs
+      assert length(Pairing.cartesian_product(partition)) ==
+               length(partition) * (length(partition) - 1) / 2
     end
   end
 
   test "max_score works as expected" do
     assert scores_fixture() |> Map.values() |> Pairing.max_score() == 3
+  end
+
+  describe "pairing via matching worker algorithm" do
+    setup :start_worker
+
+    test "empty graph works as expected", %{pid: pid} do
+      assert Worker.direct_call(pid, []) == {:ok, []}
+    end
+
+    test "simple graph works as expected", %{pid: pid} do
+      assert Worker.direct_call(pid, [{1, 2, 3.1415}, {2, 3, 2.7183}, {1, 3, 3.0}, {1, 4, 1.4142}]) ==
+               {:ok, [{2, 3}, {1, 4}]}
+    end
+
+    test "first round with known ratings matches as expected", %{pid: pid} do
+      first_round =
+        scores_fixture_with_players_first_round()
+        |> Elswisser.Scores.sort()
+        |> Pairing.pair()
+
+      assert Worker.direct_call(pid, first_round) == {:ok, [{5, 1}, {6, 2}, {7, 3}, {8, 4}]}
+    end
+  end
+
+  defp start_worker(_) do
+    {:ok, pid} = Worker.start_link()
+    %{pid: pid}
   end
 end
