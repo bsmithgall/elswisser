@@ -26,7 +26,11 @@ defmodule Elswisser.Scores do
   end
 
   def sort(scores) when is_map(scores) do
-    Map.values(scores)
+    Map.values(scores) |> sort()
+  end
+
+  def sort(scores) when is_list(scores) do
+    scores
     |> Enum.sort_by(fn r -> r.rating end, :desc)
     |> Enum.sort_by(fn r -> r.nblack end, :desc)
     |> Enum.sort_by(fn r -> r.solkoff end, :desc)
@@ -39,9 +43,10 @@ defmodule Elswisser.Scores do
   """
   def raw_score_for_player(games, player_id) when is_list(games) do
     Enum.reduce(games, 0, fn g, acc ->
-      case player_id == g.white_id do
-        true -> acc + white_score_from_result(g.result)
-        false -> acc + black_score_from_result(g.result)
+      cond do
+        player_id == g.white_id -> acc + white_score_from_result(g.result)
+        player_id == g.black_id -> acc + black_score_from_result(g.result)
+        true -> acc
       end
     end)
   end
@@ -57,6 +62,9 @@ defmodule Elswisser.Scores do
       white_score = white_score_from_result(g.game.result)
       black_score = black_score_from_result(g.game.result)
 
+      white_result = if is_nil(g.game.result), do: nil, else: white_score
+      black_result = if is_nil(g.game.result), do: nil, else: black_score
+
       # update score map for white-side player
       acc =
         Map.update(
@@ -66,7 +74,7 @@ defmodule Elswisser.Scores do
             player_id: g.game.white_id,
             score: white_score,
             opponents: [g.game.black_id],
-            results: [white_score],
+            results: [white_result],
             cumulative_sum: white_score * g.rnd,
             lastwhite: true
           },
@@ -74,7 +82,7 @@ defmodule Elswisser.Scores do
             Map.merge(ex, %{
               score: ex.score + white_score,
               opponents: ex.opponents ++ [g.game.black_id],
-              results: ex.results ++ [white_score],
+              results: ex.results ++ [white_result],
               cumulative_sum: ex.cumulative_sum + white_score * g.rnd,
               lastwhite: true
             })
@@ -90,7 +98,7 @@ defmodule Elswisser.Scores do
             player_id: g.game.black_id,
             score: black_score,
             opponents: [g.game.white_id],
-            results: [black_score],
+            results: [black_result],
             cumulative_sum: black_score * g.rnd,
             nblack: 1,
             lastwhite: false
@@ -99,7 +107,7 @@ defmodule Elswisser.Scores do
             Map.merge(ex, %{
               score: ex.score + black_score,
               opponents: ex.opponents ++ [g.game.white_id],
-              results: ex.results ++ [black_score],
+              results: ex.results ++ [black_result],
               cumulative_sum: ex.cumulative_sum + black_score * g.rnd,
               nblack: ex.nblack + 1,
               lastwhite: false

@@ -2,9 +2,12 @@ defmodule ElswisserWeb.RoundLive.Pairing do
   use ElswisserWeb, :live_view
   import ElswisserWeb.GameHTML, only: [result: 1]
 
-  alias Elswisser.Players
   alias Elswisser.Games
+  alias Elswisser.Pairings
+  alias Elswisser.Players
   alias Elswisser.Rounds
+  alias Elswisser.Scores
+  alias Elswisser.Tournaments
 
   embed_templates("pairing_html/*")
 
@@ -27,8 +30,11 @@ defmodule ElswisserWeb.RoundLive.Pairing do
     <.flash kind={:error} title="Error!" flash={@flash} />
     <div class="mt-8 flex">
       <div class="w-2/5 box-border border-r border-r-zinc-400 pr-4 mr-4">
+        <.success_button phx-click="auto-pair-remaining" class="mb-4 w-full">
+          Auto-pair remaining players
+        </.success_button>
         <.section_title class="text-xs uppercase mb-4">
-          Select players for pairing (<%= @color %> pieces)
+          or select player for pairing (<%= @color %> pieces)
         </.section_title>
         <.select_player
           players={@players}
@@ -78,13 +84,8 @@ defmodule ElswisserWeb.RoundLive.Pairing do
   end
 
   @impl true
-  def handle_event("do-match", params, socket) do
-    case Games.create_game(%{
-           white_id: params["white-id"],
-           black_id: params["black-id"],
-           tournament_id: socket.assigns[:tournament_id],
-           round_id: socket.assigns[:round_id]
-         }) do
+  def handle_event("do-match", %{"white-id" => white_id, "black-id" => black_id}, socket) do
+    case Games.create_game(to_game_params(socket, white_id, black_id)) do
       {:ok, game} ->
         remaining = filter_just_matched(socket.assigns[:players], game)
 
@@ -102,6 +103,26 @@ defmodule ElswisserWeb.RoundLive.Pairing do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:error, socket |> put_flash(:error, "Could not create Game: #{changeset}")}
+    end
+  end
+
+  @impl true
+  def handle_event("auto-pair-remaining", _params, socket) do
+    all_games = Tournaments.get_all_games_in_tournament!(socket.assigns[:tournament_id])
+
+    remaining_ids = socket.assigns[:players] |> Enum.map(fn p -> p.id end)
+
+    eligibles =
+      Scores.calculate(all_games)
+      |> Scores.with_players(socket.assigns[:roster])
+      |> Map.filter(fn {player_id, _score} -> Enum.member?(remaining_ids, player_id) end)
+
+    with {:ok, pairings} <- Pairings.pair(eligibles),
+         {:ok, assignments} <- {:ok, Pairings.assign_colors(pairings, eligibles)},
+         {:ok, _games} <- Games.create_games(to_game_params(socket, assignments)) do
+      handle_pairing_finished(socket)
+    else
+      {:error, _reason} -> {:error, socket}
     end
   end
 
@@ -175,7 +196,7 @@ defmodule ElswisserWeb.RoundLive.Pairing do
         phx-value-white-id={@white_id}
         phx-value-black-id={@black_id}
       >
-        <.icon name="hero-check-mini" class="-mt-1" /> Match players
+        <.icon name="hero-check-mini" class="-mt-1 pr-1" />Match players
       </.success_button>
     </div>
     """
@@ -249,5 +270,18 @@ defmodule ElswisserWeb.RoundLive.Pairing do
     Enum.filter(pairings, fn p ->
       p.id != game.white_id && p.id != game.black_id
     end)
+  end
+
+  defp to_game_params(socket, white_id, black_id) do
+    %{
+      white_id: white_id,
+      black_id: black_id,
+      tournament_id: socket.assigns[:tournament_id],
+      round_id: socket.assigns[:round_id]
+    }
+  end
+
+  def to_game_params(socket, pairings) when is_list(pairings) do
+    Enum.map(pairings, fn {white_id, black_id} -> to_game_params(socket, white_id, black_id) end)
   end
 end

@@ -24,6 +24,7 @@ defmodule ElswisserWeb.Router do
 
       scope("/rounds") do
         get("/:id/pairings", RoundController, :pairings)
+        post("/:id/finalize", RoundController, :finalize)
       end
 
       resources("/games", GameController, only: [:show, :edit, :update])

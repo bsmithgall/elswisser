@@ -30,4 +30,8 @@ defmodule Elswisser.Tournaments.Tournament do
   def from() do
     from(t in Elswisser.Tournaments.Tournament, as: :tournament)
   end
+
+  def most_recent_first(query) do
+    from(t in query, order_by: [desc: :inserted_at])
+  end
 end

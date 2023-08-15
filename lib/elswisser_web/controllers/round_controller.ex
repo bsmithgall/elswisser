@@ -1,11 +1,13 @@
 defmodule ElswisserWeb.RoundController do
   use ElswisserWeb, :controller
 
+  alias Elswisser.Tournaments
   alias Elswisser.Rounds
 
   plug(:fetch_round when action not in [:create])
   plug(:ensure_round_in_tournament when action not in [:create])
   plug(ElswisserWeb.Plugs.EnsureTournament, "all" when action in [:show, :pairings])
+  plug(ElswisserWeb.Plugs.EnsureTournament, "none" when action in [:create, :finalize])
 
   plug(
     :put_root_layout,
@@ -24,11 +26,16 @@ defmodule ElswisserWeb.RoundController do
   end
 
   def create(conn, %{"tournament_id" => tournament_id, "number" => number}) do
-    case Rounds.create_round(%{number: number, tournament_id: tournament_id, status: :pairing}) do
+    case(Tournaments.create_next_round(conn.assigns[:tournament], number)) do
       {:ok, round} ->
         conn
         |> put_flash(:info, "Round created successfully.")
-        |> redirect(to: ~p"/tournaments/#{round.tournament_id}/rounds/#{round.id}")
+        |> redirect(to: ~p"/tournaments/#{round.tournament_id}/rounds/#{round.id}/pairings")
+
+      :finished ->
+        conn
+        |> put_flash(:error, "Could not create new round, tournament is over!")
+        |> redirect(to: ~p"/tournaments/#{tournament_id}/scores")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         conn
@@ -57,6 +64,29 @@ defmodule ElswisserWeb.RoundController do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :edit, round: conn.assigns[:round], changeset: changeset)
+    end
+  end
+
+  def finalize(conn, %{"tournament_id" => tournament_id, "id" => id}) do
+    with {_count, nil} <- Rounds.draw_unfinished(id),
+         {:ok, rnd} <- Rounds.set_complete(conn.assigns[:round]),
+         {:ok, next_round} <- Tournaments.create_next_round(conn.assigns[:tournament], rnd.number) do
+      conn
+      |> put_flash(
+        :info,
+        "Round successfully completed. Pairings players for round #{next_round.number}."
+      )
+      |> redirect(to: ~p"/tournaments/#{tournament_id}/rounds/#{next_round}/pairings")
+    else
+      :finished ->
+        conn
+        |> put_flash(:info, "Tournament has finished!")
+        |> redirect(to: ~p"/tournaments/#{tournament_id}/scores")
+
+      {:error, reason} ->
+        conn
+        |> put_flash(:error, "Something went wrong finalizing the round: #{reason}")
+        |> redirect(to: ~p"/tournaments/#{tournament_id}/rounds/#{id}")
     end
   end
 

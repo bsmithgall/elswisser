@@ -43,7 +43,7 @@ defmodule ElswisserWeb.RoundLive.Round do
 
   @impl true
   def handle_event("save-result", params, socket) do
-    game = Games.get_game!(params["id"])
+    game = find_game(socket, params["id"])
 
     case Games.update_game(game, params) do
       {:ok, game} ->
@@ -78,6 +78,41 @@ defmodule ElswisserWeb.RoundLive.Round do
   end
 
   @impl true
+  def handle_event("switch-player-colors", %{"id" => id_str}, socket) do
+    game = find_game(socket, id_str)
+
+    case Games.update_game(game, %{white_id: game.white.id, black_id: game.black.id}) do
+      {:ok, _updated} ->
+        {:noreply,
+         socket
+         |> assign(
+           :games,
+           update_session_game(socket.assigns[:games], game.id, %{
+             black: game.white,
+             white: game.black
+           })
+         )}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:error, socket |> put_flash(:error, "Could not switch colors: #{changeset}")}
+    end
+  end
+
+  @impl true
+  def handle_event("unpair-players", %{"id" => id}, socket) do
+    game = find_game(socket, id)
+
+    with {:ok, _deleted} <- Games.delete_game(game),
+         {:ok, _} <- Rounds.set_pairing(socket.assigns[:round]) do
+      {:noreply,
+       socket |> assign(:games, Enum.filter(socket.assigns[:games], fn g -> g.id != game.id end))}
+    else
+      {:error, reason} ->
+        {:error, socket |> put_flash(:error, "Could not delete players: #{reason}")}
+    end
+  end
+
+  @impl true
   def handle_info({:pgn_result, %{pgn: pgn, game_id: game_id}}, socket) do
     {:noreply,
      socket |> assign(:games, update_session_game(socket.assigns[:games], game_id, %{pgn: pgn}))}
@@ -106,5 +141,13 @@ defmodule ElswisserWeb.RoundLive.Round do
     Enum.map(games, fn g ->
       if g.id == game_id, do: Map.merge(g, game_attributes), else: g
     end)
+  end
+
+  defp find_game(socket, id) when is_binary(id) do
+    find_game(socket, String.to_integer(id))
+  end
+
+  defp find_game(socket, id) when is_integer(id) do
+    Enum.find(socket.assigns[:games], fn g -> g.id == id end)
   end
 end

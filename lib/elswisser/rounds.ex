@@ -77,8 +77,16 @@ defmodule Elswisser.Rounds do
     |> Repo.update()
   end
 
+  def set_pairing(%Round{} = round) do
+    round |> Round.changeset(%{status: :pairing}) |> Repo.update()
+  end
+
   def set_playing(id) when is_integer(id) do
     get_round!(id) |> update_round(%{status: :playing})
+  end
+
+  def set_complete(%Round{} = round) do
+    round |> Round.changeset(%{status: :complete}) |> Repo.update()
   end
 
   def set_complete(id) when is_integer(id) do
@@ -90,5 +98,18 @@ defmodule Elswisser.Rounds do
     |> Game.changeset(game_attrs)
     |> Ecto.Changeset.put_assoc(:round, r)
     |> Repo.insert()
+  end
+
+  @doc """
+  Mark all games associated with this round that do not currently have a result
+  as a draw.
+  """
+  def draw_unfinished(id) do
+    query =
+      Game.from()
+      |> Game.where_round_id(id)
+      |> Game.where_unfinished()
+
+    Repo.update_all(query, set: [result: 0])
   end
 end

@@ -42,7 +42,7 @@ defmodule Elswisser.Application do
     [
       {:name, {:local, :pairing_worker}},
       {:worker_module, Elswisser.Pairings.Worker},
-      {:size, 3},
+      {:size, Application.fetch_env!(:elswisser, :pairing_pool_size)},
       {:max_overflow, 0}
     ]
   end

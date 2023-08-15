@@ -18,6 +18,16 @@ defmodule Elswisser.Games do
     |> Repo.insert()
   end
 
+  def create_games(games \\ []) do
+    games
+    |> Enum.with_index()
+    |> Enum.reduce(Ecto.Multi.new(), fn {game, idx}, acc ->
+      changeset = %Game{} |> Game.changeset(game)
+      Ecto.Multi.insert(acc, {:game, idx}, changeset)
+    end)
+    |> Repo.transaction()
+  end
+
   def get_games_from_tournament_for_player(tournament_id, player_id) do
     Game.from()
     |> Game.where_tournament_id(tournament_id)
@@ -66,6 +76,10 @@ defmodule Elswisser.Games do
     else
       {:error, reason} -> {:error, reason}
     end
+  end
+
+  def delete_game(%Game{} = game) do
+    Repo.delete(game)
   end
 
   defp parse_game_source(game_link) do
