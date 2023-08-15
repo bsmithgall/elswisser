@@ -21,6 +21,8 @@ defmodule Elswisser.Games.Game do
     game
     |> cast(attrs, [:white_id, :black_id, :result, :round_id, :game_link, :tournament_id, :pgn])
     |> validate_required([:white_id, :black_id, :round_id, :tournament_id])
+    |> unique_constraint(:unique_white_players, name: :games_white_id_round_id_unique_idx)
+    |> unique_constraint(:unique_black_players, name: :games_black_id_round_id_unique_idx)
   end
 
   def from() do
@@ -41,6 +43,10 @@ defmodule Elswisser.Games.Game do
 
   def where_player_id(query, player_id) do
     from [..., game: g] in query, where: g.white_id == ^player_id or g.black_id == ^player_id
+  end
+
+  def where_unfinished(query) do
+    from [..., game: g] in query, where: is_nil(g.result)
   end
 
   def with_white_player(query) do

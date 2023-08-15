@@ -1,7 +1,7 @@
 defmodule Elswisser.PairingsTest do
   use Elswisser.DataCase
 
-  alias Elswisser.Pairings.Pairing
+  alias Elswisser.Pairings
   alias Elswisser.Pairings.PairWeight
   alias Elswisser.Pairings.Worker
 
@@ -13,7 +13,7 @@ defmodule Elswisser.PairingsTest do
        partition:
          scores_fixture_with_players_first_round()
          |> Elswisser.Scores.sort()
-         |> Pairing.partition()}
+         |> Pairings.partition()}
     end
 
     test "top rated player in top half at half_idx 0", %{partition: partition} do
@@ -44,7 +44,7 @@ defmodule Elswisser.PairingsTest do
 
     test "cartesian_product creates the correct number of outcomes", %{partition: partition} do
       # number of unqiue pairs
-      assert length(Pairing.cartesian_product(partition)) ==
+      assert length(Pairings.cartesian_product(partition)) ==
                length(partition) * (length(partition) - 1) / 2
     end
   end
@@ -55,7 +55,7 @@ defmodule Elswisser.PairingsTest do
        partition:
          scores_fixture_with_players()
          |> Elswisser.Scores.sort()
-         |> Pairing.partition()}
+         |> Pairings.partition()}
     end
 
     test "top scoring player in top half at half_idx 0", %{partition: partition} do
@@ -80,13 +80,13 @@ defmodule Elswisser.PairingsTest do
 
     test "cartesian_product creates the correct number of outcomes", %{partition: partition} do
       # number of unqiue pairs
-      assert length(Pairing.cartesian_product(partition)) ==
+      assert length(Pairings.cartesian_product(partition)) ==
                length(partition) * (length(partition) - 1) / 2
     end
   end
 
   test "max_score works as expected" do
-    assert scores_fixture() |> Map.values() |> Pairing.max_score() == 3
+    assert scores_fixture() |> Map.values() |> Pairings.max_score() == 3
   end
 
   describe "pairing via matching worker algorithm" do
@@ -105,9 +105,47 @@ defmodule Elswisser.PairingsTest do
       first_round =
         scores_fixture_with_players_first_round()
         |> Elswisser.Scores.sort()
-        |> Pairing.pair()
+        |> Pairings.partition()
+        |> Pairings.cartesian_product()
 
       assert Worker.direct_call(pid, first_round) == {:ok, [{5, 1}, {6, 2}, {7, 3}, {8, 4}]}
+    end
+  end
+
+  describe "#assign_colors" do
+    test "left more black games than right" do
+      assert Pairings.assign_colors([{1, 2}], %{
+               1 => %{nblack: 10},
+               2 => %{nblack: 5}
+             }) == [{1, 2}]
+    end
+
+    test "right more black games than left" do
+      assert Pairings.assign_colors([{1, 2}], %{
+               1 => %{nblack: 5},
+               2 => %{nblack: 10}
+             }) == [{2, 1}]
+    end
+
+    test "same black games, but left was last white and right was not" do
+      assert Pairings.assign_colors([{1, 2}], %{
+               1 => %{nblack: 2, lastwhite: true},
+               2 => %{nblack: 2, lastwhite: false}
+             }) == [{2, 1}]
+    end
+
+    test "same black games, but right was last white and left was not" do
+      assert Pairings.assign_colors([{1, 2}], %{
+               1 => %{nblack: 2, lastwhite: false},
+               2 => %{nblack: 2, lastwhite: true}
+             }) == [{1, 2}]
+    end
+
+    test "everything the same" do
+      assert Pairings.assign_colors([{1, 2}], %{
+               1 => %{nblack: 2, lastwhite: true},
+               2 => %{nblack: 2, lastwhite: true}
+             }) == [{1, 2}]
     end
   end
 

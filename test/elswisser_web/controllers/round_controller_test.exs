@@ -20,11 +20,11 @@ defmodule ElswisserWeb.RoundControllerTest do
 
   describe "new" do
     test "create new round successfully", %{conn: conn} do
-      tournament = tournament_fixture()
-      conn = post(conn, ~p"/tournaments/#{tournament}/rounds", %{number: "1"})
+      tournament = tournament_fixture(%{length: 4})
+      conn = post(conn, ~p"/tournaments/#{tournament}/rounds", %{number: "0"})
 
       assert %{tournament_id: tournament_id, id: id} = redirected_params(conn)
-      assert redirected_to(conn) == ~p"/tournaments/#{tournament_id}/rounds/#{id}"
+      assert redirected_to(conn) == ~p"/tournaments/#{tournament_id}/rounds/#{id}/pairings"
 
       conn = get(conn, ~p"/tournaments/#{tournament_id}/rounds/#{id}")
       assert html_response(conn, 200) =~ "Round 1"

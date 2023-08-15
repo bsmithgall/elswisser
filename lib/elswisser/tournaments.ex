@@ -20,7 +20,7 @@ defmodule Elswisser.Tournaments do
 
   """
   def list_tournaments do
-    Repo.all(Tournament)
+    Tournament |> Tournament.most_recent_first() |> Repo.all()
   end
 
   @doc """
@@ -38,8 +38,11 @@ defmodule Elswisser.Tournaments do
 
   """
   def get_tournament!(id) do
-    Tournament
-    |> Repo.get!(id)
+    Repo.get!(Tournament, id)
+  end
+
+  def get_tournament(id) do
+    Repo.get(Tournament, id)
   end
 
   def get_tournament_with_rounds(id) do
@@ -48,11 +51,15 @@ defmodule Elswisser.Tournaments do
     |> Repo.preload(:rounds)
   end
 
-  def current_round(%Tournament{} = tournament) when is_map_key(tournament, "rounds") do
-    Enum.max_by(tournament.rounds, fn r -> r.number end)
+  def current_round(%Tournament{} = tournament) when is_map_key(tournament, :rounds) do
+    case tournament.rounds do
+      %Ecto.Association.NotLoaded{} -> %Elswisser.Rounds.Round{number: 0}
+      rnds when is_list(rnds) and length(rnds) == 0 -> %Elswisser.Rounds.Round{number: 0}
+      _ -> Enum.max_by(tournament.rounds, fn r -> r.number end)
+    end
   end
 
-  def current_round(%Tournament{} = tournament) when not is_map_key(tournament, "rounds") do
+  def current_round(%Tournament{} = tournament) when not is_map_key(tournament, :rounds) do
     %Elswisser.Rounds.Round{number: 0}
   end
 
@@ -71,13 +78,14 @@ defmodule Elswisser.Tournaments do
 
   def get_all_games_in_tournament!(id) do
     Repo.all(
-      from g in Game,
+      from(g in Game,
         join: r in Round,
         on: g.round_id == r.id,
         join: t in Tournament,
         on: r.tournament_id == t.id,
         where: t.id == ^id,
         select: {g, r.number}
+      )
     )
     |> Enum.map(fn x -> %{game: elem(x, 0), rnd: elem(x, 1)} end)
   end
@@ -135,7 +143,8 @@ defmodule Elswisser.Tournaments do
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking tournament changes.
+  Returns an `%Ecto.Changeset{}` for tracking tournament changes. If a length is
+  explicitly set, use that. Otherwise calculate it based on the number of players.
 
   ## Examples
 
@@ -143,8 +152,11 @@ defmodule Elswisser.Tournaments do
       %Ecto.Changeset{data: %Tournament{}}
 
   """
-  def change_tournament(%Tournament{} = tournament, attrs \\ %{}) do
-    players = Elswisser.Players.list_by_id(attrs[:player_ids])
+  def change_tournament(tournament, attrs \\ %{})
+
+  def change_tournament(%Tournament{} = tournament, attrs)
+      when not is_map_key(attrs, :length) do
+    players = Elswisser.Players.list_by_id(ensure_atom(attrs)[:player_ids])
     len = calculate_length(players)
 
     tournament
@@ -152,6 +164,39 @@ defmodule Elswisser.Tournaments do
     |> Repo.preload(:rounds)
     |> Tournament.changeset(attrs |> ensure_atom |> Map.merge(%{length: len}))
     |> maybe_put_players(players)
+  end
+
+  def change_tournament(%Tournament{} = tournament, attrs)
+      when is_map_key(attrs, :length) do
+    players = Elswisser.Players.list_by_id(ensure_atom(attrs)[:player_ids])
+
+    tournament
+    |> Repo.preload(:players)
+    |> Repo.preload(:rounds)
+    |> Tournament.changeset(attrs)
+    |> maybe_put_players(players)
+  end
+
+  def create_next_round(%Tournament{} = tournament, current_round_number)
+      when is_binary(current_round_number) do
+    create_next_round(tournament, String.to_integer(current_round_number))
+  end
+
+  @doc """
+  Attempt to create the next round for a tournament. If the next round number is
+  > than the tournament's length, return :completed, otherwise return :ok or
+  > :error based on the results from Ecto.
+  """
+  def create_next_round(%Tournament{} = tournament, current_round_number) do
+    if current_round_number + 1 > tournament.length do
+      :finished
+    else
+      Elswisser.Rounds.create_round(%{
+        tournament_id: tournament.id,
+        number: current_round_number + 1,
+        status: :pairing
+      })
+    end
   end
 
   def empty_changeset(%Tournament{} = tournament, attrs \\ %{}) do

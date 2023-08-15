@@ -28,17 +28,22 @@ defmodule ElswisserWeb.TournamentLayouts do
 
   def new_round_form(assigns) do
     ~H"""
-    <form
-      :if={@tournament.length != @current_round.number}
+    <.form
+      :if={@current_round.number < @tournament.length}
+      for={nil}
       class="mt-4"
       action={~p"/tournaments/#{@tournament}/rounds"}
       method="POST"
     >
-      <input type="hidden" value={@current_round.number + 1} name="number" />
-      <.button type="submit" class="text-center" disabled={@current_round.status != :complete}>
+      <input type="hidden" value={@current_round.number} name="number" />
+      <.button
+        type="submit"
+        class="text-center"
+        disabled={@current_round.status != :complete and @current_round.number != 0}
+      >
         <.icon class="mr-2 -mt-1" name="hero-plus" />Add new round
       </.button>
-    </form>
+    </.form>
     """
   end
 

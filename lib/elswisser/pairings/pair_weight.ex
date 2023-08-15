@@ -26,7 +26,7 @@ defmodule Elswisser.Pairings.PairWeight do
 
   # 27A2. Players with equal scores are paired whenever possible
   defp score_difference(%Pairing{} = p1, %Pairing{} = p2) do
-    p1.score.score - p2.score.score
+    abs(p1.score.score - p2.score.score)
   end
 
   # 27A3. Within a score group, i.e., all players who have the same score, the
@@ -39,7 +39,7 @@ defmodule Elswisser.Pairings.PairWeight do
 
   # 27A4. Players receive each color the same number of times, whenever practical,
   # and are not assigned the same color more than twice in a row.
-  defp due_different_colors(%Pairing{} = p1, %Pairing{} = p2) do
+  def due_different_colors(%Pairing{} = p1, %Pairing{} = p2) do
     if p1.score.lastwhite != p2.score.lastwhite, do: 2, else: 0
   end
 

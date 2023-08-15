@@ -32,11 +32,30 @@
       phx-click={show_modal("game-#{@game.id}-edit-modal")}
       disabled={is_nil(@game.result)}
       class="disabled:text-zinc-400 disabled:cursor-not-allowed"
+      title="Edit game information"
     >
       <.icon class="-mt-1 ml-4" name="hero-ellipsis-horizontal-circle" />
     </button>
-    <a href={~p"/tournaments/#{@game.tournament_id}/games/#{@game}"}>
-      <.icon class="-mt-1 ml-2" name="hero-link" />
+    <a href={~p"/tournaments/#{@game.tournament_id}/games/#{@game}"} title="Go to game page">
+      <.icon class="-mt-1 ml-2" name="hero-arrow-top-right-on-square" />
     </a>
+    <button
+      phx-click="switch-player-colors"
+      phx-value-id={@game.id}
+      disabled={!is_nil(@game.result)}
+      class="disabled:text-zinc-400 disabled:cursor-not-allowed"
+      title="Swap player colors"
+    >
+      <.icon class="-mt-1 ml-2" name="hero-arrow-path" />
+    </button>
+    <button
+      phx-click="unpair-players"
+      phx-value-id={@game.id}
+      disabled={!is_nil(@game.result)}
+      class="disabled:text-zinc-400 disabled:cursor-not-allowed"
+      title="Unpair players"
+    >
+      <.icon class="-mt-1 ml-2" name="hero-scissors" />
+    </button>
   </td>
 </tr>
