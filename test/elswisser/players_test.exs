@@ -2,6 +2,7 @@ defmodule Elswisser.PlayersTest do
   use Elswisser.DataCase
 
   alias Elswisser.Players
+  alias Elswisser.Players.ELO
 
   describe "players" do
     alias Elswisser.Players.Player
@@ -56,6 +57,28 @@ defmodule Elswisser.PlayersTest do
     test "change_player/1 returns a player changeset" do
       player = player_fixture()
       assert %Ecto.Changeset{} = Players.change_player(player)
+    end
+  end
+
+  describe "ELO" do
+    test "1500 beats 1200 with K-factor of 40 yields +6" do
+      assert ELO.recalculate(1500, 1200, 40, 1) == 1500 + 6
+      assert ELO.recalculate(1200, 1500, 40, -1) == 1200 - 6
+    end
+
+    test "1400 draw with any K-factor yields no change" do
+      assert ELO.recalculate(1400, 1400, 40, 0) == 1400
+      assert ELO.recalculate(1400, 1400, 40, 0) == 1400
+    end
+
+    test "800 beats 1600 with K-factor of 40 yields +40" do
+      assert ELO.recalculate(800, 1600, 40, 1) == 800 + 40
+      assert ELO.recalculate(1600, 800, 40, -1) == 1600 - 40
+    end
+
+    test "rating cannot fall below 100" do
+      assert ELO.recalculate(100, 110, 40, -1) == 100
+      assert ELO.recalculate(110, 100, 40, 1) == 100 + 29
     end
   end
 end
