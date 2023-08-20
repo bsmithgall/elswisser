@@ -38,15 +38,17 @@ defmodule Elswisser.Players.Player do
   end
 
   def where_tournament_id(query, id) do
-    from [player: p] in query,
+    from([player: p] in query,
       join: t in assoc(p, :tournaments),
       as: :tournament,
       where: t.id == ^id
+    )
   end
 
   def where_not_matching(query, match_query) do
-    from [player: p] in query,
+    from([player: p] in query,
       where: p.id not in subquery(match_query)
+    )
   end
 
   def with_games(query) do
@@ -56,16 +58,14 @@ defmodule Elswisser.Players.Player do
   defp with_white_games(query) do
     from(p in query,
       left_join: w in assoc(p, :white_games),
-      as: :white_games,
-      preload: [white_games: w]
+      as: :white_games
     )
   end
 
   defp with_black_games(query) do
     from(p in query,
       left_join: b in assoc(p, :black_games),
-      as: :black_games,
-      preload: [black_games: b]
+      as: :black_games
     )
   end
 

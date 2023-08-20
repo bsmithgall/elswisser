@@ -81,6 +81,30 @@ defmodule Elswisser.Players do
     |> Repo.all()
   end
 
+  def get_player_with_k_factor(id) when is_integer(id) do
+    {player, game_count} =
+      from(
+        p in Player,
+        join:
+          g in subquery(
+            from(g in Game,
+              where: g.white_id == ^id or g.black_id == ^id,
+              select: %{id: ^id, ct: count(g.id)}
+            )
+          ),
+        on: p.id == g.id,
+        select: {p, g.ct}
+      )
+      |> Repo.one()
+
+    cond do
+      is_nil(player) -> {:error, "Player not found"}
+      game_count < 30 -> {:ok, {player, 40}}
+      player.rating > 2100 -> {:ok, {player, 10}}
+      true -> {:ok, {player, 20}}
+    end
+  end
+
   @doc """
   Creates a player.
 
