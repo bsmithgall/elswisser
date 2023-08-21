@@ -7,8 +7,9 @@ defmodule Elswisser.Players.Player do
     field(:name, :string)
     field(:rating, :integer)
 
-    has_many(:white_games, Elswisser.Games.Game, foreign_key: :white_id)
-    has_many(:black_games, Elswisser.Games.Game, foreign_key: :black_id)
+    has_many(:games, Elswisser.Games.GamePlayers)
+    has_many(:white_games, through: [:games, :game], where: [color: :white])
+    has_many(:black_games, through: [:games, :game], where: [color: :black])
 
     many_to_many(:tournaments, Elswisser.Tournaments.Tournament,
       join_through: Elswisser.Tournaments.TournamentPlayer,
