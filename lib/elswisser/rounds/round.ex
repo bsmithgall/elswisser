@@ -38,4 +38,8 @@ defmodule Elswisser.Rounds.Round do
   def preload_games_and_players(query) do
     from([game: g, white: w, black: b] in query, preload: [games: {g, white: w, black: b}])
   end
+
+  def preload_games(query) do
+    from([game: g] in query, preload: [games: g])
+  end
 end

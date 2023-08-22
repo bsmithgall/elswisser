@@ -4,10 +4,13 @@ defmodule Elswisser.Players do
   """
 
   import Ecto.Query, warn: false
+  alias Ecto.Multi
+  alias Elswisser.Players.ELO
   alias Elswisser.Repo
 
   alias Elswisser.Players.Player
   alias Elswisser.Games.Game
+  alias Elswisser.Rounds
 
   @doc """
   Returns the list of players.
@@ -81,30 +84,6 @@ defmodule Elswisser.Players do
     |> Repo.all()
   end
 
-  def get_player_with_k_factor(id) when is_integer(id) do
-    {player, game_count} =
-      from(
-        p in Player,
-        join:
-          g in subquery(
-            from(g in Game,
-              where: g.white_id == ^id or g.black_id == ^id,
-              select: %{id: ^id, ct: count(g.id)}
-            )
-          ),
-        on: p.id == g.id,
-        select: {p, g.ct}
-      )
-      |> Repo.one()
-
-    cond do
-      is_nil(player) -> {:error, "Player not found"}
-      game_count < 30 -> {:ok, {player, 40}}
-      player.rating > 2100 -> {:ok, {player, 10}}
-      true -> {:ok, {player, 20}}
-    end
-  end
-
   @doc """
   Creates a player.
 
@@ -141,6 +120,32 @@ defmodule Elswisser.Players do
     |> Repo.update()
   end
 
+  def update_ratings_after_round(id) do
+    rnd_with_games = Rounds.get_round_with_games(id)
+
+    player_ids =
+      Enum.reduce(rnd_with_games.games, MapSet.new(), fn g, acc ->
+        MapSet.put(acc, g.white_id) |> MapSet.put(g.black_id)
+      end)
+      |> MapSet.to_list()
+
+    with_k_factors = players_with_k_factor(player_ids)
+
+    Enum.reduce(rnd_with_games.games, Multi.new(), fn g, multi ->
+      {white, white_recalcs} = with_k_factors[g.white_id]
+      {black, black_recalcs} = with_k_factors[g.black_id]
+
+      {new_white, new_black} = ELO.recalculate(white_recalcs, black_recalcs, g.result)
+
+      white_changeset = Player.changeset(white, %{rating: new_white})
+      black_changeset = Player.changeset(black, %{rating: new_black})
+
+      Multi.update(multi, {:rating, g.white_id}, white_changeset)
+      |> Multi.update({:rating, g.black_id}, black_changeset)
+    end)
+    |> Repo.transaction()
+  end
+
   @doc """
   Deletes a player.
 
@@ -168,5 +173,21 @@ defmodule Elswisser.Players do
   """
   def change_player(%Player{} = player, attrs \\ %{}) do
     Player.changeset(player, attrs)
+  end
+
+  def players_with_k_factor(ids) when is_list(ids) do
+    from(
+      p in Player,
+      join: w in subquery(Game.from() |> Game.count_white_games(ids)),
+      on: p.id == w.id,
+      join: b in subquery(Game.from() |> Game.count_black_games(ids)),
+      on: p.id == b.id,
+      select: {p, w.ct + b.ct}
+    )
+    |> Repo.all()
+    |> Enum.reduce(%{}, fn {player, games_played}, acc ->
+      {player, k} = Player.with_k_factor(player, games_played)
+      Map.put(acc, player.id, {player, {player.rating, k}})
+    end)
   end
 end

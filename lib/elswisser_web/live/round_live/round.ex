@@ -132,7 +132,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   def game_result_table_row(assigns)
 
   defp fetch_round(round_id) do
-    Rounds.get_round_with_games!(round_id)
+    Rounds.get_round_with_games_and_players!(round_id)
   end
 
   # Given an update to an individual game, merge the update into the socket's

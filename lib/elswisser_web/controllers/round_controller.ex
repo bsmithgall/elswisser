@@ -3,6 +3,7 @@ defmodule ElswisserWeb.RoundController do
 
   alias Elswisser.Tournaments
   alias Elswisser.Rounds
+  alias Elswisser.Players
 
   plug(:fetch_round when action not in [:create])
   plug(:ensure_round_in_tournament when action not in [:create])
@@ -68,7 +69,9 @@ defmodule ElswisserWeb.RoundController do
   end
 
   def finalize(conn, %{"tournament_id" => tournament_id, "id" => id}) do
+    # @TODO: wrap all of this in a transaction via Ecto.Multi
     with {_count, nil} <- Rounds.draw_unfinished(id),
+         {:ok, _update} <- Players.update_ratings_after_round(id),
          {:ok, rnd} <- Rounds.set_complete(conn.assigns[:round]),
          {:ok, next_round} <- Tournaments.create_next_round(conn.assigns[:tournament], rnd.number) do
       conn

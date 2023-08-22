@@ -1,4 +1,11 @@
 defmodule Elswisser.Players.ELO do
+  def recalculate({p1rating, p1k}, {p2rating, p2k}, result) do
+    {
+      recalculate(p1rating, p2rating, p1k, result),
+      recalculate(p2rating, p1rating, p2k, invert(result))
+    }
+  end
+
   @doc """
   Recalculate ratings after a match
   """
@@ -19,6 +26,14 @@ defmodule Elswisser.Players.ELO do
       1 -> 1
       0 -> 0.5
       -1 -> 0
+    end
+  end
+
+  defp invert(result) do
+    case result do
+      1 -> 0
+      0 -> 0
+      -1 -> 1
     end
   end
 

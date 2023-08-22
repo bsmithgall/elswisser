@@ -31,7 +31,15 @@ defmodule Elswisser.Rounds do
     Round.from() |> Round.where_id(id) |> Repo.one()
   end
 
-  def get_round_with_games!(id) do
+  def get_round_with_games(id) do
+    Round.from()
+    |> Round.where_id(id)
+    |> Round.with_games()
+    |> Round.preload_games()
+    |> Repo.one()
+  end
+
+  def get_round_with_games_and_players!(id) do
     Round.from()
     |> Round.where_id(id)
     |> Round.with_games()
