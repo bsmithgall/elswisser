@@ -1,4 +1,5 @@
 defmodule ElswisserWeb.TournamentHTML do
+  require Integer
   use ElswisserWeb, :html
 
   embed_templates("tournament_html/*")
@@ -34,17 +35,25 @@ defmodule ElswisserWeb.TournamentHTML do
     attr(:label, :string)
     attr(:center, :boolean)
     attr(:bold, :boolean)
+    attr(:wide, :boolean)
+    attr(:width, :integer)
   end
 
   def scores_table(assigns) do
     ~H"""
     <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-      <table id={@id} class="w-[40rem] sm:w-full">
-        <thead class="text-sm text-left leading-4 text-zinc-500">
+      <table id={@id} class="w-[40rem] sm:w-full table-fixed">
+        <thead class="text-sm text-left leading-4 text-zinc-500 border-zinc-200">
           <tr>
+            <th class="w-4"></th>
             <th
               :for={col <- @col}
-              class={["p-0 pr-4 pb-2 font-normal", col[:center] && "text-center"]}
+              class={[
+                "px-2 py-1 leading-4 font-normal border-r border-zinc-200",
+                col[:center] && "text-center",
+                col[:width] && "w-#{col[:width]}",
+                !col[:width] && "w-10"
+              ]}
             >
               <%= col[:label] %>
             </th>
@@ -52,16 +61,32 @@ defmodule ElswisserWeb.TournamentHTML do
         </thead>
         <tbody
           id={@id}
-          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
+          class="divide-y divide-zinc-200 border-y border-zinc-200 text-sm text-zinc-700"
         >
-          <tr :for={row <- @rows} class="group hover:bg-zinc-50">
-            <td :for={col <- @col} class={["relative p-0", col[:center] && "text-center"]}>
-              <div class="block py-1 pr-6">
-                <span class="absolute -inset-y-px right-0 -left-4 group-hover:bg-zinc-50 sm:rounded-l-xl" />
-                <span class="relative"><%= render_slot(col, row) %></span>
-              </div>
-            </td>
-          </tr>
+          <%= @rows |> Enum.with_index() |> Enum.map(fn {row, idx} -> %>
+            <tr>
+              <td class={[
+                "px-2 text-center border border-zinc-200",
+                Integer.is_even(idx) && "bg-zinc-100"
+              ]}>
+                <%= idx + 1 %>
+              </td>
+              <td
+                :for={col <- @col}
+                class={[
+                  Integer.is_even(idx) && "bg-zinc-100",
+                  "p-0 border-r border-zinc-200 m-1px",
+                  col[:center] && "text-center",
+                  col[:wide] && "w-40",
+                  !col[:wide] && "w-8"
+                ]}
+              >
+                <div class="py-1 px-2">
+                  <%= render_slot(col, row) %>
+                </div>
+              </td>
+            </tr>
+          <% end) %>
         </tbody>
       </table>
     </div>
@@ -80,11 +105,20 @@ defmodule ElswisserWeb.TournamentHTML do
         false -> Enum.at(assigns.outer.results, result_idx)
       end
 
-    assigns = assign(assigns, :is_self, assigns.outer.id == assigns.inner.id)
-    assigns = assign(assigns, :result, result)
+    is_self = assigns.outer.id == assigns.inner.id
+
+    title =
+      cond do
+        is_self -> assigns.outer.name
+        is_nil(result) -> nil
+        true -> "#{assigns.outer.name} vs #{assigns.inner.name}"
+      end
+
+    assigns =
+      assigns |> assign(:is_self, is_self) |> assign(:result, result) |> assign(:title, title)
 
     ~H"""
-    <td class="border-r border-zinc-200 hover:bg-zinc-100">
+    <td class="border border-zinc-200" title={title}>
       <span :if={@is_self}><.icon name="hero-x-mark-solid" /></span>
       <span :if={is_nil(@result)}></span>
       <span :if={@result == 0.5}>&half;</span>

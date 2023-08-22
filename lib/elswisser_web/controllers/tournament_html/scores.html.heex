@@ -1,10 +1,12 @@
 <.header class="py-4">Score Details</.header>
 
 <.scores_table id="scores" rows={@scores}>
-  <:col :let={score} label="Name" bold><%= score.name %></:col>
-  <:col :let={score} label="Score" center><%= score.score %></:col>
-  <:col :let={score} label="Modified Median" center><%= score.modmed %></:col>
-  <:col :let={score} label="Solkoff" center><%= score.solkoff %></:col>
-  <:col :let={score} label="Cumulative of Opposition" center><%= score.cumulative_opp %></:col>
-  <:col :let={score} label="# Black Games" center><%= score.nblack %></:col>
+  <:col :let={score} label="Name" bold width={40}><%= score.name %> (<%= score.rating %>)</:col>
+  <:col :let={score} label="Score" center width={5}>
+    <%= Float.round(score.score * 1.0, 1) %>
+  </:col>
+  <:col :let={score} label="Modified Median" center width={7}><%= score.modmed %></:col>
+  <:col :let={score} label="Solkoff" center width={6}><%= score.solkoff %></:col>
+  <:col :let={score} label="Cumultative Opposition" center><%= score.cumulative_opp %></:col>
+  <:col :let={score} label="# Black Games" center width={6}><%= score.nblack %></:col>
 </.scores_table>
