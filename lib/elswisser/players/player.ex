@@ -25,6 +25,23 @@ defmodule Elswisser.Players.Player do
     |> validate_required([:name, :rating])
   end
 
+  @doc """
+  Given a player with games loaded in, join them together and order them by the
+  round ID.
+  """
+  def all_games(%Elswisser.Players.Player{} = player) do
+    Enum.sort_by(player.white_games ++ player.black_games, & &1.round_id, :desc)
+  end
+
+  def with_k_factor(%{rating: rating} = player, games_played)
+      when is_integer(games_played) do
+    cond do
+      games_played < 30 -> {player, 40}
+      rating > 2100 -> {player, 10}
+      true -> {player, 20}
+    end
+  end
+
   def from do
     from(p in Elswisser.Players.Player, as: :player)
   end
@@ -67,13 +84,5 @@ defmodule Elswisser.Players.Player do
       left_join: b in assoc(p, :black_games),
       as: :black_games
     )
-  end
-
-  @doc """
-  Given a player with games loaded in, join them together and order them by the
-  round ID.
-  """
-  def all_games(%Elswisser.Players.Player{} = player) do
-    Enum.sort_by(player.white_games ++ player.black_games, & &1.round_id, :desc)
   end
 end
