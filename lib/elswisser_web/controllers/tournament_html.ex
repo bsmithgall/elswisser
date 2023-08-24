@@ -76,9 +76,7 @@ defmodule ElswisserWeb.TournamentHTML do
                 class={[
                   Integer.is_even(idx) && "bg-zinc-100",
                   "p-0 border-r border-zinc-200 m-1px",
-                  col[:center] && "text-center",
-                  col[:wide] && "w-40",
-                  !col[:wide] && "w-8"
+                  col[:center] && "text-center"
                 ]}
               >
                 <div class="py-1 px-2">
@@ -118,7 +116,7 @@ defmodule ElswisserWeb.TournamentHTML do
       assigns |> assign(:is_self, is_self) |> assign(:result, result) |> assign(:title, title)
 
     ~H"""
-    <td class="border border-zinc-200" title={title}>
+    <td class="border border-zinc-200" title={@title}>
       <span :if={@is_self}><.icon name="hero-x-mark-solid" /></span>
       <span :if={is_nil(@result)}></span>
       <span :if={@result == 0.5}>&half;</span>

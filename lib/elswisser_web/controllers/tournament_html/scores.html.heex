@@ -5,7 +5,7 @@
   <:col :let={score} label="Score" center width={5}>
     <%= Float.round(score.score * 1.0, 1) %>
   </:col>
-  <:col :let={score} label="Modified Median" center width={7}><%= score.modmed %></:col>
+  <:col :let={score} label="Modified Median" center width={8}><%= score.modmed %></:col>
   <:col :let={score} label="Solkoff" center width={6}><%= score.solkoff %></:col>
   <:col :let={score} label="Cumultative Opposition" center><%= score.cumulative_opp %></:col>
   <:col :let={score} label="# Black Games" center width={6}><%= score.nblack %></:col>
