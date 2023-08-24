@@ -1,12 +1,16 @@
 <.header class="py-4">Score Details</.header>
 
 <.scores_table id="scores" rows={@scores}>
-  <:col :let={score} label="Name" bold width={40}><%= score.name %> (<%= score.rating %>)</:col>
-  <:col :let={score} label="Score" center width={5}>
+  <:col :let={score} label="" width="1/2"><%= score.name %> (<%= score.rating %>)</:col>
+  <:col :let={score} label="Score" center width="1/6">
     <%= Float.round(score.score * 1.0, 1) %>
   </:col>
-  <:col :let={score} label="Modified Median" center width={8}><%= score.modmed %></:col>
-  <:col :let={score} label="Solkoff" center width={6}><%= score.solkoff %></:col>
-  <:col :let={score} label="Cumultative Opposition" center><%= score.cumulative_opp %></:col>
-  <:col :let={score} label="# Black Games" center width={6}><%= score.nblack %></:col>
+  <:col :let={score} label="Modified Median" center width="1/6"><%= score.modmed %></:col>
+  <:col :let={score} label="Solkoff" center width="1/6"><%= score.solkoff %></:col>
+  <:col :let={score} label="Score Sum" center width="1/6">
+    <%= Float.round(score.cumulative_sum * 1.0, 1) %>
+  </:col>
+  <:col :let={score} label="Opponent Score Sum" center width="1/6">
+    <%= Float.round(score.cumulative_opp * 1.0, 1) %>
+  </:col>
 </.scores_table>

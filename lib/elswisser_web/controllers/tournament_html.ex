@@ -36,7 +36,7 @@ defmodule ElswisserWeb.TournamentHTML do
     attr(:center, :boolean)
     attr(:bold, :boolean)
     attr(:wide, :boolean)
-    attr(:width, :integer)
+    attr(:width, :string)
   end
 
   def scores_table(assigns) do
@@ -45,11 +45,11 @@ defmodule ElswisserWeb.TournamentHTML do
       <table id={@id} class="w-[40rem] sm:w-full table-fixed">
         <thead class="text-sm text-left leading-4 text-zinc-500 border-zinc-200">
           <tr>
-            <th class="w-4"></th>
+            <th class="w-8 border-zinc-200"></th>
             <th
               :for={col <- @col}
               class={[
-                "px-2 py-1 leading-4 font-normal border-r border-zinc-200",
+                "py-1 leading-4 font-normal border-r border-zinc-200",
                 col[:center] && "text-center",
                 col[:width] && "w-#{col[:width]}",
                 !col[:width] && "w-10"
@@ -76,7 +76,8 @@ defmodule ElswisserWeb.TournamentHTML do
                 class={[
                   Integer.is_even(idx) && "bg-zinc-100",
                   "p-0 border-r border-zinc-200 m-1px",
-                  col[:center] && "text-center"
+                  col[:center] && "text-center",
+                  col[:bold] && "font-bold"
                 ]}
               >
                 <div class="py-1 px-2">
