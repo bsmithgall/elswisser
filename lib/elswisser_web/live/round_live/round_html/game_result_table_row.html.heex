@@ -17,20 +17,30 @@
   <td>
     <div class="-mt-1">
       <.input
+        :if={!@bye}
         id={"game-#{@game.id}-result"}
         name="result"
         type="select"
         options={["Select Result": nil, "White won": "1", "Black won": -1, Draw: 0]}
+        disabled={@disabled}
         value={@game.result}
         phx-value-id={@game.id}
         form={"game-#{@game.id}"}
+      />
+      <.input
+        :if={@bye}
+        name="result"
+        type="select"
+        options={["Draw (Bye)": 0]}
+        disabled={true}
+        value={0}
       />
     </div>
   </td>
   <td>
     <button
       phx-click={show_modal("game-#{@game.id}-edit-modal")}
-      disabled={is_nil(@game.result)}
+      disabled={is_nil(@game.result) && !@bye}
       class="disabled:text-zinc-400 disabled:cursor-not-allowed"
       title="Edit game information"
     >
@@ -51,7 +61,7 @@
     <button
       phx-click="unpair-players"
       phx-value-id={@game.id}
-      disabled={!is_nil(@game.result)}
+      disabled={!is_nil(@game.result) && !@bye}
       class="disabled:text-zinc-400 disabled:cursor-not-allowed"
       title="Unpair players"
     >

@@ -221,6 +221,7 @@ defmodule Elswisser.Tournaments do
           )
         ),
       on: p.id == t.player_id,
+      where: p.id != -1,
       select: {p, t.tournament_id}
     )
     |> Repo.all()

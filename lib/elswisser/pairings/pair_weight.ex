@@ -1,5 +1,4 @@
 defmodule Elswisser.Pairings.PairWeight do
-  require IEx
   alias Elswisser.Pairings.Pairing
 
   def score(%Pairing{} = p1, %Pairing{} = p2) do
@@ -15,8 +14,6 @@ defmodule Elswisser.Pairings.PairWeight do
   end
 
   def score(%Pairing{} = p1, %Pairing{} = p2, max_score) when max_score > 0 do
-    IEx.pry()
-
     yet_to_meet(p1, p2) * max_score +
       (max_score * 16 - score_difference(p1, p2) * 16) +
       half_differential(p1, p2) + due_different_colors(p1, p2)

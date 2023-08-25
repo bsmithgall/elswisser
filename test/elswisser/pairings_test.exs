@@ -42,9 +42,9 @@ defmodule Elswisser.PairingsTest do
                PairWeight.score(Enum.at(partition, 0), Enum.at(partition, 6))
     end
 
-    test "cartesian_product creates the correct number of outcomes", %{partition: partition} do
+    test "unique_possible_pairs creates the correct number of outcomes", %{partition: partition} do
       # number of unqiue pairs
-      assert length(Pairings.cartesian_product(partition)) ==
+      assert length(Pairings.unique_possible_pairs(partition)) ==
                length(partition) * (length(partition) - 1) / 2
     end
   end
@@ -78,9 +78,9 @@ defmodule Elswisser.PairingsTest do
       assert is_number(PairWeight.score(Enum.at(partition, 0), Enum.at(partition, 5), 3))
     end
 
-    test "cartesian_product creates the correct number of outcomes", %{partition: partition} do
+    test "unique_possible_pairs creates the correct number of outcomes", %{partition: partition} do
       # number of unqiue pairs
-      assert length(Pairings.cartesian_product(partition)) ==
+      assert length(Pairings.unique_possible_pairs(partition)) ==
                length(partition) * (length(partition) - 1) / 2
     end
   end
@@ -106,9 +106,9 @@ defmodule Elswisser.PairingsTest do
         scores_fixture_with_players_first_round()
         |> Elswisser.Scores.sort()
         |> Pairings.partition()
-        |> Pairings.cartesian_product()
+        |> Pairings.unique_possible_pairs()
 
-      assert Worker.direct_call(pid, first_round) == {:ok, [{5, 1}, {6, 2}, {7, 3}, {8, 4}]}
+      assert Worker.direct_call(pid, first_round) == {:ok, [{4, 0}, {5, 1}, {6, 2}, {7, 3}]}
     end
   end
 
@@ -146,6 +146,25 @@ defmodule Elswisser.PairingsTest do
                1 => %{nblack: 2, lastwhite: true},
                2 => %{nblack: 2, lastwhite: true}
              }) == [{1, 2}]
+    end
+  end
+
+  describe "#assign_bye_player" do
+    setup %{} do
+      {:ok,
+       scores:
+         scores_fixture_with_players_first_round()
+         |> Elswisser.Scores.sort()}
+    end
+
+    test "returns {:none, input} when passed with an even list", %{scores: scores} do
+      assert Pairings.assign_bye_player(scores) == {:none, scores}
+    end
+
+    test "returns the bye player correctly when passed with an odd list", %{scores: scores} do
+      scores = Enum.take(scores, 7)
+
+      assert Pairings.assign_bye_player(scores) == {Enum.at(scores, -1), Enum.take(scores, 6)}
     end
   end
 

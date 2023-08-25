@@ -18,13 +18,6 @@ defmodule Elswisser.Players.Player do
     timestamps()
   end
 
-  def bye,
-    do: %Elswisser.Players.Player{
-      id: -1,
-      name: "-- BYE --",
-      rating: nil
-    }
-
   @doc false
   def changeset(player, attrs) do
     player
@@ -51,6 +44,10 @@ defmodule Elswisser.Players.Player do
 
   def from do
     from(p in Elswisser.Players.Player, as: :player)
+  end
+
+  def excluding_bye_player(query) do
+    from([player: p] in query, where: p.id != -1)
   end
 
   def where_id(query, id) when is_binary(id) when is_integer(id) do
