@@ -18,6 +18,13 @@ defmodule Elswisser.Players.Player do
     timestamps()
   end
 
+  def bye,
+    do: %Elswisser.Players.Player{
+      id: -1,
+      name: "-- BYE --",
+      rating: nil
+    }
+
   @doc false
   def changeset(player, attrs) do
     player

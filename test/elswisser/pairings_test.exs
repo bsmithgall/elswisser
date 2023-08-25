@@ -19,7 +19,7 @@ defmodule Elswisser.PairingsTest do
     test "top rated player in top half at half_idx 0", %{partition: partition} do
       player = Enum.at(partition, 0)
 
-      assert player.score.rating == 800
+      assert player.score.player.rating == 800
       assert player.upperhalf == true
       assert player.half_idx == 0
     end
@@ -27,7 +27,7 @@ defmodule Elswisser.PairingsTest do
     test "bottom rated player in bottom half at half_idx 3", %{partition: partition} do
       player = Enum.at(partition, 7)
 
-      assert player.score.rating == 100
+      assert player.score.player.rating == 100
       assert player.upperhalf == false
       assert player.half_idx == 3
     end

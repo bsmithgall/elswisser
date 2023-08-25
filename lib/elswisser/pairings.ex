@@ -1,5 +1,6 @@
 defmodule Elswisser.Pairings do
-  alias Elswisser.Scores
+  alias Elswisser.Scores.Score
+  alias Elswisser.Pairings.Pairing
   alias Elswisser.Pairings.PairWeight
   alias Elswisser.Pairings.Worker
 
@@ -31,7 +32,7 @@ defmodule Elswisser.Pairings do
   end
 
   @doc """
-  Do automated pairings. Assumes an input of sorted player-augmented Elswisser.Scores.
+  Do automated pairings. Assumes an input of sorted player-augmented Score.
   """
   def pair(scores) when is_list(scores) do
     max_score = max_score(scores)
@@ -43,8 +44,8 @@ defmodule Elswisser.Pairings do
     halfway = ceil(length(scores) / 2)
 
     Enum.with_index(scores, fn score, idx ->
-      %Elswisser.Pairings.Pairing{
-        player_id: score.id,
+      %Pairing{
+        player_id: score.player_id,
         upperhalf: idx < halfway,
         half_idx: if(idx < halfway, do: idx, else: idx - halfway),
         score: score
@@ -86,8 +87,8 @@ defmodule Elswisser.Pairings do
   """
   def assign_colors(pairings, scores) when is_map(scores) do
     Enum.map(pairings, fn {left, right} ->
-      left_score = Map.get(scores, left, %Scores{})
-      right_score = Map.get(scores, right, %Scores{})
+      left_score = Map.get(scores, left, %Score{})
+      right_score = Map.get(scores, right, %Score{})
 
       cond do
         # left player has had more black games, they should get the next white game

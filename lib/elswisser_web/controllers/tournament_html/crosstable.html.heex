@@ -20,7 +20,7 @@
             <%= idx + 1 %>
           </td>
           <td class="text-zinc-800 border  border-zinc-200 break-words text-left pl-4">
-            <%= outer.name %> (<%= outer.rating %>)
+            <%= outer.player.name %> (<%= outer.player.rating %>)
           </td>
           <%= for inner <- @scores do %>
             <.crosscell outer={outer} inner={inner} />
