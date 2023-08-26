@@ -1,4 +1,5 @@
 defmodule ElswisserWeb.RoundLive.Round do
+  alias Elswisser.Pairings.Bye
   use ElswisserWeb, :live_view
 
   alias Elswisser.Games
@@ -34,7 +35,11 @@ defmodule ElswisserWeb.RoundLive.Round do
       </thead>
       <tbody class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700">
         <%= for game <- @games do %>
-          <.game_result_table_row game={game} />
+          <.game_result_table_row
+            game={game}
+            disabled={@round.status == :finished}
+            bye={game.black_id == Bye.bye_player_id() or game.white_id == Bye.bye_player_id()}
+          />
         <% end %>
       </tbody>
     </table>
@@ -128,6 +133,8 @@ defmodule ElswisserWeb.RoundLive.Round do
   def game_form(assigns)
 
   attr(:game, :map, required: true)
+  attr(:disabled, :boolean, required: true)
+  attr(:bye, :boolean, required: true)
 
   def game_result_table_row(assigns)
 

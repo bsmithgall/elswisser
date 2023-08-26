@@ -1,7 +1,9 @@
 <.header class="py-4">Score Details</.header>
 
 <.scores_table id="scores" rows={@scores}>
-  <:col :let={score} label="" width="1/2"><%= score.name %> (<%= score.rating %>)</:col>
+  <:col :let={score} label="" width="1/2">
+    <%= score.player.name %> (<%= score.player.rating %>)
+  </:col>
   <:col :let={score} label="Score" center width="1/6">
     <%= Float.round(score.score * 1.0, 1) %>
   </:col>

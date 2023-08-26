@@ -4,6 +4,7 @@ defmodule Elswisser.Players do
   """
 
   import Ecto.Query, warn: false
+  alias Elswisser.Pairings.Bye
   alias Ecto.Multi
   alias Elswisser.Players.ELO
   alias Elswisser.Repo
@@ -22,7 +23,7 @@ defmodule Elswisser.Players do
 
   """
   def list_players do
-    Repo.all(Player)
+    Player.from() |> Player.excluding_bye_player() |> Repo.all()
   end
 
   def list_by_id(nil), do: list_by_id([])
@@ -125,13 +126,17 @@ defmodule Elswisser.Players do
 
     player_ids =
       Enum.reduce(rnd_with_games.games, MapSet.new(), fn g, acc ->
-        MapSet.put(acc, g.white_id) |> MapSet.put(g.black_id)
+        put_id(acc, g.white_id) |> put_id(g.black_id)
       end)
       |> MapSet.to_list()
 
     with_k_factors = players_with_k_factor(player_ids)
 
-    Enum.reduce(rnd_with_games.games, Multi.new(), fn g, multi ->
+    rnd_with_games.games
+    |> Enum.filter(fn g ->
+      g.white_id != Bye.bye_player_id() and g.black_id != Bye.bye_player_id()
+    end)
+    |> Enum.reduce(Multi.new(), fn g, multi ->
       {white, white_recalcs} = with_k_factors[g.white_id]
       {black, black_recalcs} = with_k_factors[g.black_id]
 
@@ -182,6 +187,7 @@ defmodule Elswisser.Players do
       on: p.id == w.id,
       join: b in subquery(Game.from() |> Game.count_black_games(ids)),
       on: p.id == b.id,
+      where: p.id != -1,
       select: {p, w.ct + b.ct}
     )
     |> Repo.all()
@@ -190,4 +196,7 @@ defmodule Elswisser.Players do
       Map.put(acc, player.id, {player, {player.rating, k}})
     end)
   end
+
+  defp put_id(set, -1), do: set
+  defp put_id(set, player_id), do: MapSet.put(set, player_id)
 end

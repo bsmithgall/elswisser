@@ -21,8 +21,16 @@ defmodule Elswisser.Games.Game do
     game
     |> cast(attrs, [:white_id, :black_id, :result, :round_id, :game_link, :tournament_id, :pgn])
     |> validate_required([:white_id, :black_id, :round_id, :tournament_id])
+    |> validate_different_players()
     |> unique_constraint(:unique_white_players, name: :games_white_id_round_id_unique_idx)
     |> unique_constraint(:unique_black_players, name: :games_black_id_round_id_unique_idx)
+    |> prepare_changes(fn cs ->
+      if get_change(cs, :white_id) == -1 or get_change(cs, :black_id) == -1 do
+        put_change(cs, :result, 0)
+      else
+        cs
+      end
+    end)
   end
 
   def from() do
@@ -106,5 +114,15 @@ defmodule Elswisser.Games.Game do
       end)
 
     Map.merge(game, from_roster)
+  end
+
+  defp validate_different_players(changeset) do
+    white_id = get_field(changeset, :white_id)
+    black_id = get_field(changeset, :black_id)
+
+    case white_id == black_id do
+      false -> changeset
+      true -> add_error(changeset, :white_id, "A player cannot play themselves!")
+    end
   end
 end

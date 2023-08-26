@@ -1,16 +1,5 @@
 defmodule Elswisser.Scores do
-  @derive Jason.Encoder
-  defstruct player_id: -1,
-            score: -1,
-            opponents: [],
-            results: [],
-            solkoff: 0,
-            modmed: 0,
-            cumulative_sum: 0,
-            cumulative_opp: 0,
-            nblack: 0,
-            rating: 0,
-            lastwhite: false
+  alias Elswisser.Scores.Score
 
   def calculate(nil), do: calculate([])
 
@@ -21,7 +10,11 @@ defmodule Elswisser.Scores do
 
   def with_players(scores, players) do
     Enum.reduce(players, %{}, fn p, acc ->
-      Map.put(acc, p.id, Map.merge(Map.get(scores, p.id, %Elswisser.Scores{}), p))
+      Map.put(
+        acc,
+        p.id,
+        Map.merge(Map.get(scores, p.id, %Score{}), %{player_id: p.id, player: p})
+      )
     end)
   end
 
@@ -31,7 +24,7 @@ defmodule Elswisser.Scores do
 
   def sort(scores) when is_list(scores) do
     scores
-    |> Enum.sort_by(fn r -> r.rating end, :desc)
+    |> Enum.sort_by(fn r -> r.player.rating end, :desc)
     |> Enum.sort_by(fn r -> r.nblack end, :desc)
     |> Enum.sort_by(fn r -> r.solkoff end, :desc)
     |> Enum.sort_by(fn r -> r.modmed end, :desc)
@@ -70,7 +63,7 @@ defmodule Elswisser.Scores do
         Map.update(
           acc,
           g.game.white_id,
-          %Elswisser.Scores{
+          %Score{
             player_id: g.game.white_id,
             score: white_score,
             opponents: [g.game.black_id],
@@ -94,7 +87,7 @@ defmodule Elswisser.Scores do
         Map.update(
           acc,
           g.game.black_id,
-          %Elswisser.Scores{
+          %Score{
             player_id: g.game.black_id,
             score: black_score,
             opponents: [g.game.white_id],
@@ -125,7 +118,7 @@ defmodule Elswisser.Scores do
   https://midwestchess.com/pdf/USCF_ChessTie-Break_%20Systems.pdf
   """
   def tiebreaks(scores) when is_map(scores) do
-    for {k, %Elswisser.Scores{} = v} <- scores,
+    for {k, %Score{} = v} <- scores,
         into: %{},
         do: {
           k,
@@ -141,7 +134,7 @@ defmodule Elswisser.Scores do
   Calculate the "Modified Median" tiebreaker: drop lowest/highest depending on median value
   This is just the solkoff value subtracted by the appropriate score
   """
-  def modified_median(%Elswisser.Scores{} = v, scores) when is_map(scores) do
+  def modified_median(%Score{} = v, scores) when is_map(scores) do
     opp_score = v.opponents
 
     {min_score, max_score} =
@@ -164,14 +157,14 @@ defmodule Elswisser.Scores do
   Caculate the "cumulative opposition" tiebreaker: sum the cumulative sum of the
   score of each opponent.
   """
-  def cumulative_opp(%Elswisser.Scores{} = v, scores) when is_map(scores) do
+  def cumulative_opp(%Score{} = v, scores) when is_map(scores) do
     Enum.reduce(v.opponents, 0, fn opp, sum -> sum + scores[opp].cumulative_sum end)
   end
 
   @doc """
   Calculate the Solkoff tiebreaker (sum of opponent's scores, no discards).
   """
-  def solkoff(%Elswisser.Scores{} = v, scores) when is_map(scores) do
+  def solkoff(%Score{} = v, scores) when is_map(scores) do
     Enum.reduce(v.opponents, 0, fn opp, sum -> sum + scores[opp].score end)
   end
 

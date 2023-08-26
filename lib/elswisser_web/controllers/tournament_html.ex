@@ -96,7 +96,8 @@ defmodule ElswisserWeb.TournamentHTML do
   attr(:inner, :map, required: true)
 
   def crosscell(assigns) do
-    result_idx = Enum.find_index(assigns.outer.opponents, fn o -> o == assigns.inner.id end)
+    result_idx =
+      Enum.find_index(assigns.outer.opponents, fn o -> o == assigns.inner.player_id end)
 
     result =
       case is_nil(result_idx) do
@@ -104,13 +105,13 @@ defmodule ElswisserWeb.TournamentHTML do
         false -> Enum.at(assigns.outer.results, result_idx)
       end
 
-    is_self = assigns.outer.id == assigns.inner.id
+    is_self = assigns.outer.player_id == assigns.inner.player_id
 
     title =
       cond do
-        is_self -> assigns.outer.name
+        is_self -> assigns.outer.player.name
         is_nil(result) -> nil
-        true -> "#{assigns.outer.name} vs #{assigns.inner.name}"
+        true -> "#{assigns.outer.player.name} vs #{assigns.inner.player.name}"
       end
 
     assigns =
