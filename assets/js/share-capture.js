@@ -3,20 +3,26 @@ import * as htmlToImage from "html-to-image";
 export const ShareCaptureHook = {
   mounted() {
     this.el.addEventListener("click", async (_evt) => {
-      const el = document.getElementById("pair-share");
-      try {
-        const shareResult = await generateShare(el);
-        if (shareResult) {
-          this.pushEvent("flash-copy-success");
-        }
-      } catch (err) {
-        console.error(err);
-      }
+      await shareCapture("pair-share", () =>
+        this.pushEvent("flash-copy-success")
+      );
     });
   },
 };
 
-export const generateShare = async (element) => {
+export async function shareCapture(elId, onSuccess) {
+  const el = elId instanceof HTMLElement ? elId : document.getElementById(elId);
+
+  try {
+    const shareResult = await generateShare(el);
+
+    if (shareResult) onSuccess();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+const generateShare = async (element) => {
   const options = getSnapshotOptions(element);
 
   return "ClipboardItem" in window
@@ -27,11 +33,13 @@ export const generateShare = async (element) => {
 /**
  *
  * @param {HTMLElement} element
+ * @returns {htmlToImage}
  */
 const getSnapshotOptions = (element) => {
   const box = element.getBoundingClientRect();
 
   return {
+    filter: (node) => !node.classList?.contains("js-screenshot-exclude"),
     height: box.height + 32,
     width: box.width + 32,
     style: {

@@ -23,7 +23,7 @@ import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 
 import { GameNavigatorHook } from "./pgn-navigator";
-import { ShareCaptureHook } from "./share-capture";
+import { ShareCaptureHook, shareCapture } from "./share-capture";
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
@@ -47,3 +47,13 @@ liveSocket.connect();
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket;
+
+window.addEventListener("elswisser:share-capture", async (el) => {
+  await shareCapture(el.target, () => {
+    const flash = document.getElementById(el.detail.flash_id);
+    if (flash) {
+      flash.removeAttribute("hidden");
+      flash.style = "";
+    }
+  });
+});

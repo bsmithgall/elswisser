@@ -1,18 +1,38 @@
-<.header class="py-4">Score Details</.header>
+<.flash id="client-controlled-success" kind={:info} title="Success!" hidden>
+  Successfully copied image to clipboard!
+</.flash>
+<div id="score-details-frame">
+  <.header class="py-4">
+    Score Details
+    <:actions>
+      <.success_button
+        class="js-screenshot-exclude"
+        phx-click={
+          JS.dispatch("elswisser:share-capture",
+            to: "#score-details-frame",
+            detail: %{flash_id: "client-controlled-success"}
+          )
+        }
+      >
+        Take screenshot
+      </.success_button>
+    </:actions>
+  </.header>
 
-<.scores_table id="scores" rows={@scores}>
-  <:col :let={score} label="" width="1/2">
-    <%= score.player.name %> (<%= score.player.rating %>)
-  </:col>
-  <:col :let={score} label="Score" center width="1/6">
-    <%= Float.round(score.score * 1.0, 1) %>
-  </:col>
-  <:col :let={score} label="Modified Median" center width="1/6"><%= score.modmed %></:col>
-  <:col :let={score} label="Solkoff" center width="1/6"><%= score.solkoff %></:col>
-  <:col :let={score} label="Score Sum" center width="1/6">
-    <%= Float.round(score.cumulative_sum * 1.0, 1) %>
-  </:col>
-  <:col :let={score} label="Opponent Score Sum" center width="1/6">
-    <%= Float.round(score.cumulative_opp * 1.0, 1) %>
-  </:col>
-</.scores_table>
+  <.scores_table id="scores" rows={@scores}>
+    <:col :let={score} label="" width="1/2">
+      <%= score.player.name %> (<%= score.player.rating %>)
+    </:col>
+    <:col :let={score} label="Score" center width="1/6">
+      <%= Float.round(score.score * 1.0, 1) %>
+    </:col>
+    <:col :let={score} label="Modified Median" center width="1/6"><%= score.modmed %></:col>
+    <:col :let={score} label="Solkoff" center width="1/6"><%= score.solkoff %></:col>
+    <:col :let={score} label="Score Sum" center width="1/6">
+      <%= Float.round(score.cumulative_sum * 1.0, 1) %>
+    </:col>
+    <:col :let={score} label="Opponent Score Sum" center width="1/6">
+      <%= Float.round(score.cumulative_opp * 1.0, 1) %>
+    </:col>
+  </.scores_table>
+</div>
