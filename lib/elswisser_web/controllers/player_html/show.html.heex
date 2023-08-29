@@ -11,6 +11,30 @@
 <.list>
   <:item title="Name"><%= @player.name %></:item>
   <:item title="Rating"><%= @player.rating %></:item>
+  <:item title="Chess.com username">
+    <.icon :if={@player.chesscom} name="icon-chesscom" />
+    <a
+      :if={@player.chesscom}
+      class="text-cyan-600 underline"
+      target="_blank"
+      href={"https://chess.com/member/#{@player.chesscom}"}
+    >
+      <%= @player.chesscom %>
+    </a>
+    <span :if={is_nil(@player.chesscom)}>N/A</span>
+  </:item>
+  <:item title="Lichess username">
+    <.icon :if={@player.lichess} name="icon-lichess" />
+    <a
+      :if={@player.lichess}
+      class="text-cyan-600 underline"
+      target="_blank"
+      href={"https://lichess.org/@/#{@player.lichess}"}
+    >
+      <%= @player.lichess %>
+    </a>
+    <span :if={is_nil(@player.lichess)}>N/A</span>
+  </:item>
 </.list>
 
 <.back navigate={~p"/players"}>Back to players</.back>

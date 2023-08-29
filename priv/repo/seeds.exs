@@ -28,7 +28,7 @@ for name <- [
       "R2D2",
       "Chewbacca",
       "Yoda",
-      "Emporer Palpatine",
+      "Emperor Palpatine",
       "Jabba the Hut",
       "Bobba Fett",
       "Obi-Wan Kenobi"

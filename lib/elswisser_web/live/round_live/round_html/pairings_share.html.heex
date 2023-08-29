@@ -1,0 +1,11 @@
+<div id="pair-share" class="mt-11">
+  <.header class="text-center mb-6">Round <%= @number %> Games</.header>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div :for={game <- @games} class="rounded-md leading-6">
+      <.pairings_share_player player={game.white} />
+      <.pairings_share_player player={game.black} black={true} />
+    </div>
+  </div>
+</div>
+
+<div id="pair-share-clone"></div>

@@ -28,8 +28,8 @@ defmodule ElswisserWeb.RoundLive.Pairing do
   @impl true
   def render(assigns) do
     ~H"""
-    <.flash kind={:info} title="Success!" flash={@flash} />
-    <.flash kind={:error} title="Error!" flash={@flash} />
+    <.flash id="pairing-success-flash" kind={:info} title="Success!" flash={@flash} />
+    <.flash id="pairing-error-flash" kind={:error} title="Error!" flash={@flash} />
     <div class="mt-8 flex">
       <div class="w-2/5 box-border border-r border-r-zinc-400 pr-4 mr-4">
         <.success_button phx-click="auto-pair-remaining" class="mb-4 w-full">

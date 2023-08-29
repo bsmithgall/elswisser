@@ -32,7 +32,11 @@
     </h2>
     <%= for rnd <- @tournament.rounds do %>
       <.navlink
-        href={~p"/tournaments/#{rnd.tournament_id}/rounds/#{rnd}"}
+        href={
+          if rnd.status == :pairing,
+            do: ~p"/tournaments/#{rnd.tournament_id}/rounds/#{rnd}/pairings",
+            else: ~p"/tournaments/#{rnd.tournament_id}/rounds/#{rnd}"
+        }
         label={"Round #{rnd.number}"}
         icon={icon_by_round_status(rnd)}
         icon_class={icon_class_by_round_status(rnd)}
