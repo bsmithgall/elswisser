@@ -1,0 +1,50 @@
+<.header class="pt-4">
+  <.form
+    for={nil}
+    id={"round-#{@round.id}-finalize"}
+    action={~p"/tournaments/#{@round.tournament_id}/rounds/#{@round}/finalize"}
+    method="POST"
+  >
+  </.form>
+
+  <span>
+    Round <%= @round.number %> games
+  </span>
+  <.icon_button_row class="ml-2">
+    <:icons>
+      <.icon_button
+        name="hero-share"
+        phx-click="toggle-display"
+        phx-value-display="share"
+        title="Share pairings view"
+      />
+      <.icon_button
+        name="hero-view-columns"
+        phx-click="toggle-display"
+        phx-value-display="pairings"
+        title="Results view"
+      />
+    </:icons>
+  </.icon_button_row>
+
+  <:actions>
+    <.success_button
+      :if={@display == :share}
+      id="generate-pairing-svg-btn"
+      phx-hook="ShareCaptureHook"
+    >
+      Generate Pairing SVG
+    </.success_button>
+    <.success_button
+      :if={@display == :pairings}
+      form={"round-#{@round.id}-finalize"}
+      disabled={@round.status != :playing}
+      data-confirm="Are you sure? Unplayed games will be given draws."
+    >
+      Finalize Round
+    </.success_button>
+    <.link href={~p"/tournaments/#{@round.tournament_id}/rounds/#{@round}/pairings"}>
+      <.button>View pairings</.button>
+    </.link>
+  </:actions>
+</.header>

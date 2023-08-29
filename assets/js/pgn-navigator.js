@@ -76,6 +76,8 @@ class PgnNavigator {
   initializeHotkeys() {
     hotkeys("right", () => this.forward());
     hotkeys("left", () => this.back());
+    hotkeys("up", () => this.start());
+    hotkeys("down", () => this.end());
   }
 
   start() {

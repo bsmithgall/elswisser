@@ -7,6 +7,9 @@ defmodule Elswisser.Players.Player do
     field(:name, :string)
     field(:rating, :integer)
 
+    field(:chesscom, :string)
+    field(:lichess, :string)
+
     has_many(:white_games, Elswisser.Games.Game, foreign_key: :white_id)
     has_many(:black_games, Elswisser.Games.Game, foreign_key: :black_id)
 
@@ -21,7 +24,7 @@ defmodule Elswisser.Players.Player do
   @doc false
   def changeset(player, attrs) do
     player
-    |> cast(attrs, [:name, :rating])
+    |> cast(attrs, [:name, :rating, :chesscom, :lichess])
     |> validate_required([:name, :rating])
   end
 

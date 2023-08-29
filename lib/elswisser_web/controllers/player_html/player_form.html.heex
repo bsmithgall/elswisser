@@ -4,6 +4,8 @@
   </.error>
   <.input field={f[:name]} required type="text" label="Name" />
   <.input field={f[:rating]} required type="number" label="Rating" />
+  <.input field={f[:chesscom]} type="text" label="Chess.com username" />
+  <.input field={f[:lichess]} type="text" label="Lichess username" />
   <.input :if={assigns[:redirect_to]} field={f[:redirect_to]} value={@redirect_to} type="hidden" />
 
   <:actions>

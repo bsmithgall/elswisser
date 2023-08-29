@@ -1,26 +1,3 @@
-<.header class="pt-4">
-  <.form
-    for={nil}
-    id={"round-#{@round.id}-finalize"}
-    action={~p"/tournaments/#{@round.tournament_id}/rounds/#{@round}/finalize"}
-    method="POST"
-  >
-  </.form>
-  Round <%= @round.number %> games
-  <:actions>
-    <.success_button
-      form={"round-#{@round.id}-finalize"}
-      disabled={@round.status != :playing}
-      data-confirm="Are you sure? Unplayed games will be given draws."
-    >
-      Finalize Round
-    </.success_button>
-    <.link href={~p"/tournaments/#{@round.tournament_id}/rounds/#{@round}/pairings"}>
-      <.button>View pairings</.button>
-    </.link>
-  </:actions>
-</.header>
-
 <%= live_render(
   @conn,
   ElswisserWeb.RoundLive.Round,

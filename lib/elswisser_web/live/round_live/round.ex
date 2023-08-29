@@ -11,44 +11,34 @@ defmodule ElswisserWeb.RoundLive.Round do
   def mount(_params, session, socket) do
     rnd = fetch_round(session["round_id"])
 
-    {:ok, socket |> assign(:round, rnd) |> assign(:games, rnd.games), layout: false}
+    {:ok, socket |> assign(%{round: rnd, display: :pairings}), layout: false}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <.flash kind={:info} title="Success!" flash={@flash} />
-    <.flash kind={:error} title="Error!" flash={@flash} />
+    <.flash id="round-success-flash" kind={:info} title="Success!" flash={@flash} />
+    <.flash id="round-error-flash" kind={:error} title="Error!" flash={@flash} />
 
-    <%= for game <- @games do %>
+    <.round_header round={@round} display={@display} />
+
+    <%= for game <- @round.games do %>
       <.game_form game={game} />
     <% end %>
 
-    <table class="w-[40rem] mt-11 sm:w-full">
-      <thead class="text-sm text-left leading-6 text-zinc-500">
-        <tr>
-          <th class="pl-2 pr-6 pb-2 font-normal">White</th>
-          <th class="pl-2 pr-6 pb-2 font-normal">Black</th>
-          <th class="pl-2 pr-6 pb-2 font-normal">Result</th>
-          <th class="pl-2 pr-6 pb-2 font-normal">Actions</th>
-        </tr>
-      </thead>
-      <tbody class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700">
-        <%= for game <- @games do %>
-          <.game_result_table_row
-            game={game}
-            disabled={@round.status == :finished}
-            bye={game.black_id == Bye.bye_player_id() or game.white_id == Bye.bye_player_id()}
-          />
-        <% end %>
-      </tbody>
-    </table>
+    <.results_table :if={@display == :pairings} games={@round.games} status={@round.status} />
+    <.pairings_share :if={@display == :share} games={@round.games} number={@round.number} />
     """
   end
 
   @impl true
-  def handle_event("save-result", params, socket) do
-    game = find_game(socket, params["id"])
+  def handle_event("save-result", params, socket) when not is_map_key(params, "id") do
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("save-result", %{"id" => id} = params, socket) do
+    game = find_game(socket, id)
 
     case Games.update_game(game, params) do
       {:ok, game} ->
@@ -118,6 +108,16 @@ defmodule ElswisserWeb.RoundLive.Round do
   end
 
   @impl true
+  def handle_event("toggle-display", %{"display" => display}, socket) do
+    {:noreply, socket |> assign(:display, if(display == "share", do: :share, else: :pairings))}
+  end
+
+  @impl true
+  def handle_event("flash-copy-success", _params, socket) do
+    {:noreply, socket |> put_flash(:info, "Successfully copied to clipboard!")}
+  end
+
+  @impl true
   def handle_info({:pgn_result, %{pgn: pgn, game_id: game_id}}, socket) do
     {:noreply,
      socket |> assign(:games, update_session_game(socket.assigns[:games], game_id, %{pgn: pgn}))}
@@ -128,15 +128,35 @@ defmodule ElswisserWeb.RoundLive.Round do
     {:noreply, socket |> put_flash(:error, "Error getting PGN from game link: #{msg}")}
   end
 
+  attr(:display, :string, required: true)
+  attr(:round, :map, required: true)
+
+  def round_header(assigns)
+
   attr(:game, :map, required: true)
 
   def game_form(assigns)
+
+  attr(:games, :list, required: true)
+  attr(:status, :string, required: true)
+
+  def results_table(assigns)
 
   attr(:game, :map, required: true)
   attr(:disabled, :boolean, required: true)
   attr(:bye, :boolean, required: true)
 
   def game_result_table_row(assigns)
+
+  attr(:games, :list, required: true)
+  attr(:number, :integer, required: true)
+
+  def pairings_share(assigns)
+
+  attr(:black, :boolean, default: false)
+  attr(:player, :map, required: true)
+
+  def pairings_share_player(assigns)
 
   defp fetch_round(round_id) do
     Rounds.get_round_with_games_and_players!(round_id)

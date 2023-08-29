@@ -1,32 +1,52 @@
-<.header class="py-4">Score Crosstable</.header>
+<.flash id="client-controlled-success" kind={:info} title="Success!" hidden>
+  Successfully copied image to clipboard!
+</.flash>
+<div id="crosstable-details-frame">
+  <.header class="py-4">
+    Score Crosstable
+    <:actions>
+      <.success_button
+        class="js-screenshot-exclude"
+        phx-click={
+          JS.dispatch("elswisser:share-capture",
+            to: "#crosstable-details-frame",
+            detail: %{flash_id: "client-controlled-success"}
+          )
+        }
+      >
+        Take screenshot
+      </.success_button>
+    </:actions>
+  </.header>
 
-<div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-  <table class="w-[40rem] sm:w-full text-center table-fixed">
-    <thead class="text-sm leading-4 text-zinc-500">
-      <tr>
-        <th class="w-8 py-2"></th>
-        <th class="border-r border-zinc-200 py-2"></th>
-        <%= @scores |> Enum.with_index() |> Enum.map(fn {_player, idx} -> %>
-          <th class="border-r border-zinc-200 w-8 py-2">
-            <%= idx + 1 %>
-          </th>
-        <% end) %>
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-zinc-100  border-zinc-200 text-sm leading-6 text-zinc-700">
-      <%= @scores |> Enum.with_index() |> Enum.map(fn {outer, idx} -> %>
-        <tr class={["group", Integer.is_even(idx) && "bg-zinc-100"]}>
-          <td class="text-sm text-zinc-500 border border-zinc-200 w-8 font-bold">
-            <%= idx + 1 %>
-          </td>
-          <td class="text-zinc-800 border  border-zinc-200 break-words text-left pl-4">
-            <%= outer.player.name %> (<%= outer.player.rating %>)
-          </td>
-          <%= for inner <- @scores do %>
-            <.crosscell outer={outer} inner={inner} />
-          <% end %>
+  <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
+    <table class="w-[40rem] sm:w-full text-center table-fixed">
+      <thead class="text-sm leading-4 text-zinc-500">
+        <tr>
+          <th class="w-8 py-2"></th>
+          <th class="border-r border-zinc-200 py-2"></th>
+          <%= @scores |> Enum.with_index() |> Enum.map(fn {_player, idx} -> %>
+            <th class="border-r border-zinc-200 w-8 py-2">
+              <%= idx + 1 %>
+            </th>
+          <% end) %>
         </tr>
-      <% end) %>
-    </tbody>
-  </table>
+      </thead>
+      <tbody class="divide-y divide-zinc-100  border-zinc-200 text-sm leading-6 text-zinc-700">
+        <%= @scores |> Enum.with_index() |> Enum.map(fn {outer, idx} -> %>
+          <tr class={["group", Integer.is_even(idx) && "bg-zinc-100"]}>
+            <td class="text-sm text-zinc-500 border border-zinc-200 w-8 font-bold">
+              <%= idx + 1 %>
+            </td>
+            <td class="text-zinc-800 border  border-zinc-200 break-words text-left pl-4">
+              <%= outer.player.name %> (<%= outer.player.rating %>)
+            </td>
+            <%= for inner <- @scores do %>
+              <.crosscell outer={outer} inner={inner} />
+            <% end %>
+          </tr>
+        <% end) %>
+      </tbody>
+    </table>
+  </div>
 </div>

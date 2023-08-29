@@ -31,7 +31,7 @@ defmodule Elswisser.Pairings.Worker do
   def init(_) do
     path = [:code.priv_dir(:elswisser), "python"] |> Path.join()
 
-    with {:ok, pid} = :python.start([{:python_path, to_charlist(path)}, {:python, 'python3'}]) do
+    with {:ok, pid} = :python.start([{:python_path, to_charlist(path)}, {:python, ~c"python3"}]) do
       Logger.info("[#{__MODULE__}] Started python worker")
       {:ok, pid}
     end

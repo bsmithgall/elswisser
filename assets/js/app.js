@@ -20,15 +20,18 @@ import "phoenix_html";
 // Establish Phoenix Socket and LiveView configuration.
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
-import { GameNavigatorHook } from "./pgn-navigator";
 import topbar from "../vendor/topbar";
+
+import { GameNavigatorHook } from "./pgn-navigator";
+import { ShareCaptureHook, shareCapture } from "./share-capture";
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
+
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
-  hooks: { GameNavigatorHook: GameNavigatorHook },
+  hooks: { GameNavigatorHook, ShareCaptureHook },
 });
 
 // Show progress bar on live navigation and form submits
@@ -44,3 +47,13 @@ liveSocket.connect();
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket;
+
+window.addEventListener("elswisser:share-capture", async (el) => {
+  await shareCapture(el.target, () => {
+    const flash = document.getElementById(el.detail.flash_id);
+    if (flash) {
+      flash.removeAttribute("hidden");
+      flash.style = "";
+    }
+  });
+});
