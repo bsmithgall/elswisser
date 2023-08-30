@@ -1,21 +1,8 @@
-<.flash id="client-controlled-success" kind={:info} title="Success!" hidden>
-  Successfully copied image to clipboard!
-</.flash>
 <div id="crosstable-details-frame">
   <.header class="py-4">
     Score Crosstable
     <:actions>
-      <.success_button
-        class="js-screenshot-exclude"
-        phx-click={
-          JS.dispatch("elswisser:share-capture",
-            to: "#crosstable-details-frame",
-            detail: %{flash_id: "client-controlled-success"}
-          )
-        }
-      >
-        Take screenshot
-      </.success_button>
+      <.share_capture_button to="#crosstable-details-frame" />
     </:actions>
   </.header>
 

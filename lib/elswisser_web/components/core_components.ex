@@ -318,6 +318,28 @@ defmodule ElswisserWeb.CoreComponents do
     """
   end
 
+  attr(:to, :string, required: true)
+  attr(:flash_id, :string, default: "client-controlled-flash")
+
+  def share_capture_button(%{to: "#" <> _} = assigns) do
+    ~H"""
+    <.flash id={@flash_id} kind={:info} title="Success!" hidden>
+      Successfully copied image to clipboard!
+    </.flash>
+    <.success_button
+      class="js-screenshot-exclude"
+      phx-click={
+        JS.dispatch("elswisser:share-capture",
+          to: @to,
+          detail: %{flash_id: @flash_id}
+        )
+      }
+    >
+      Take screenshot
+    </.success_button>
+    """
+  end
+
   @doc """
   Renders an input with label and error messages.
 
