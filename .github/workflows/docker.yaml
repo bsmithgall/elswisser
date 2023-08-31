@@ -13,11 +13,14 @@ jobs:
       - name: "Checkout"
         uses: "actions/checkout@v3"
 
+      - name: Setup Debug Session
+        uses: csexton/debugger-action@master
+
       - name: Set up Elixir
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: "1.14" # Define the elixir version [required]
-          otp-version: "25" # Define the OTP version [required]
+          elixir-version: "1.15.5" # Define the elixir version [required]
+          otp-version: "26" # Define the OTP version [required]
 
       - name: "Set up QEMU"
         uses: "docker/setup-qemu-action@v1"
