@@ -7,10 +7,13 @@
   </.header>
 
   <.scores_table id="scores" rows={@scores}>
-    <:col :let={score} label="" width="1/2">
+    <:col :let={score} label="" hide_border width="1/2">
       <%= score.player.name %> (<%= score.player.rating %>)
     </:col>
-    <:col :let={score} label="Score" center width="1/6">
+    <:col :let={score} center label="">
+      <%= if score.rating_change >= 0, do: "+#{score.rating_change}", else: score.rating_change %>
+    </:col>
+    <:col :let={score} label="Score" center>
       <%= Float.round(score.score * 1.0, 1) %>
     </:col>
     <:col :let={score} label="Modified Median" center width="1/6"><%= score.modmed %></:col>

@@ -11,7 +11,8 @@
       <thead class="text-sm leading-4 text-zinc-500">
         <tr>
           <th class="w-8 py-2"></th>
-          <th class="border-r border-zinc-200 py-2"></th>
+          <th class="py-2"></th>
+          <th class="w-12 py-2 border-r border-zinc-200"></th>
           <%= @scores |> Enum.with_index() |> Enum.map(fn {_player, idx} -> %>
             <th class="border-r border-zinc-200 w-8 py-2">
               <%= idx + 1 %>
@@ -27,6 +28,11 @@
             </td>
             <td class="text-zinc-800 border  border-zinc-200 break-words text-left pl-4">
               <%= outer.player.name %> (<%= outer.player.rating %>)
+            </td>
+            <td class="border border-zinc-200 px-2 w-10">
+              <%= if outer.rating_change >= 0,
+                do: "+#{outer.rating_change}",
+                else: outer.rating_change %>
             </td>
             <%= for inner <- @scores do %>
               <.crosscell outer={outer} inner={inner} />

@@ -7,6 +7,8 @@ defmodule Elswisser.Games.Game do
     field(:game_link, :string)
     field(:pgn, :string)
     field(:result, :integer)
+    field(:white_rating_change, :integer, default: 0)
+    field(:black_rating_change, :integer, default: 0)
 
     belongs_to(:round, Elswisser.Rounds.Round)
     belongs_to(:tournament, Elswisser.Tournaments.Tournament)
@@ -19,7 +21,17 @@ defmodule Elswisser.Games.Game do
   @doc false
   def changeset(game, attrs) do
     game
-    |> cast(attrs, [:white_id, :black_id, :result, :round_id, :game_link, :tournament_id, :pgn])
+    |> cast(attrs, [
+      :black_id,
+      :black_rating_change,
+      :game_link,
+      :pgn,
+      :result,
+      :round_id,
+      :tournament_id,
+      :white_id,
+      :white_rating_change
+    ])
     |> validate_required([:white_id, :black_id, :round_id, :tournament_id])
     |> validate_different_players()
     |> unique_constraint(:unique_white_players, name: :games_white_id_round_id_unique_idx)
