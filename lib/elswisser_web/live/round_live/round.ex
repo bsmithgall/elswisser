@@ -11,7 +11,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   def mount(_params, session, socket) do
     rnd = fetch_round(session["round_id"])
 
-    {:ok, socket |> assign(%{round: rnd, display: :pairings}), layout: false}
+    {:ok, socket |> assign(%{round: rnd, games: rnd.games, display: :pairings}), layout: false}
   end
 
   @impl true
@@ -22,39 +22,28 @@ defmodule ElswisserWeb.RoundLive.Round do
 
     <.round_header round={@round} display={@display} />
 
-    <%= for game <- @round.games do %>
-      <.game_form game={game} />
-    <% end %>
-
-    <.results_table :if={@display == :pairings} games={@round.games} status={@round.status} />
-    <.pairings_share :if={@display == :share} games={@round.games} number={@round.number} />
+    <.results_table :if={@display == :pairings} games={@games} status={@round.status} />
+    <.pairings_share :if={@display == :share} games={@games} number={@round.number} />
     """
   end
 
   @impl true
-  def handle_event("save-result", params, socket) when not is_map_key(params, "id") do
-    {:noreply, socket}
-  end
-
-  @impl true
   def handle_event("save-result", %{"id" => id} = params, socket) do
-    game = find_game(socket, id)
-
-    case Games.update_game(game, params) do
-      {:ok, game} ->
-        {:noreply,
-         socket
-         |> assign(
-           :games,
-           update_session_game(socket.assigns[:games], game.id, %{
-             result: game.result,
-             pgn: game.pgn,
-             game_link: game.game_link
-           })
-         )}
-
-      {:error, %Ecto.Changeset{} = _changeset} ->
-        {:error, socket}
+    with {:ok, _} <- ensure_round_playing(socket),
+         game <- find_game(socket, id),
+         {:ok, game} <- Games.update_game(game, params) do
+      {:noreply,
+       socket
+       |> assign(
+         :games,
+         update_session_game(socket.assigns[:games], game.id, %{
+           result: game.result,
+           pgn: game.pgn,
+           game_link: game.game_link
+         })
+       )}
+    else
+      {:error, reason} -> {:noreply, socket |> put_flash(:error, "#{reason}")}
     end
   end
 
@@ -89,7 +78,7 @@ defmodule ElswisserWeb.RoundLive.Round do
          )}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        {:error, socket |> put_flash(:error, "Could not switch colors: #{changeset}")}
+        {:noreply, socket |> put_flash(:error, "Could not switch colors: #{changeset}")}
     end
   end
 
@@ -176,5 +165,12 @@ defmodule ElswisserWeb.RoundLive.Round do
 
   defp find_game(socket, id) when is_integer(id) do
     Enum.find(socket.assigns[:games], fn g -> g.id == id end)
+  end
+
+  defp ensure_round_playing(socket) do
+    case socket.assigns[:round].status do
+      :playing -> {:ok, nil}
+      _ -> {:error, "Round status is #{socket.assigns[:round].status}"}
+    end
   end
 end

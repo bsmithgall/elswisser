@@ -1,4 +1,4 @@
-<input type="hidden" name="id" value={@game.id} form={"game-result-#{@game.id}"} />
+<input type="hidden" name="id" value={@game.id} form={"game-#{@game.id}"} />
 <tr class="border-zinc-200 border-b group hover:bg-zinc-50">
   <td>
     <span class="w-6 inline-block">
@@ -18,14 +18,14 @@
     <div class="-mt-1">
       <.input
         :if={!@bye}
-        id={"game-#{@game.id}-result"}
+        id={"game-result-#{@game.id}-result"}
         name="result"
         type="select"
         options={["Select Result": nil, "White won": "1", "Black won": -1, Draw: 0]}
         disabled={@disabled}
         value={@game.result}
         phx-value-id={@game.id}
-        form={"game-result-#{@game.id}"}
+        form={"game-#{@game.id}"}
       />
       <.input
         :if={@bye}

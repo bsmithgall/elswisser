@@ -4,14 +4,10 @@ defmodule Elswisser.Players do
   """
 
   import Ecto.Query, warn: false
-  alias Elswisser.Pairings.Bye
-  alias Ecto.Multi
-  alias Elswisser.Players.ELO
   alias Elswisser.Repo
 
   alias Elswisser.Players.Player
   alias Elswisser.Games.Game
-  alias Elswisser.Rounds
 
   @doc """
   Returns the list of players.
@@ -121,36 +117,6 @@ defmodule Elswisser.Players do
     |> Repo.update()
   end
 
-  def update_ratings_after_round(id) do
-    rnd_with_games = Rounds.get_round_with_games(id)
-
-    player_ids =
-      Enum.reduce(rnd_with_games.games, MapSet.new(), fn g, acc ->
-        put_id(acc, g.white_id) |> put_id(g.black_id)
-      end)
-      |> MapSet.to_list()
-
-    with_k_factors = players_with_k_factor(player_ids)
-
-    rnd_with_games.games
-    |> Enum.filter(fn g ->
-      g.white_id != Bye.bye_player_id() and g.black_id != Bye.bye_player_id()
-    end)
-    |> Enum.reduce(Multi.new(), fn g, multi ->
-      {white, white_recalcs} = with_k_factors[g.white_id]
-      {black, black_recalcs} = with_k_factors[g.black_id]
-
-      {new_white, new_black} = ELO.recalculate(white_recalcs, black_recalcs, g.result)
-
-      white_changeset = Player.changeset(white, %{rating: new_white})
-      black_changeset = Player.changeset(black, %{rating: new_black})
-
-      Multi.update(multi, {:rating, g.white_id}, white_changeset)
-      |> Multi.update({:rating, g.black_id}, black_changeset)
-    end)
-    |> Repo.transaction()
-  end
-
   @doc """
   Deletes a player.
 
@@ -180,7 +146,7 @@ defmodule Elswisser.Players do
     Player.changeset(player, attrs)
   end
 
-  def players_with_k_factor(ids) when is_list(ids) do
+  def with_k_factor(ids) when is_list(ids) do
     from(
       p in Player,
       join: w in subquery(Game.from() |> Game.count_white_games(ids)),
@@ -196,7 +162,4 @@ defmodule Elswisser.Players do
       Map.put(acc, player.id, {player, {player.rating, k}})
     end)
   end
-
-  defp put_id(set, -1), do: set
-  defp put_id(set, player_id), do: MapSet.put(set, player_id)
 end

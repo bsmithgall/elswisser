@@ -15,6 +15,7 @@ defmodule Elswisser.Scores.Score do
     field :cumulative_opp, :integer, default: 0
     field :nblack, :integer, default: 0
     field :lastwhite, :boolean
+    field :rating_change, :integer, default: 0
     embeds_one :player, Player
   end
 

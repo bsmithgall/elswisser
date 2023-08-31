@@ -10,8 +10,12 @@ defmodule Elswisser.Players.ELO do
   Recalculate ratings after a match
   """
   def recalculate(a, b, k, result) do
-    change = k * (to_score(result) - expected(a, b))
-    above_floor(a + change)
+    change = round(k * (to_score(result) - expected(a, b)))
+
+    case above_floor(a + change) do
+      {:yes, rating} -> {rating, change}
+      {:no, rating} -> {rating, 0}
+    end
   end
 
   @doc """
@@ -38,6 +42,6 @@ defmodule Elswisser.Players.ELO do
   end
 
   defp above_floor(adjusted) do
-    round(max(100, adjusted))
+    if 100 > adjusted, do: {:no, 100}, else: {:yes, adjusted}
   end
 end
