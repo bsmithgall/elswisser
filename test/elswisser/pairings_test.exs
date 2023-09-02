@@ -108,7 +108,7 @@ defmodule Elswisser.PairingsTest do
         |> Pairings.partition()
         |> Pairings.unique_possible_pairs()
 
-      assert Worker.direct_call(pid, first_round) == {:ok, [{4, 0}, {5, 1}, {6, 2}, {7, 3}]}
+      assert Worker.direct_call(pid, first_round) == {:ok, [{5, 1}, {6, 2}, {7, 3}, {8, 4}]}
     end
   end
 
