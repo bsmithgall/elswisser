@@ -77,3 +77,10 @@ config :swoosh, :api_client, false
 
 # Use one python worker
 config :elswisser, pairing_pool_size: 1
+
+# Admin user admin/admin for local dev
+config :elswisser,
+  admin_user: %{
+    email: "admin@example.com",
+    password: "adminadminadmin"
+  }

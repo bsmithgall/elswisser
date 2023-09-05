@@ -15,6 +15,8 @@ defmodule ElswisserWeb.PlayerControllerTest do
   end
 
   describe "new player" do
+    setup :register_and_log_in_user
+
     test "renders form", %{conn: conn} do
       conn = get(conn, ~p"/players/new")
       assert html_response(conn, 200) =~ "New Player"
@@ -22,6 +24,8 @@ defmodule ElswisserWeb.PlayerControllerTest do
   end
 
   describe "create player" do
+    setup :register_and_log_in_user
+
     test "redirects to show when data is valid", %{conn: conn} do
       conn = post(conn, ~p"/players", player: @create_attrs)
 
@@ -39,7 +43,7 @@ defmodule ElswisserWeb.PlayerControllerTest do
   end
 
   describe "edit player" do
-    setup [:create_player]
+    setup [:register_and_log_in_user, :create_player]
 
     test "renders form for editing chosen player", %{conn: conn, player: player} do
       conn = get(conn, ~p"/players/#{player}/edit")
@@ -48,7 +52,7 @@ defmodule ElswisserWeb.PlayerControllerTest do
   end
 
   describe "update player" do
-    setup [:create_player]
+    setup [:register_and_log_in_user, :create_player]
 
     test "redirects when data is valid", %{conn: conn, player: player} do
       conn = put(conn, ~p"/players/#{player}", player: @update_attrs)
@@ -65,7 +69,7 @@ defmodule ElswisserWeb.PlayerControllerTest do
   end
 
   describe "delete player" do
-    setup [:create_player]
+    setup [:register_and_log_in_user, :create_player]
 
     test "deletes chosen player", %{conn: conn, player: player} do
       conn = delete(conn, ~p"/players/#{player}")

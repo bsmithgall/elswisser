@@ -127,7 +127,7 @@ defmodule Elswisser.Pairings do
 
     case is_nil(lowest_scoring_player) do
       true ->
-        {Enum.at(scores, -1), Enum.take(scores, length(scores - 1))}
+        {Enum.at(scores, -1), Enum.take(scores, length(scores) - 1)}
 
       false ->
         {lowest_scoring_player,

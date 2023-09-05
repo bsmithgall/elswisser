@@ -1,9 +1,14 @@
-<.topnav />
+<.topnav current_user={@current_user} />
 <main class="h-full">
   <.flash_group flash={@flash} />
   <div class="grid grid-cols-10 gap-4">
     <div class="col-span-2">
-      <.sidenav tournament={@tournament} current_round={@current_round} active={assigns[:active]} />
+      <.sidenav
+        tournament={@tournament}
+        current_round={@current_round}
+        active={assigns[:active]}
+        current_user={@current_user}
+      />
     </div>
     <div class="col-span-8 mx-auto w-full px-4">
       <div class="mx-auto max-w-4xl">

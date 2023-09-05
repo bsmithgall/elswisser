@@ -11,7 +11,19 @@ defmodule ElswisserWeb.RoundLive.Round do
   def mount(_params, session, socket) do
     rnd = fetch_round(session["round_id"])
 
-    {:ok, socket |> assign(%{round: rnd, games: rnd.games, display: :pairings}), layout: false}
+    {:ok,
+     socket
+     |> assign(round: rnd)
+     |> assign(games: rnd.games)
+     |> assign(display: :pairings)
+     |> assign(signed_in: !is_nil(session["user_token"])), layout: false}
+  end
+
+  @impl true
+  def render(%{games: games} = assigns) when length(games) == 0 do
+    ~H"""
+    <.header class="mt-11">No pairings made yet!</.header>
+    """
   end
 
   @impl true
@@ -20,9 +32,14 @@ defmodule ElswisserWeb.RoundLive.Round do
     <.flash id="round-success-flash" kind={:info} title="Success!" flash={@flash} />
     <.flash id="round-error-flash" kind={:error} title="Error!" flash={@flash} />
 
-    <.round_header round={@round} display={@display} />
+    <.round_header round={@round} display={@display} signed_in={@signed_in} />
 
-    <.results_table :if={@display == :pairings} games={@games} status={@round.status} />
+    <.results_table
+      :if={@display == :pairings}
+      games={@games}
+      status={@round.status}
+      signed_in={@signed_in}
+    />
     <.pairings_share :if={@display == :share} games={@games} number={@round.number} />
     """
   end
@@ -119,6 +136,7 @@ defmodule ElswisserWeb.RoundLive.Round do
 
   attr(:display, :string, required: true)
   attr(:round, :map, required: true)
+  attr(:signed_in, :boolean, required: true)
 
   def round_header(assigns)
 
@@ -128,11 +146,13 @@ defmodule ElswisserWeb.RoundLive.Round do
 
   attr(:games, :list, required: true)
   attr(:status, :string, required: true)
+  attr(:signed_in, :boolean, required: true)
 
   def results_table(assigns)
 
   attr(:game, :map, required: true)
   attr(:disabled, :boolean, required: true)
+  attr(:signed_in, :boolean, required: true)
   attr(:bye, :boolean, required: true)
 
   def game_result_table_row(assigns)

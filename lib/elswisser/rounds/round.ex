@@ -28,11 +28,11 @@ defmodule Elswisser.Rounds.Round do
   end
 
   def where_id(query, id) do
-    from(r in query, where: r.id == ^id)
+    from([round: r] in query, where: r.id == ^id)
   end
 
   def with_games(query) do
-    from(r in query, left_join: g in assoc(r, :games), as: :game)
+    from([round: r] in query, left_join: g in assoc(r, :games), as: :game)
   end
 
   def preload_games_and_players(query) do

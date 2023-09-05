@@ -50,6 +50,7 @@ defmodule ElswisserWeb.TournamentLayouts do
   attr(:tournament, :map, required: true)
   attr(:current_round, :map, required: true)
   attr(:active, :string, default: nil)
+  attr(:current_user, :map, required: true)
 
   def sidenav(assigns)
 

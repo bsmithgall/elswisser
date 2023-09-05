@@ -15,7 +15,6 @@ alias Elswisser.Players
 alias Elswisser.Tournaments
 alias Elswisser.Tournaments.Tournament
 alias Elswisser.Rounds
-alias Elswisser.Players.Player
 require Logger
 
 # Generate twelve players
@@ -36,7 +35,7 @@ for name <- [
   Players.create_player(%{name: name, rating: Enum.random(800..2200)})
 end
 
-players = Repo.all(Player)
+players = Players.list_players()
 
 # Generate two tournaments with all the players
 for name <- ["Now THIS is Podracing", "Mos Eisley Cantina Championship 2023"] do
@@ -61,7 +60,8 @@ for tourn <- Repo.all(Tournament) do
             white_id: white.id,
             black_id: black.id,
             result: Enum.random([-1, 0, 1]),
-            tournament_id: tourn.id
+            tournament_id: tourn.id,
+            round_id: rnd.id
           }
 
           Rounds.add_game(rnd, game)

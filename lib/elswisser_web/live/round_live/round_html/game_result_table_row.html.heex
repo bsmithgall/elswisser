@@ -14,14 +14,14 @@
     </span>
     <%= @game.black.name %>
   </td>
-  <td>
+  <td :if={@signed_in}>
     <div class="-mt-1">
       <.input
         :if={!@bye}
+        type="select"
         id={"game-result-#{@game.id}-result"}
         name="result"
-        type="select"
-        options={["Select Result": nil, "White won": "1", "Black won": -1, Draw: 0]}
+        options={["Select Result": nil, "White won": 1, "Black won": -1, Draw: 0]}
         disabled={@disabled}
         value={@game.result}
         phx-value-id={@game.id}
@@ -29,13 +29,20 @@
       />
       <.input
         :if={@bye}
-        name="result"
         type="select"
+        name="result"
         options={["Draw (Bye)": 0]}
         disabled={true}
         value={0}
       />
     </div>
+  </td>
+  <td :if={!@signed_in}>
+    <span :if={is_nil(@game.result)}>Not played</span>
+    <span :if={@game.result == -1}>Black won</span>
+    <span :if={@game.result == 0 && !@bye}>Draw</span>
+    <span :if={@game.result == 0 && @bye}>Bye</span>
+    <span :if={@game.result == 1}>White won</span>
   </td>
   <td>
     <button
@@ -50,6 +57,7 @@
       <.icon class="-mt-1 ml-2" name="hero-arrow-top-right-on-square" />
     </a>
     <button
+      :if={@signed_in}
       phx-click="switch-player-colors"
       phx-value-id={@game.id}
       disabled={!is_nil(@game.result)}
@@ -59,6 +67,7 @@
       <.icon class="-mt-1 ml-2" name="hero-arrow-path" />
     </button>
     <button
+      :if={@signed_in}
       phx-click="unpair-players"
       phx-value-id={@game.id}
       disabled={!is_nil(@game.result) && !@bye}
