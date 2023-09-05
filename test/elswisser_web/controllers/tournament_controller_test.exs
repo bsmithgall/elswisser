@@ -15,6 +15,8 @@ defmodule ElswisserWeb.TournamentControllerTest do
   end
 
   describe "new tournament" do
+    setup :register_and_log_in_user
+
     test "renders form", %{conn: conn} do
       conn = get(conn, ~p"/tournaments/new")
       assert html_response(conn, 200) =~ "New Tournament"
@@ -22,6 +24,8 @@ defmodule ElswisserWeb.TournamentControllerTest do
   end
 
   describe "create tournament" do
+    setup :register_and_log_in_user
+
     test "redirects to show when data is valid", %{conn: conn} do
       conn = post(conn, ~p"/tournaments", tournament: @create_attrs)
 
@@ -39,7 +43,7 @@ defmodule ElswisserWeb.TournamentControllerTest do
   end
 
   describe "edit tournament" do
-    setup [:create_tournament]
+    setup [:register_and_log_in_user, :create_tournament]
 
     test "renders form for editing chosen tournament", %{conn: conn, tournament: tournament} do
       conn = get(conn, ~p"/tournaments/#{tournament}/edit")
@@ -48,7 +52,7 @@ defmodule ElswisserWeb.TournamentControllerTest do
   end
 
   describe "update tournament" do
-    setup [:create_tournament]
+    setup [:register_and_log_in_user, :create_tournament]
 
     test "redirects when data is valid", %{conn: conn, tournament: tournament} do
       conn = put(conn, ~p"/tournaments/#{tournament}", tournament: @update_attrs)
@@ -65,7 +69,7 @@ defmodule ElswisserWeb.TournamentControllerTest do
   end
 
   describe "delete tournament" do
-    setup [:create_tournament]
+    setup [:register_and_log_in_user, :create_tournament]
 
     test "deletes chosen tournament", %{conn: conn, tournament: tournament} do
       conn = delete(conn, ~p"/tournaments/#{tournament}")

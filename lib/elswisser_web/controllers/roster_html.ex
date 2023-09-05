@@ -14,12 +14,12 @@ defmodule ElswisserWeb.RosterHTML do
     ~H"""
     <label class="flex items-center gap-4 text-sm leading-6 text-zinc-600">
       <input
+        :if={@current_user}
         class="rounded border-zinc-300 text-zinc-900 focus:ring-0"
         type="checkbox"
         name="player_ids[]"
         value={@player.id}
         checked={@checked}
-        :if={@current_user}
       />
       <%= @player.name %> (<%= @player.rating %>)
     </label>

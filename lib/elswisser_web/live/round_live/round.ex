@@ -32,9 +32,14 @@ defmodule ElswisserWeb.RoundLive.Round do
     <.flash id="round-success-flash" kind={:info} title="Success!" flash={@flash} />
     <.flash id="round-error-flash" kind={:error} title="Error!" flash={@flash} />
 
-    <.round_header round={@round} display={@display} signed_in={@signed_in}/>
+    <.round_header round={@round} display={@display} signed_in={@signed_in} />
 
-    <.results_table :if={@display == :pairings} games={@games} status={@round.status} signed_in={@signed_in} />
+    <.results_table
+      :if={@display == :pairings}
+      games={@games}
+      status={@round.status}
+      signed_in={@signed_in}
+    />
     <.pairings_share :if={@display == :share} games={@games} number={@round.number} />
     """
   end

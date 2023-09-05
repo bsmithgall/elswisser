@@ -13,29 +13,6 @@ defmodule ElswisserWeb.Router do
     plug(:fetch_current_user)
   end
 
-  ## Public (view) routes
-
-  scope "/", ElswisserWeb do
-    pipe_through(:browser)
-
-    get("/", PageController, :home)
-
-    resources "/tournaments", TournamentController, only: [:index, :show] do
-      resources("/rounds", RoundController, only: [:show])
-
-      resources("/games", GameController, only: [:show])
-    end
-
-    scope("/tournaments") do
-      get("/:id/crosstable", TournamentController, :crosstable, as: :crosstable)
-      get("/:id/scores", TournamentController, :scores, as: :scores)
-
-      get("/:id/roster", RosterController, :index)
-    end
-
-    resources("/players", PlayerController, only: [:index])
-  end
-
   ## "Admin" (login-only) routes
 
   scope "/", ElswisserWeb do
@@ -58,7 +35,30 @@ defmodule ElswisserWeb.Router do
       patch("/:id/roster", RosterController, :update)
     end
 
-    resources("/players", PlayerController, except: [:index])
+    resources("/players", PlayerController, except: [:index, :show])
+  end
+
+  ## Public (view) routes
+
+  scope "/", ElswisserWeb do
+    pipe_through(:browser)
+
+    get("/", PageController, :home)
+
+    resources "/tournaments", TournamentController, only: [:index, :show] do
+      resources("/rounds", RoundController, only: [:show])
+
+      resources("/games", GameController, only: [:show])
+    end
+
+    scope("/tournaments") do
+      get("/:id/crosstable", TournamentController, :crosstable, as: :crosstable)
+      get("/:id/scores", TournamentController, :scores, as: :scores)
+
+      get("/:id/roster", RosterController, :index)
+    end
+
+    resources("/players", PlayerController, only: [:index, :show])
   end
 
   ## Authentication routes

@@ -14,7 +14,7 @@ defmodule ElswisserWeb.RosterControllerTest do
   end
 
   describe "update roster" do
-    setup [:create_roster]
+    setup [:register_and_log_in_user, :create_roster]
 
     test "redirects when data is valid", %{conn: conn, tournament: tournament} do
       conn = put(conn, ~p"/tournaments/#{tournament}/roster", player_ids: @update_attrs)

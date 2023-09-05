@@ -5,7 +5,7 @@ defmodule ElswisserWeb.RoundControllerTest do
   import Elswisser.TournamentsFixtures
 
   describe "show" do
-    setup [:create_round]
+    setup [:register_and_log_in_user, :create_round]
 
     test "Shows correct round page", %{conn: conn, round: round} do
       conn = get(conn, ~p"/tournaments/#{round.tournament_id}/rounds/#{round}")
@@ -19,6 +19,8 @@ defmodule ElswisserWeb.RoundControllerTest do
   end
 
   describe "new" do
+    setup :register_and_log_in_user
+
     test "create new round successfully", %{conn: conn} do
       tournament = tournament_fixture(%{length: 4})
       conn = post(conn, ~p"/tournaments/#{tournament}/rounds", %{number: "0"})
