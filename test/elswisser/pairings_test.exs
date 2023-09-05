@@ -166,6 +166,14 @@ defmodule Elswisser.PairingsTest do
 
       assert Pairings.assign_bye_player(scores) == {Enum.at(scores, -1), Enum.take(scores, 6)}
     end
+
+    test "returns the bye player correctly when passed with an odd list when all had byes", %{
+      scores: scores
+    } do
+      scores = Enum.take(scores, 7) |> Enum.map(fn s -> Map.merge(s, %{opponents: [-1]}) end)
+
+      assert Pairings.assign_bye_player(scores) == {Enum.at(scores, -1), Enum.take(scores, 6)}
+    end
   end
 
   defp start_worker(_) do
