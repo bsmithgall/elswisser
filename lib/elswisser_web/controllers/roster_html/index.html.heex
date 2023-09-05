@@ -10,17 +10,17 @@
     <div class="basis-1/2">
       <.header>Registered</.header>
       <%= for player <- @in_players do %>
-        <.player_checkbox player={player} checked />
+        <.player_checkbox player={player} current_user={@current_user} checked />
       <% end %>
     </div>
     <div class="basis-1/2">
       <.header>Unregistered</.header>
       <%= for player <- @out_players do %>
-        <.player_checkbox player={player} />
+        <.player_checkbox player={player} current_user={@current_user} />
       <% end %>
     </div>
   </div>
-  <.button class="mt-8">Submit</.button>
+  <.button :if={@current_user} class="mt-8">Submit</.button>
 </.form>
 
 <.modal id="confirm-modal">

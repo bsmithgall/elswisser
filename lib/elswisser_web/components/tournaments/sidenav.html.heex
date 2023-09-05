@@ -33,7 +33,7 @@
     <%= for rnd <- @tournament.rounds do %>
       <.navlink
         href={
-          if rnd.status == :pairing,
+          if rnd.status == :pairing and @current_user,
             do: ~p"/tournaments/#{rnd.tournament_id}/rounds/#{rnd}/pairings",
             else: ~p"/tournaments/#{rnd.tournament_id}/rounds/#{rnd}"
         }

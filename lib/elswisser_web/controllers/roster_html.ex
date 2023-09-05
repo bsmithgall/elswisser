@@ -6,6 +6,7 @@ defmodule ElswisserWeb.RosterHTML do
 
   attr(:player, :map, required: true)
   attr(:checked, :boolean)
+  attr(:current_user, :map, default: nil)
 
   def player_checkbox(assigns) do
     assigns = Phoenix.Component.assign_new(assigns, :checked, fn -> false end)
@@ -18,6 +19,7 @@ defmodule ElswisserWeb.RosterHTML do
         name="player_ids[]"
         value={@player.id}
         checked={@checked}
+        :if={@current_user}
       />
       <%= @player.name %> (<%= @player.rating %>)
     </label>

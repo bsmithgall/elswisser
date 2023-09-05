@@ -16,6 +16,7 @@
       <.game_result_table_row
         game={game}
         disabled={@status == :finished}
+        signed_in={@signed_in}
         bye={game.black_id == Bye.bye_player_id() or game.white_id == Bye.bye_player_id()}
       />
     <% end %>

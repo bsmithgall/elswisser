@@ -1,5 +1,5 @@
 <%= live_render(
   @conn,
   ElswisserWeb.RoundLive.Round,
-  session: %{"round_id" => @round.id}
+  session: %{"round_id" => @round.id, "current_user" => @current_user}
 ) %>

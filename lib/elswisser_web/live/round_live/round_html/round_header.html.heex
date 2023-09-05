@@ -36,14 +36,17 @@
       Generate Pairing SVG
     </.success_button>
     <.success_button
-      :if={@display == :pairings}
+      :if={@signed_in && @display == :pairings}
       form={"round-#{@round.id}-finalize"}
       disabled={@round.status != :playing}
       data-confirm="Are you sure? Unplayed games will be given draws."
     >
       Finalize Round
     </.success_button>
-    <.link href={~p"/tournaments/#{@round.tournament_id}/rounds/#{@round}/pairings"}>
+    <.link
+      :if={@signed_in}
+      href={~p"/tournaments/#{@round.tournament_id}/rounds/#{@round}/pairings"}
+    >
       <.button>View pairings</.button>
     </.link>
   </:actions>
