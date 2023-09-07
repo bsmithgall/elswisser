@@ -85,6 +85,7 @@ defmodule ElswisserWeb do
       import Phoenix.HTML
       # Core UI components and translation
       import ElswisserWeb.CoreComponents
+      import ElswisserWeb.ChessComponents
       import ElswisserWeb.Gettext
 
       # Shortcut for generating JS commands

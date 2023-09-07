@@ -48,7 +48,8 @@ defmodule ElswisserWeb.RoundLive.Round do
   def handle_event("save-result", %{"id" => id} = params, socket) do
     with {:ok, _} <- ensure_round_playing(socket),
          game <- find_game(socket, id),
-         {:ok, game} <- Games.update_game(game, params) do
+         {:ok, game} <-
+           Games.update_game(game, Map.merge(params, %{"finished_at" => DateTime.utc_now()})) do
       {:noreply,
        socket
        |> assign(

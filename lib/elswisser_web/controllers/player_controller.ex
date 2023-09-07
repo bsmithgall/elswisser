@@ -2,6 +2,7 @@ defmodule ElswisserWeb.PlayerController do
   use ElswisserWeb, :controller
 
   alias Elswisser.Players
+  alias Elswisser.Games
   alias Elswisser.Players.Player
 
   def index(conn, _params) do
@@ -34,7 +35,8 @@ defmodule ElswisserWeb.PlayerController do
 
   def show(conn, %{"id" => id}) do
     player = Players.get_player!(id)
-    render(conn, :show, player: player)
+    games = Games.get_history_for_player(id)
+    render(conn, :show, player: player, games: games)
   end
 
   def edit(conn, %{"id" => id}) do

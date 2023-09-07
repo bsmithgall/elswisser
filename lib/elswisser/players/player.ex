@@ -3,6 +3,10 @@ defmodule Elswisser.Players.Player do
   import Ecto.Changeset
   import Ecto.Query, warn: false
 
+  alias Elswisser.Games.Game
+  alias Elswisser.Tournaments.Tournament
+  alias Elswisser.Tournaments.TournamentPlayer
+
   schema "players" do
     field(:name, :string)
     field(:rating, :integer)
@@ -10,13 +14,10 @@ defmodule Elswisser.Players.Player do
     field(:chesscom, :string)
     field(:lichess, :string)
 
-    has_many(:white_games, Elswisser.Games.Game, foreign_key: :white_id)
-    has_many(:black_games, Elswisser.Games.Game, foreign_key: :black_id)
+    has_many(:white_games, Game, foreign_key: :white_id)
+    has_many(:black_games, Game, foreign_key: :black_id)
 
-    many_to_many(:tournaments, Elswisser.Tournaments.Tournament,
-      join_through: Elswisser.Tournaments.TournamentPlayer,
-      on_replace: :delete
-    )
+    many_to_many(:tournaments, Tournament, join_through: TournamentPlayer, on_replace: :delete)
 
     timestamps()
   end

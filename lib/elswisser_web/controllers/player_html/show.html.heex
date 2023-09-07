@@ -1,15 +1,13 @@
 <.header>
-  Player <%= @player.id %>
-  <:subtitle>This is a player record from your database.</:subtitle>
+  <%= @player.name %>
   <:actions>
-    <.link href={~p"/players/#{@player}/edit"}>
+    <.link :if={@current_user} href={~p"/players/#{@player}/edit"}>
       <.button>Edit player</.button>
     </.link>
   </:actions>
 </.header>
 
-<.list>
-  <:item title="Name"><%= @player.name %></:item>
+<.condensed_list>
   <:item title="Rating"><%= @player.rating %></:item>
   <:item title="Chess.com username">
     <.icon :if={@player.chesscom} name="icon-chesscom" />
@@ -35,6 +33,31 @@
     </a>
     <span :if={is_nil(@player.lichess)}>N/A</span>
   </:item>
-</.list>
+</.condensed_list>
+
+<.header class="mt-12">Recent games</.header>
+
+<.table
+  id="games"
+  rows={@games}
+  row_click={&JS.navigate(~p"/tournaments/#{&1.tournament_id}/games/#{&1.id}")}
+  striped
+  rounded_hover={false}
+>
+  <:col :let={game} label="Game">
+    <.game_result
+      game={game}
+      highlight={if @player.id == game.white_id, do: :white, else: :black}
+      class="ml-6 my-1"
+    />
+  </:col>
+  <:col :let={game} label="Rating change">
+    <.rating_change :if={@player.id == game.white_id} change={game.white_rating_change} />
+    <.rating_change :if={@player.id == game.black_id} change={game.black_rating_change} />
+  </:col>
+  <:col :let={game} label="Finished">
+    <%= Timex.from_now(game.finished_at) %>
+  </:col>
+</.table>
 
 <.back navigate={~p"/players"}>Back to players</.back>

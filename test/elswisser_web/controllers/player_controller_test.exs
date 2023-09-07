@@ -33,7 +33,7 @@ defmodule ElswisserWeb.PlayerControllerTest do
       assert redirected_to(conn) == ~p"/players/#{id}"
 
       conn = get(conn, ~p"/players/#{id}")
-      assert html_response(conn, 200) =~ "Player #{id}"
+      assert html_response(conn, 200) =~ "some name"
     end
 
     test "renders errors when data is invalid", %{conn: conn} do

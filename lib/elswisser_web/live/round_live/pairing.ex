@@ -271,7 +271,7 @@ defmodule ElswisserWeb.RoundLive.Pairing do
   end
 
   defp fetch_unpaired_players(tournament_id, round_id) do
-    Players.get_unpaired_players(tournament_id, round_id)
+    Rounds.get_unpaired_players(round_id, tournament_id)
   end
 
   defp fetch_player_with_history(player_id, tournament_id, roster) do

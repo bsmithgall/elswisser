@@ -54,6 +54,29 @@ defmodule Elswisser.Rounds do
     |> Repo.one!()
   end
 
+  @doc """
+  For a given tournament_id and round_id, find all players that have yet to be
+  paired into a game together.
+  """
+  def get_unpaired_players(round_id, tournament_id) do
+    white_games =
+      Game.from()
+      |> Game.where_round_id(round_id)
+      |> Game.select_white_id()
+
+    black_games =
+      Game.from()
+      |> Game.where_round_id(round_id)
+      |> Game.select_black_id()
+
+    all_games = white_games |> union(^black_games)
+
+    Player.from()
+    |> Player.where_tournament_id(tournament_id)
+    |> Player.where_not_matching(all_games)
+    |> Repo.all()
+  end
+
   def update_ratings_after_round(id) do
     rnd_with_games = get_round_with_games(id)
 

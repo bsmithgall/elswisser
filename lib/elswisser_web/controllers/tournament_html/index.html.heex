@@ -1,6 +1,6 @@
 <.header class="py-4">
   Listing Tournaments
-  <:actions>
+  <:actions :if={@current_user}>
     <.link href={~p"/tournaments/new"}>
       <.button>New Tournament</.button>
     </.link>
@@ -10,13 +10,13 @@
 <.table id="tournaments" rows={@tournaments} row_click={&JS.navigate(~p"/tournaments/#{&1}")}>
   <:col :let={tournament} label="Name"><%= tournament.name %></:col>
   <:col :let={tournament} label="Created"><%= tournament.inserted_at %></:col>
-  <:action :let={tournament}>
+  <:action :let={tournament} :if={@current_user}>
     <div class="sr-only">
       <.link navigate={~p"/tournaments/#{tournament}"}>Show</.link>
     </div>
     <.link navigate={~p"/tournaments/#{tournament}/edit"}>Edit</.link>
   </:action>
-  <:action :let={tournament}>
+  <:action :let={tournament} :if={@current_user}>
     <.link href={~p"/tournaments/#{tournament}"} method="delete" data-confirm="Are you sure?">
       Delete
     </.link>
