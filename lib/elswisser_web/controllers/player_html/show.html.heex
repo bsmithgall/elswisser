@@ -9,6 +9,7 @@
 
 <.condensed_list>
   <:item title="Rating"><%= @player.rating %></:item>
+  <:item title="Record"><%= @record.wins %>-<%= @record.draws %>-<%= @record.losses %></:item>
   <:item title="Chess.com username">
     <.icon :if={@player.chesscom} name="icon-chesscom" />
     <a
@@ -51,11 +52,11 @@
       class="ml-6 my-1"
     />
   </:col>
-  <:col :let={game} label="Rating change">
+  <:col :let={game} label="Rating change" center>
     <.rating_change :if={@player.id == game.white_id} change={game.white_rating_change} />
     <.rating_change :if={@player.id == game.black_id} change={game.black_rating_change} />
   </:col>
-  <:col :let={game} label="Finished">
+  <:col :let={game} label="Finished" center>
     <%= Timex.from_now(game.finished_at) %>
   </:col>
 </.table>

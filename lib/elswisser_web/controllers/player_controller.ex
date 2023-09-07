@@ -36,7 +36,8 @@ defmodule ElswisserWeb.PlayerController do
   def show(conn, %{"id" => id}) do
     player = Players.get_player!(id)
     games = Games.get_history_for_player(id)
-    render(conn, :show, player: player, games: games)
+    record = Players.get_player_record(id)
+    render(conn, :show, player: player, games: games, record: record)
   end
 
   def edit(conn, %{"id" => id}) do

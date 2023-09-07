@@ -566,6 +566,7 @@ defmodule ElswisserWeb.CoreComponents do
 
   slot :col, required: true do
     attr(:label, :string)
+    attr(:center, :boolean)
   end
 
   slot(:action, doc: "the slot for showing user actions in the last table column")
@@ -581,7 +582,12 @@ defmodule ElswisserWeb.CoreComponents do
       <table class="w-[40rem] mt-11 sm:w-full">
         <thead class="text-sm text-left leading-6 text-zinc-500">
           <tr>
-            <th :for={col <- @col} class="p-0 pr-6 pb-2 font-normal"><%= col[:label] %></th>
+            <th
+              :for={col <- @col}
+              class={["p-0 pr-6 pb-2 font-normal", col[:center] && "text-center"]}
+            >
+              <%= col[:label] %>
+            </th>
             <th class="relative p-0 pb-2"><span class="sr-only"><%= gettext("Actions") %></span></th>
           </tr>
         </thead>
@@ -598,7 +604,11 @@ defmodule ElswisserWeb.CoreComponents do
             <td
               :for={col <- @col}
               phx-click={@row_click && @row_click.(row)}
-              class={["relative p-0", @row_click && "hover:cursor-pointer"]}
+              class={[
+                "relative p-0",
+                @row_click && "hover:cursor-pointer",
+                col[:center] && "text-center"
+              ]}
             >
               <div class="block py-1 pr-6">
                 <span

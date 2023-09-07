@@ -4,9 +4,11 @@ defmodule Elswisser.Players do
   """
 
   import Ecto.Query, warn: false
+  require Elswisser.Players.Record
   alias Elswisser.Repo
 
   alias Elswisser.Players.Player
+  alias Elswisser.Players.Record
   alias Elswisser.Games.Game
 
   @doc """
@@ -53,6 +55,14 @@ defmodule Elswisser.Players do
       black_games:
         ^fn player_id -> Enum.filter(games, fn g -> Enum.member?(player_id, g.black_id) end) end
     )
+    |> Repo.one()
+  end
+
+  def get_player_record(id) do
+    Game.from()
+    |> Game.where_player_id(id)
+    |> Game.where_finished()
+    |> Record.calculate_record(id)
     |> Repo.one()
   end
 

@@ -10,7 +10,7 @@ defmodule ElswisserWeb.ChessComponents do
   use Phoenix.VerifiedRoutes, endpoint: ElswisserWeb.Endpoint, router: ElswisserWeb.Router
 
   attr(:game, :map, required: true)
-  attr(:highlight, :atom, values: [:white, :black])
+  attr(:highlight, :atom, values: [:white, :black, nil], default: nil)
   attr(:class, :string, default: nil)
 
   def game_result(assigns) do
@@ -18,14 +18,20 @@ defmodule ElswisserWeb.ChessComponents do
     <div class={["grid grid-cols-3 grid-rows-2 gap-x-4 min-w-min", @class && @class]}>
       <span class="col-span-2">
         <.white_square winner={@game.result == 1} />
-        <.link class="hover:underline" href={~p"/players/#{@game.white.id}"}>
+        <.link
+          class={["hover:underline", @highlight == :white && "font-bold"]}
+          href={~p"/players/#{@game.white.id}"}
+        >
           <%= @game.white.name %>
         </.link>
       </span>
       <span><.score color={:white} result={@game.result} /></span>
       <span class="col-span-2">
         <.black_square winner={@game.result == -1} />
-        <.link class="hover:underline" href={~p"/players/#{@game.black.id}"}>
+        <.link
+          class={["hover:underline", @highlight == :black && "font-bold"]}
+          href={~p"/players/#{@game.black.id}"}
+        >
           <%= @game.black.name %>
         </.link>
       </span>
