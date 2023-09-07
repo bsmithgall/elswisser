@@ -9,7 +9,7 @@
 
 <.list>
   <:item title="Result">
-    <.result white={@game.white.name} black={@game.black.name} result={@game.result} />
+    <.game_result game={@game} />
   </:item>
   <:item :if={!is_nil(@game.game_link)} title="PGN">
     <%= live_render(@conn, ElswisserWeb.GameLive.Pgn,

@@ -12,22 +12,6 @@ defmodule Elswisser.Games do
     Game.from() |> Game.where_id(id) |> Repo.one!()
   end
 
-  def create_game(attrs \\ %{}) do
-    %Game{}
-    |> Game.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  def create_games(games \\ []) do
-    games
-    |> Enum.with_index()
-    |> Enum.reduce(Ecto.Multi.new(), fn {game, idx}, acc ->
-      changeset = %Game{} |> Game.changeset(game)
-      Ecto.Multi.insert(acc, {:game, idx}, changeset)
-    end)
-    |> Repo.transaction()
-  end
-
   def get_games_from_tournament_for_player(tournament_id, player_id) do
     Game.from()
     |> Game.where_tournament_id(tournament_id)
@@ -43,10 +27,35 @@ defmodule Elswisser.Games do
   def get_game_with_players!(id) do
     Game.from()
     |> Game.where_id(id)
-    |> Game.with_black_player()
-    |> Game.with_white_player()
+    |> Game.with_both_players()
     |> Game.preload_players()
     |> Repo.one!()
+  end
+
+  def get_history_for_player(player_id) do
+    Game.from()
+    |> Game.where_player_id(player_id)
+    |> Game.where_finished()
+    |> Game.with_both_players()
+    |> Game.preload_players()
+    |> Game.most_recent_first()
+    |> Repo.all()
+  end
+
+  def create_game(attrs \\ %{}) do
+    %Game{}
+    |> Game.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def create_games(games \\ []) do
+    games
+    |> Enum.with_index()
+    |> Enum.reduce(Ecto.Multi.new(), fn {game, idx}, acc ->
+      changeset = %Game{} |> Game.changeset(game)
+      Ecto.Multi.insert(acc, {:game, idx}, changeset)
+    end)
+    |> Repo.transaction()
   end
 
   def update_game(%Game{} = game, attrs) do

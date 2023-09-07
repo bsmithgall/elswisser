@@ -30,9 +30,7 @@
               <%= outer.player.name %> (<%= outer.player.rating %>)
             </td>
             <td class="border border-zinc-200 px-2 w-10">
-              <%= if outer.rating_change >= 0,
-                do: "+#{outer.rating_change}",
-                else: outer.rating_change %>
+              <.rating_change change={outer.rating_change} />
             </td>
             <%= for inner <- @scores do %>
               <.crosscell outer={outer} inner={inner} />

@@ -7,6 +7,7 @@ defmodule Elswisser.Games.Game do
     field(:game_link, :string)
     field(:pgn, :string)
     field(:result, :integer)
+    field(:finished_at, :utc_datetime)
     field(:white_rating_change, :integer, default: 0)
     field(:black_rating_change, :integer, default: 0)
 
@@ -30,7 +31,8 @@ defmodule Elswisser.Games.Game do
       :round_id,
       :tournament_id,
       :white_id,
-      :white_rating_change
+      :white_rating_change,
+      :finished_at
     ])
     |> validate_required([:white_id, :black_id, :round_id, :tournament_id])
     |> validate_different_players()
@@ -67,6 +69,14 @@ defmodule Elswisser.Games.Game do
 
   def where_unfinished(query) do
     from([..., game: g] in query, where: is_nil(g.result))
+  end
+
+  def where_finished(query) do
+    from([..., game: g] in query, where: not is_nil(g.result))
+  end
+
+  def with_both_players(query) do
+    query |> with_white_player() |> with_black_player()
   end
 
   def with_white_player(query) do
@@ -109,6 +119,10 @@ defmodule Elswisser.Games.Game do
       group_by: g.black_id,
       select: %{id: g.black_id, ct: count(g.id)}
     )
+  end
+
+  def most_recent_first(query) do
+    from([game: g] in query, order_by: [desc_nulls_last: g.finished_at])
   end
 
   @doc """
