@@ -30,11 +30,7 @@ if config_env() == :prod do
 
   config :elswisser, Elswisser.Repo,
     database: database_path,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5"),
-    admin_user: %{
-      email: System.get_env("ADMIN_EMAIL"),
-      password: System.get_env("ADMIN_PASSWORD")
-    }
+    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5")
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
@@ -112,4 +108,11 @@ if config_env() == :prod do
   #     config :swoosh, :api_client, Swoosh.ApiClient.Hackney
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
+
+  # Admin user admin/admin for local dev
+  config :elswisser,
+    admin_user: %{
+      email: System.get_env("ADMIN_EMAIL"),
+      password: System.get_env("ADMIN_PASSWORD")
+    }
 end
