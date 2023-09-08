@@ -24,6 +24,12 @@
       icon="hero-table-cells-mini"
       active={@active == "crosstable"}
     />
+    <.navlink
+      label="Stats"
+      href={~p"/tournaments/#{@tournament}/stats"}
+      icon="hero-chart-bar-square-mini"
+      active={@active == "stats"}
+    />
   </div>
   <hr />
   <div class="py-2">

@@ -75,4 +75,15 @@ defmodule ElswisserWeb.TournamentHTML do
     </td>
     """
   end
+
+  attr(:top, :integer, required: true)
+  attr(:bot, :integer, required: true)
+
+  def percentage(assigns) do
+    assigns = assigns |> assign(:p, (assigns.top / assigns.bot * 100) |> Float.round(1))
+
+    ~H"""
+    <span class="text-[10px]">(<%= @p %>%)</span>
+    """
+  end
 end

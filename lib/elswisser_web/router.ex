@@ -54,6 +54,7 @@ defmodule ElswisserWeb.Router do
     scope("/tournaments") do
       get("/:id/crosstable", TournamentController, :crosstable, as: :crosstable)
       get("/:id/scores", TournamentController, :scores, as: :scores)
+      get("/:id/stats", TournamentController, :stats, as: :stats)
 
       get("/:id/roster", RosterController, :index)
     end
