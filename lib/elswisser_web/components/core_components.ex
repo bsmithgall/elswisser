@@ -584,7 +584,11 @@ defmodule ElswisserWeb.CoreComponents do
           <tr>
             <th
               :for={col <- @col}
-              class={["p-0 pr-6 pb-2 font-normal", col[:center] && "text-center"]}
+              class={[
+                "p-0 pr-6 pb-2 font-normal",
+                col[:center] && "text-center",
+                @striped && "first:px-4"
+              ]}
             >
               <%= col[:label] %>
             </th>
@@ -607,13 +611,18 @@ defmodule ElswisserWeb.CoreComponents do
               class={[
                 "relative p-0",
                 @row_click && "hover:cursor-pointer",
-                col[:center] && "text-center"
+                col[:center] && "text-center",
+                @striped && "first:px-4"
               ]}
             >
               <div class="block py-1 pr-6">
                 <span
                   :if={@rounded_hover}
-                  class="absolute -inset-y-px right-0 -left-4 group-hover:bg-zinc-50 sm:rounded-l-xl"
+                  class={[
+                    "absolute -inset-y-px -left-4 group-hover:bg-zinc-50",
+                    @action != [] && "right-0 sm:rounded-l-xl",
+                    @action == [] && "-right-4 sm:rounded-xl"
+                  ]}
                 />
                 <span class="relative"><%= render_slot(col, @row_item.(row)) %></span>
               </div>

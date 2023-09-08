@@ -11,9 +11,6 @@
   <:col :let={tournament} label="Name"><%= tournament.name %></:col>
   <:col :let={tournament} label="Created"><%= tournament.inserted_at %></:col>
   <:action :let={tournament} :if={@current_user}>
-    <div class="sr-only">
-      <.link navigate={~p"/tournaments/#{tournament}"}>Show</.link>
-    </div>
     <.link navigate={~p"/tournaments/#{tournament}/edit"}>Edit</.link>
   </:action>
   <:action :let={tournament} :if={@current_user}>

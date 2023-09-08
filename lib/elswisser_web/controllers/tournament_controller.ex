@@ -4,11 +4,13 @@ defmodule ElswisserWeb.TournamentController do
   import Phoenix.Controller
 
   alias Elswisser.Tournaments
+  alias Elswisser.Rounds
   alias Elswisser.Scores
   alias Elswisser.Tournaments.Tournament
+  alias ElswisserWeb.Plugs.EnsureTournament
 
-  plug ElswisserWeb.Plugs.EnsureTournament,
-       "all" when action in [:show, :edit, :scores, :crosstable]
+  plug EnsureTournament, "all" when action in [:show, :edit, :scores, :crosstable]
+  plug EnsureTournament, "rounds" when action in [:stats]
 
   plug :fetch_games when action in [:scores, :crosstable]
   plug :calculate_scores when action in [:scores, :crosstable]
@@ -101,6 +103,14 @@ defmodule ElswisserWeb.TournamentController do
       scores: conn.assigns[:scores],
       active: "scores"
     )
+  end
+
+  def stats(conn, _) do
+    {round_stats, tourn_stats} = Rounds.get_stats_for_tournament(conn.assigns[:tournament_id])
+
+    conn
+    |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
+    |> render(:stats, stats: round_stats, tournament_stats: tourn_stats, active: "stats")
   end
 
   defp fetch_games(conn, _) do

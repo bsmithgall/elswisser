@@ -8,6 +8,7 @@ defmodule Elswisser.Rounds do
   alias Elswisser.Repo
 
   alias Elswisser.Rounds.Round
+  alias Elswisser.Rounds.Stats
   alias Elswisser.Games.Game
   alias Elswisser.Players
   alias Elswisser.Players.Player
@@ -75,6 +76,24 @@ defmodule Elswisser.Rounds do
     |> Player.where_tournament_id(tournament_id)
     |> Player.where_not_matching(all_games)
     |> Repo.all()
+  end
+
+  def get_stats_for_tournament(tournament_id) do
+    round_stats =
+      Round.from()
+      |> Round.where_tournament_id(tournament_id)
+      |> Round.with_games()
+      |> Game.with_both_players()
+      |> Stats.compute()
+      |> Round.order_by_number()
+      |> Repo.all()
+
+    tournament_stats =
+      Enum.reduce(round_stats, %Stats{}, fn %Stats{} = stat, acc ->
+        Stats.combine(acc, stat)
+      end)
+
+    {round_stats, tournament_stats}
   end
 
   def update_ratings_after_round(id) do

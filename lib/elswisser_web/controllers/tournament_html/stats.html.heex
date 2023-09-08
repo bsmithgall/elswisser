@@ -1,0 +1,26 @@
+<.header class="py-4">
+  Tournament stats
+</.header>
+
+<.table rows={@stats ++ [@tournament_stats]} id="stats" striped>
+  <:col :let={stat} label="#">
+    <%= if is_nil(stat.round), do: "Σ", else: "Round #{stat.round.number}" %>
+  </:col>
+  <:col :let={stat} label="White wins" center>
+    <%= stat.white_wins %>
+    <.percentage top={stat.white_wins} bot={stat.total} />
+  </:col>
+  <:col :let={stat} label="Black wins" center>
+    <%= stat.black_wins %>
+    <.percentage top={stat.black_wins} bot={stat.total} />
+  </:col>
+  <:col :let={stat} label="Draws" center>
+    <%= stat.draws %>
+    <.percentage top={stat.draws} bot={stat.total} />
+  </:col>
+  <:col :let={stat} label="Upsets" center>
+    <%= stat.upsets %>
+    <.percentage top={stat.upsets} bot={stat.total} />
+  </:col>
+  <:col :let={stat} label="Total" center><%= stat.total %></:col>
+</.table>
