@@ -1,8 +1,6 @@
-<.topnav current_user={@current_user} />
-<main class="h-full">
-  <.flash_group flash={@flash} />
-  <div class="grid grid-cols-10 gap-4">
-    <div class="col-span-2">
+<.topnav current_user={@current_user}>
+  <:inner_hamburger>
+    <div class="px-4">
       <.sidenav
         tournament={@tournament}
         current_round={@current_round}
@@ -10,7 +8,23 @@
         current_user={@current_user}
       />
     </div>
-    <div class="col-span-8 mx-auto w-full px-4">
+  </:inner_hamburger>
+</.topnav>
+
+<main class="h-full">
+  <.flash_group flash={@flash} />
+  <div class="md:grid md:grid-cols-10 md:gap-4">
+    <div class="md:col-span-2">
+      <aside class="hidden md:flex flex-col grow px-4 pt-2 border-r border-r-slate-200 h-[calc(100vh-62px)] overflow-y">
+        <.sidenav
+          tournament={@tournament}
+          current_round={@current_round}
+          active={assigns[:active]}
+          current_user={@current_user}
+        />
+      </aside>
+    </div>
+    <div class="md:col-span-8 mx-auto w-full px-4">
       <div class="mx-auto max-w-4xl">
         <%= @inner_content %>
       </div>

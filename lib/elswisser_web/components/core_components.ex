@@ -578,8 +578,8 @@ defmodule ElswisserWeb.CoreComponents do
       end
 
     ~H"""
-    <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-      <table class="w-[40rem] mt-11 sm:w-full">
+    <div class="overflow-auto py-2 sm:p-0 sm:overflow-visible">
+      <table class="w-[40rem] mt-4 sm:w-full">
         <thead class="text-sm text-left leading-6 text-zinc-500">
           <tr>
             <th
