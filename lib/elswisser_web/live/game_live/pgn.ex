@@ -27,7 +27,7 @@ defmodule ElswisserWeb.GameLive.Pgn do
     <% else %>
       <div id="pgn-board-container" phx-hook="GameNavigatorHook" phx-value-pgn={@pgn}>
         <span><%= @black_player %></span>
-        <div id="pgn-board" class="w-96"></div>
+        <div id="pgn-board" class="w:40 md:w-96"></div>
         <span><%= @white_player %></span>
       </div>
 

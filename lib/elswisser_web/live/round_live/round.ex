@@ -46,7 +46,7 @@ defmodule ElswisserWeb.RoundLive.Round do
 
   @impl true
   def handle_event("save-result", %{"id" => id} = params, socket) do
-    with {:ok, _} <- ensure_round_playing(socket),
+    with :ok <- ensure_updateable(socket, params),
          game <- find_game(socket, id),
          {:ok, game} <-
            Games.update_game(game, Map.merge(params, %{"finished_at" => DateTime.utc_now()})) do
@@ -188,7 +188,21 @@ defmodule ElswisserWeb.RoundLive.Round do
     Enum.find(socket.assigns[:games], fn g -> g.id == id end)
   end
 
-  defp ensure_round_playing(socket) do
+  defp ensure_updateable(socket, params) do
+    with :ok <- updating_result(params),
+         :ok <- is_playing(socket) do
+      :ok
+    else
+      :safe -> :ok
+      {:error, msg} -> {:error, msg}
+    end
+  end
+
+  defp updating_result(params) do
+    if "result" in params["_target"], do: :ok, else: :safe
+  end
+
+  defp is_playing(socket) do
     case socket.assigns[:round].status do
       :playing -> {:ok, nil}
       _ -> {:error, "Round status is #{socket.assigns[:round].status}"}
