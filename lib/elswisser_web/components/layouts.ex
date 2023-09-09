@@ -17,7 +17,10 @@ defmodule ElswisserWeb.Layouts do
 
   def hamburger_nav_link(assigns) do
     ~H"""
-    <li class={["block px-4 py-2 text-sm font-semibold hover:bg-slate-300", @active && "bg-slate-200"]} phx-click={JS.navigate(@href)}>
+    <li
+      class={["block px-4 py-2 text-sm font-semibold hover:bg-slate-300", @active && "bg-slate-200"]}
+      phx-click={JS.navigate(@href)}
+    >
       <span :if={@icon != nil} class={[@icon, @icon_class, "-mt-1"]} />
       <a href={@href}><%= @label %></a>
     </li>
