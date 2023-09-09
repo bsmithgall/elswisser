@@ -115,4 +115,9 @@ if config_env() == :prod do
       email: System.get_env("ADMIN_EMAIL"),
       password: System.get_env("ADMIN_PASSWORD")
     }
+
+  # Set up the directory for tzdata
+  tz_data_dir = System.get_env("TZ_DATA_DIR")
+
+  config :tzdata, :data_dir, tz_data_dir
 end
