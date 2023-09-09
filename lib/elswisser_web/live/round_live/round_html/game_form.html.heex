@@ -1,4 +1,6 @@
-<form id={"game-#{@game.id}"} phx-change="save-result"></form>
+<form id={"game-#{@game.id}"} phx-change="save-result">
+  <input type="hidden" name="id" value={@game.id} />
+</form>
 
 <.modal id={"game-#{@game.id}-edit-modal"}>
   <.section_title>Edit game information</.section_title>

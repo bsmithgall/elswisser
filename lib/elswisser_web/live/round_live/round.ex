@@ -27,26 +27,57 @@ defmodule ElswisserWeb.RoundLive.Round do
   end
 
   @impl true
-  def render(assigns) do
+  def render(%{display: :pairings} = assigns) do
     ~H"""
     <.flash id="round-success-flash" kind={:info} title="Success!" flash={@flash} />
     <.flash id="round-error-flash" kind={:error} title="Error!" flash={@flash} />
 
     <.round_header round={@round} display={@display} signed_in={@signed_in} />
 
-    <.results_table
-      :if={@display == :pairings}
-      games={@games}
-      status={@round.status}
-      signed_in={@signed_in}
-    />
-    <.pairings_share :if={@display == :share} games={@games} number={@round.number} />
+    <%= for game <- @games do %>
+      <.game_form game={game} />
+    <% end %>
+
+    <.table id="results" rows={@games}>
+      <:col :let={game} label="White">
+        <.result_player win={game.result == 1} draw={game.result == 0} name={game.white.name} />
+      </:col>
+      <:col :let={game} label="Black">
+        <.result_player win={game.result == -1} draw={game.result == 0} name={game.black.name} />
+      </:col>
+      <:col :let={game} :if={@signed_in} label="Result">
+        <.result_select
+          game={game}
+          disabled={@round.status == :finished}
+          bye={game.black_id == Bye.bye_player_id() or game.white_id == Bye.bye_player_id()}
+        />
+      </:col>
+      <:col :let={game} label="Actions" center>
+        <.result_actions
+          game={game}
+          signed_in={@signed_in}
+          bye={game.black_id == Bye.bye_player_id() or game.white_id == Bye.bye_player_id()}
+        />
+      </:col>
+    </.table>
+    """
+  end
+
+  @impl true
+  def render(%{display: :share} = assigns) do
+    ~H"""
+    <.flash id="round-success-flash" kind={:info} title="Success!" flash={@flash} />
+    <.flash id="round-error-flash" kind={:error} title="Error!" flash={@flash} />
+
+    <.round_header round={@round} display={@display} signed_in={@signed_in} />
+
+    <.pairings_share games={@games} number={@round.number} />
     """
   end
 
   @impl true
   def handle_event("save-result", %{"id" => id} = params, socket) do
-    with {:ok, _} <- ensure_round_playing(socket),
+    with :ok <- ensure_updatable(params, socket),
          game <- find_game(socket, id),
          {:ok, game} <-
            Games.update_game(game, Map.merge(params, %{"finished_at" => DateTime.utc_now()})) do
@@ -146,19 +177,6 @@ defmodule ElswisserWeb.RoundLive.Round do
   def game_form(assigns)
 
   attr(:games, :list, required: true)
-  attr(:status, :string, required: true)
-  attr(:signed_in, :boolean, required: true)
-
-  def results_table(assigns)
-
-  attr(:game, :map, required: true)
-  attr(:disabled, :boolean, required: true)
-  attr(:signed_in, :boolean, required: true)
-  attr(:bye, :boolean, required: true)
-
-  def game_result_table_row(assigns)
-
-  attr(:games, :list, required: true)
   attr(:number, :integer, required: true)
 
   def pairings_share(assigns)
@@ -167,6 +185,89 @@ defmodule ElswisserWeb.RoundLive.Round do
   attr(:player, :map, required: true)
 
   def pairings_share_player(assigns)
+
+  attr(:win, :boolean, default: false)
+  attr(:draw, :boolean, default: false)
+  attr(:name, :string, required: true)
+
+  def result_player(assigns) do
+    ~H"""
+    <span class="w-6 inline-block">
+      <.icon :if={@win} name="hero-trophy" />
+      <.icon :if={@draw} name="hero-scale" />
+    </span>
+    <%= @name %>
+    """
+  end
+
+  attr(:game, :map, required: true)
+  attr(:disabled, :boolean, default: false)
+  attr(:bye, :boolean, default: false)
+
+  def result_select(%{bye: true} = assigns) do
+    ~H"""
+    <div class="-mt-1">
+      <.input type="select" name="result" options={["Draw (Bye)": 0]} disabled={true} value={0} />
+    </div>
+    """
+  end
+
+  def result_select(%{bye: false} = assigns) do
+    ~H"""
+    <div class="-mt-1">
+      <.input
+        type="select"
+        id={"game-result-#{@game.id}-result"}
+        name="result"
+        options={["Select Result": nil, "White won": 1, "Black won": -1, Draw: 0]}
+        disabled={@disabled}
+        value={@game.result}
+        form={"game-#{@game.id}"}
+        class="z-10 relative"
+      />
+    </div>
+    """
+  end
+
+  attr(:game, :map, required: true)
+  attr(:signed_in, :boolean, default: false)
+  attr(:bye, :boolean, default: false)
+
+  def result_actions(assigns) do
+    ~H"""
+    <button
+      phx-click={show_modal("game-#{@game.id}-edit-modal")}
+      disabled={is_nil(@game.result) && !@bye}
+      class="disabled:text-zinc-400 disabled:cursor-not-allowed"
+      title="Edit game information"
+    >
+      <.icon class="-mt-1 ml-4" name="hero-ellipsis-horizontal-circle" />
+    </button>
+    <a href={~p"/tournaments/#{@game.tournament_id}/games/#{@game}"} title="Go to game page">
+      <.icon class="-mt-1 ml-2" name="hero-arrow-top-right-on-square" />
+    </a>
+    <button
+      :if={@signed_in}
+      phx-click="switch-player-colors"
+      phx-value-id={@game.id}
+      disabled={!is_nil(@game.result)}
+      class="disabled:text-zinc-400 disabled:cursor-not-allowed"
+      title="Swap player colors"
+    >
+      <.icon class="-mt-1 ml-2" name="hero-arrow-path" />
+    </button>
+    <button
+      :if={@signed_in}
+      phx-click="unpair-players"
+      phx-value-id={@game.id}
+      disabled={!is_nil(@game.result) && !@bye}
+      class="disabled:text-zinc-400 disabled:cursor-not-allowed"
+      title="Unpair players"
+    >
+      <.icon class="-mt-1 ml-2" name="hero-scissors" />
+    </button>
+    """
+  end
 
   defp fetch_round(round_id) do
     Rounds.get_round_with_games_and_players!(round_id)
@@ -188,7 +289,21 @@ defmodule ElswisserWeb.RoundLive.Round do
     Enum.find(socket.assigns[:games], fn g -> g.id == id end)
   end
 
-  defp ensure_round_playing(socket) do
+  defp ensure_updatable(params, socket) do
+    with :ok <- check_result?(params),
+         {:ok, nil} <- ensure_playing(socket) do
+      :ok
+    else
+      :skip -> :ok
+      {:error, msg} -> {:error, msg}
+    end
+  end
+
+  defp check_result?(params) do
+    if "result" in params["_target"], do: :ok, else: :skip
+  end
+
+  defp ensure_playing(socket) do
     case socket.assigns[:round].status do
       :playing -> {:ok, nil}
       _ -> {:error, "Round status is #{socket.assigns[:round].status}"}

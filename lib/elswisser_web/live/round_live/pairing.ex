@@ -30,8 +30,8 @@ defmodule ElswisserWeb.RoundLive.Pairing do
     ~H"""
     <.flash id="pairing-success-flash" kind={:info} title="Success!" flash={@flash} />
     <.flash id="pairing-error-flash" kind={:error} title="Error!" flash={@flash} />
-    <div class="mt-8 flex">
-      <div class="w-2/5 box-border border-r border-r-zinc-400 pr-4 mr-4">
+    <div class="mt-8 md:flex">
+      <div class="mb-4 md:mb-0 md:w-2/5 md:box-border md:border-r md:border-r-zinc-400 md:pr-4 md:mr-4">
         <.success_button phx-click="auto-pair-remaining" class="mb-4 w-full">
           Auto-pair remaining players
         </.success_button>
@@ -45,18 +45,18 @@ defmodule ElswisserWeb.RoundLive.Pairing do
           black_id={assigns[:black] && assigns[:black].id}
         />
       </div>
-      <div class="w-3/5">
+      <div class="mt-4 md:mt-0 md:w-3/5">
         <.actions
           white_id={assigns[:white] && assigns[:white].id}
           black_id={assigns[:black] && assigns[:black].id}
         />
-        <div class="flex flex-row justify-center gap-2">
-          <div class="w-1/2 p-4 bg-zinc-50 rounded-md border border-solid border-zinc-400">
+        <div class="md:flex flex-row justify-center gap-2">
+          <div class="mb-4 md:mb-0 md:w-1/2 p-4 bg-zinc-50 rounded-md border border-solid border-zinc-400">
             <.section_title class="text-xs text-center uppercase mb-4">White</.section_title>
             <.player_card_skeleton :if={is_nil(assigns[:white])} />
             <.player_card :if={assigns[:white]} player={@white} />
           </div>
-          <div class="w-1/2 p-4 bg-indigo-200 rounded-md border border-solid border-zinc-400">
+          <div class="mb-4 md:mb-0 md:w-1/2 p-4 bg-indigo-200 rounded-md border border-solid border-zinc-400">
             <.section_title class="text-xs text-center uppercase mb-4">Black</.section_title>
             <.player_card_skeleton :if={is_nil(assigns[:black])} />
             <.player_card :if={assigns[:black]} player={@black} />

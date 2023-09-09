@@ -66,10 +66,10 @@ defmodule Elswisser.Games do
     Game.changeset(game, attrs)
   end
 
-  def add_pgn(id, pgn) do
+  def add_pgn(id, pgn, game_link) do
     case get_game(id) do
       nil -> {:error, "Could not find game!"}
-      game -> update_game(game, %{pgn: pgn})
+      game -> update_game(game, %{pgn: pgn, game_link: game_link})
     end
   end
 
@@ -80,7 +80,7 @@ defmodule Elswisser.Games do
   def fetch_pgn(game_id, game_link) do
     with {:ok, fetchfn} <- parse_game_source(game_link),
          {:ok, pgn} <- fetchfn.(game_link),
-         {:ok, game} <- add_pgn(game_id, pgn) do
+         {:ok, game} <- add_pgn(game_id, pgn, game_link) do
       {:ok, %{game_id: game.id, pgn: pgn}}
     else
       {:error, reason} -> {:error, reason}

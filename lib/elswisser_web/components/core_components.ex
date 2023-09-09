@@ -211,11 +211,17 @@ defmodule ElswisserWeb.CoreComponents do
   attr(:idx, :integer)
   attr(:name, :string)
   attr(:rest, :global)
+  attr(:active, :boolean, default: false)
 
   def icon_button(assigns) do
     ~H"""
     <button
-      class="flex-none first:border-l first:rounded-l-md last:rounded-r-md border border-l-0 border-zinc-400 px-2 hover:bg-gray-200 z-0"
+      class={[
+        "flex-none first:border-l first:rounded-l-md last:rounded-r-md",
+        "border border-l-0 border-zinc-400 px-2 z-0",
+        "hover:ring-1 hover:ring-slate-400 hover:ring-inset z-0",
+        @active && "bg-slate-200"
+      ]}
       {@rest}
     >
       <.icon name={@name} class="w-4 h-4 -mt-1 p-3" />
@@ -242,7 +248,7 @@ defmodule ElswisserWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "py-2 px-3 rounded-lg text-sm font-semibold leading-6 text-white active:text-white/80",
+        "py-1 md:py-2 px-3 rounded-lg text-sm font-semibold leading-6 text-white active:text-white/80",
         "bg-zinc-900 hover:bg-zinc-700 disabled:bg-zinc-500",
         "phx-submit-loading:opacity-75",
         @class
@@ -273,7 +279,7 @@ defmodule ElswisserWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "py-2 px-3 text-sm font-semibold leading-6 rounded-lg text-zinc-900 active:text-zinc-900/80",
+        "py-1 md:py-2 px-3 text-sm font-semibold leading-6 rounded-lg text-zinc-900 active:text-zinc-900/80",
         "border-solid border border-zinc-900 active:border-zinc-900/80 hover:bg-zinc-100",
         "disabled:text-zinc-500 disabled:border-zinc-500 disabled:hover:bg-transparent",
         "phx-submit-loading:opacity-75",
@@ -305,7 +311,7 @@ defmodule ElswisserWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "py-2 px-3 text-sm font-semibold leading-6 rounded-lg text-white active:text-white/80",
+        "py-1 md:py-2 px-3 text-sm font-semibold leading-6 rounded-lg text-white active:text-white/80",
         "bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-700",
         "disabled:bg-emerald-600 disabled:hover:bg-emerald-600",
         "phx-submit-loading:opacity-75",
@@ -353,6 +359,7 @@ defmodule ElswisserWeb.CoreComponents do
       <.input name="my-input" errors={["oh no!"]} />
   """
   attr(:id, :any, default: nil)
+  attr(:class, :string, default: nil)
   attr(:name, :any)
   attr(:label, :string, default: nil)
   attr(:value, :any)
@@ -420,7 +427,10 @@ defmodule ElswisserWeb.CoreComponents do
       <select
         id={@id}
         name={@name}
-        class="mt-1 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm"
+        class={[
+          "mt-1 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm",
+          @class && @class
+        ]}
         multiple={@multiple}
         {@rest}
       >
@@ -578,14 +588,14 @@ defmodule ElswisserWeb.CoreComponents do
       end
 
     ~H"""
-    <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-      <table class="w-[40rem] mt-11 sm:w-full">
+    <div class="overflow-auto pt-2 pb-6 sm:p-0 sm:overflow-visible">
+      <table class="w-[40rem] mt-4 sm:w-full">
         <thead class="text-sm text-left leading-6 text-zinc-500">
           <tr>
             <th
               :for={col <- @col}
               class={[
-                "p-0 pr-6 pb-2 font-normal",
+                "p-0 md:pr-6 pb-2 font-normal",
                 col[:center] && "text-center",
                 @striped && "first:px-4"
               ]}
@@ -615,7 +625,7 @@ defmodule ElswisserWeb.CoreComponents do
                 @striped && "first:px-4"
               ]}
             >
-              <div class="block py-1 pr-6">
+              <div class="block py-1 md:pr-6">
                 <span
                   :if={@rounded_hover}
                   class={[

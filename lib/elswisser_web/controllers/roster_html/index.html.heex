@@ -6,21 +6,21 @@
 </.header>
 
 <.form for={@changeset} action={~p"/tournaments/#{@tournament}/roster"}>
-  <div class="flex flex-row">
-    <div class="basis-1/2">
-      <.header>Registered</.header>
+  <div class="md:flex md:flex-row">
+    <div class="md:basis-1/2">
+      <.header class="mb-2">Registered</.header>
       <%= for player <- @in_players do %>
         <.player_checkbox player={player} current_user={@current_user} checked />
       <% end %>
     </div>
-    <div class="basis-1/2">
-      <.header>Unregistered</.header>
+    <div class="mt-4 md:m-0 md:basis-1/2">
+      <.header class="mb-2">Unregistered</.header>
       <%= for player <- @out_players do %>
         <.player_checkbox player={player} current_user={@current_user} />
       <% end %>
     </div>
   </div>
-  <.button :if={@current_user} class="mt-8">Submit</.button>
+  <.success_button :if={@current_user} class="mt-8">Submit</.success_button>
 </.form>
 
 <.modal id="confirm-modal">
