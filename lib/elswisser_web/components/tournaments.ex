@@ -1,7 +1,7 @@
 defmodule ElswisserWeb.TournamentLayouts do
   use ElswisserWeb, :html
-  import ElswisserWeb.Layouts
   import ElswisserWeb.CoreComponents
+  import ElswisserWeb.Topnav, only: [nav: 1]
 
   embed_templates("tournaments/*")
 
