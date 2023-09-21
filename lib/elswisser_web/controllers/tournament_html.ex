@@ -79,11 +79,27 @@ defmodule ElswisserWeb.TournamentHTML do
   attr(:top, :integer, required: true)
   attr(:bot, :integer, required: true)
 
+  def percentage(%{top: _top, bot: 0} = assigns) do
+    ~H"""
+    <span class="text-[10px]">(0%)</span>
+    """
+  end
+
   def percentage(assigns) do
     assigns = assigns |> assign(:p, (assigns.top / assigns.bot * 100) |> Float.round(1))
 
     ~H"""
     <span class="text-[10px]">(<%= @p %>%)</span>
+    """
+  end
+
+  attr(:player, :map, required: true)
+
+  def player_link(assigns) do
+    ~H"""
+    <.link class="underline" href={~p"/players/#{@player}"}>
+      <%= @player.name %> (<%= @player.rating %>)
+    </.link>
     """
   end
 end

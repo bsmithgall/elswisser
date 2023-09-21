@@ -99,6 +99,12 @@ defmodule ElswisserWeb.CoreComponents do
   """
   attr(:id, :string, default: "flash", doc: "the optional id of flash container")
   attr(:flash, :map, default: %{}, doc: "the map of flash messages to display")
+
+  attr(:fade_after, :integer,
+    default: 2000,
+    doc: "how long to wait before fading out. -1 for do not fade out."
+  )
+
   attr(:title, :string, default: nil)
   attr(:kind, :atom, values: [:info, :error], doc: "used for styling and flash lookup")
   attr(:rest, :global, doc: "the arbitrary HTML attributes to add to the flash container")
@@ -111,6 +117,8 @@ defmodule ElswisserWeb.CoreComponents do
       :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
+      phx-hook="FlashHook"
+      phx-value-fade-after={@fade_after}
       role="alert"
       class={[
         "fixed top-2 right-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
@@ -141,10 +149,15 @@ defmodule ElswisserWeb.CoreComponents do
   """
   attr(:flash, :map, required: true, doc: "the map of flash messages")
 
+  attr(:fade_after, :integer,
+    default: 2000,
+    doc: "how long to wait before fading out. -1 for do not fade out."
+  )
+
   def flash_group(assigns) do
     ~H"""
-    <.flash kind={:info} title="Success!" flash={@flash} />
-    <.flash kind={:error} title="Error!" flash={@flash} />
+    <.flash kind={:info} title="Success!" flash={@flash} fade_after={@fade_after} />
+    <.flash kind={:error} title="Error!" flash={@flash} fade_after={@fade_after} />
     <.flash
       id="disconnected"
       kind={:error}

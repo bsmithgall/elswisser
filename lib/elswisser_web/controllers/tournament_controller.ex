@@ -17,7 +17,7 @@ defmodule ElswisserWeb.TournamentController do
 
   def index(conn, _params) do
     tournaments = Tournaments.list_tournaments()
-    render(conn, :index, tournaments: tournaments)
+    conn |> render(:index, tournaments: tournaments)
   end
 
   def new(conn, _params) do
