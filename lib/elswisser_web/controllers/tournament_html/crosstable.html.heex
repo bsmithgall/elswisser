@@ -27,7 +27,7 @@
               <%= idx + 1 %>
             </td>
             <td class="text-zinc-800 border  border-zinc-200 break-words text-left pl-4">
-              <%= outer.player.name %> (<%= outer.player.rating %>)
+              <.player_link player={outer.player} />
             </td>
             <td class="border border-zinc-200 px-2 w-10">
               <.rating_change change={outer.rating_change} />

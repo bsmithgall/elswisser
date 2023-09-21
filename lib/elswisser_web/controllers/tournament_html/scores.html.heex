@@ -7,21 +7,21 @@
   </.header>
 
   <.scores_table id="scores" rows={@scores}>
-    <:col :let={score} label="" hide_border width="1/2">
-      <%= score.player.name %> (<%= score.player.rating %>)
+    <:col :let={score} label="" hide_border width="1/4">
+      <.player_link player={score.player} />
     </:col>
-    <:col :let={score} center label="">
+    <:col :let={score} center label="" width="4">
       <%= if score.rating_change >= 0, do: "+#{score.rating_change}", else: score.rating_change %>
     </:col>
-    <:col :let={score} label="Score" center>
+    <:col :let={score} label="Score" center width="8">
       <%= Float.round(score.score * 1.0, 1) %>
     </:col>
-    <:col :let={score} label="Modified Median" center width="1/6"><%= score.modmed %></:col>
-    <:col :let={score} label="Solkoff" center width="1/6"><%= score.solkoff %></:col>
-    <:col :let={score} label="Score Sum" center width="1/6">
+    <:col :let={score} label="Modified Median" center width="10"><%= score.modmed %></:col>
+    <:col :let={score} label="Solkoff" center width="10"><%= score.solkoff %></:col>
+    <:col :let={score} label="Score Sum" center width="10">
       <%= Float.round(score.cumulative_sum * 1.0, 1) %>
     </:col>
-    <:col :let={score} label="Opponent Score Sum" center width="1/6">
+    <:col :let={score} label="Opponent Score Sum" center width="10">
       <%= Float.round(score.cumulative_opp * 1.0, 1) %>
     </:col>
   </.scores_table>

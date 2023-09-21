@@ -65,7 +65,7 @@ defmodule ElswisserWeb.Router do
   ## Authentication routes
 
   scope "/accounts", ElswisserWeb.Accounts, as: :accounts do
-    pipe_through [:browser, :redirect_if_user_is_authenticated]
+    pipe_through([:browser, :redirect_if_user_is_authenticated])
 
     live_session :redirect_if_user_is_authenticated,
       on_mount: [{ElswisserWeb.Accounts.UserAuth, :redirect_if_user_is_authenticated}] do
@@ -76,6 +76,8 @@ defmodule ElswisserWeb.Router do
   end
 
   scope "/accounts", ElswisserWeb.Accounts, as: :accounts do
+    pipe_through(:browser)
+
     delete "/users/log_out", UserSessionController, :delete
   end
 
