@@ -11,7 +11,7 @@
   <:item title="Result">
     <.game_result game={@game} />
   </:item>
-  <:item :if={!is_nil(@game.game_link)} title="PGN">
+  <:item :if={!is_nil(@game.pgn)} title="PGN">
     <%= live_render(@conn, ElswisserWeb.GameLive.Pgn,
       id: "pgn",
       session: %{
