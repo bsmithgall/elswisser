@@ -55,7 +55,8 @@ defmodule Elswisser.MixProject do
       {:httpoison, "~> 2.0"},
       {:erlport, "~> 0.10.1"},
       {:poolboy, "~> 1.5.2"},
-      {:timex, "~> 3.0"}
+      {:timex, "~> 3.0"},
+      {:prom_ex, "~> 1.8.0"}
     ]
   end
 

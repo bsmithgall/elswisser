@@ -8,6 +8,7 @@ defmodule Elswisser.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      Elswisser.PromEx,
       # Start the Telemetry supervisor
       ElswisserWeb.Telemetry,
       # Start the Ecto repository

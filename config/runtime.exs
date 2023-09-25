@@ -120,4 +120,18 @@ if config_env() == :prod do
   tz_data_dir = System.get_env("TZ_DATA_DIR")
 
   config :tzdata, :data_dir, tz_data_dir
+
+  # Set up PromEx
+  config :elswisser, :promex_additional, %{
+    datasource_id: System.get_env("PROMEX_DATASOURCE_ID")
+  }
+
+  config :elswisser, Elswisser.PromEx,
+    disabled: is_nil(System.get_env("PROMEX_ENABLED")),
+    manual_metrics_start_delay: :no_delay,
+    drop_metrics_groups: [],
+    grafana: Elswisser.PromEx.grafana_config(!is_nil(System.get_env("PROMEX_GRAFANA_ENABLED"))),
+    metrics_server: [
+      port: String.to_integer(System.get_env("METRICS_SERVER_PORT") || "4021")
+    ]
 end
