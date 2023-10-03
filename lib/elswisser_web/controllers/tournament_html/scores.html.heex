@@ -11,7 +11,7 @@
       <.player_link player={score.player} />
     </:col>
     <:col :let={score} center label="" width="4">
-      <%= if score.rating_change >= 0, do: "+#{score.rating_change}", else: score.rating_change %>
+      <.rating_change change={score.rating_change} />
     </:col>
     <:col :let={score} label="Score" center width="8">
       <%= Float.round(score.score * 1.0, 1) %>
