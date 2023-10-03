@@ -13,11 +13,11 @@
       "normal-case font-light text-sm font-mono"
     ]}
   >
-    <span :if={@player.chesscom} class="flex items-center gap-2">
-      <.icon name="icon-chesscom" />
+    <span :if={@player.chesscom} class="flex items-center gap-1">
+      <.icon name="icon-chesscom" class="bg-green-600 opacity-70" />
       <%= @player.chesscom %>
     </span>
-    <span :if={@player.lichess} class="flex items-center gap-2">
+    <span :if={@player.lichess} class="flex items-center gap-1">
       <.icon name="icon-lichess" />
       <%= @player.lichess %>
     </span>
