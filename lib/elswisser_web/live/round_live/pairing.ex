@@ -17,7 +17,7 @@ defmodule ElswisserWeb.RoundLive.Pairing do
   def mount(_params, session, socket) do
     {:ok,
      socket
-     |> switch_color()
+     |> set_white()
      |> assign(:round_id, session["round_id"])
      |> assign(:roster, session["tournament"].players)
      |> assign(:tournament_id, session["tournament_id"])
@@ -102,7 +102,7 @@ defmodule ElswisserWeb.RoundLive.Pairing do
           {:noreply,
            socket
            |> put_flash(:info, "Successfully paired players!")
-           |> switch_color()
+           |> set_white()
            |> assign(:players, remaining)
            |> assign(:white, nil)
            |> assign(:black, nil)}
@@ -268,6 +268,10 @@ defmodule ElswisserWeb.RoundLive.Pairing do
       :white -> assign(socket, :color, :black)
       _ -> assign(socket, :color, :white)
     end
+  end
+
+  defp set_white(socket) do
+    assign(socket, :color, :white)
   end
 
   defp fetch_unpaired_players(tournament_id, round_id) do
