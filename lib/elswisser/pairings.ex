@@ -39,7 +39,10 @@ defmodule Elswisser.Pairings do
   def pair(scores) when is_even(scores) do
     max_score = max_score(scores)
 
-    scores |> partition() |> unique_possible_pairs(max_score) |> Worker.pooled_call()
+    scores
+    |> partition()
+    |> unique_possible_pairs(max_score)
+    |> Worker.pooled_call()
   end
 
   def partition(scores) when is_list(scores) do
@@ -110,6 +113,17 @@ defmodule Elswisser.Pairings do
           {left, right}
       end
     end)
+  end
+
+  def finalize_colors(colors, 1) do
+    case Enum.random(0..1) do
+      0 -> colors
+      1 -> Enum.map(colors, fn {left, right} -> {right, left} end)
+    end
+  end
+
+  def finalize_colors(colors, _round_number) do
+    colors
   end
 
   @doc """
