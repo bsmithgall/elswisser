@@ -4,18 +4,22 @@ defmodule ElswisserWeb.RoundLive.Round do
 
   alias Elswisser.Games
   alias Elswisser.Rounds
+  alias Elswisser.Players
 
   embed_templates("round_html/*")
 
   @impl true
   def mount(_params, session, socket) do
     rnd = fetch_round(session["round_id"])
+    roster = Players.get_tournament_partipants(rnd.tournament_id)
 
     {:ok,
      socket
      |> assign(round: rnd)
      |> assign(games: rnd.games)
+     |> assign(roster: roster)
      |> assign(display: :pairings)
+     |> assign(show_game_info: false)
      |> assign(signed_in: !is_nil(session["user_token"])), layout: false}
   end
 
@@ -33,6 +37,15 @@ defmodule ElswisserWeb.RoundLive.Round do
     <.flash id="round-error-flash" kind={:error} title="Error!" flash={@flash} />
 
     <.round_header round={@round} display={@display} signed_in={@signed_in} />
+    <.modal
+      :if={@show_game_info}
+      id="game-info"
+      show
+      on_cancel={hide_modal("game-info") |> JS.push("hide-game-info")}
+    >
+      <.header class="pb-4">Round <%= @round.number %> matchup</.header>
+      <.matchup white={assigns[:white]} black={assigns[:black]} />
+    </.modal>
 
     <%= for game <- @games do %>
       <.game_form game={game} />
@@ -156,6 +169,29 @@ defmodule ElswisserWeb.RoundLive.Round do
   end
 
   @impl true
+  def handle_event(
+        "show-game-info",
+        %{"white-id" => white_id, "black-id" => black_id},
+        socket
+      ) do
+    tournament_id = socket.assigns[:round].tournament_id
+    roster = socket.assigns[:roster]
+
+    with {:ok, white} <- fetch_player_with_history(white_id, tournament_id, roster),
+         {:ok, black} <- fetch_player_with_history(black_id, tournament_id, roster) do
+      {:noreply,
+       socket |> assign(:white, white) |> assign(:black, black) |> assign(:show_game_info, true)}
+    else
+      {:error, msg} -> {:error, socket |> put_flash(:error, msg)}
+    end
+  end
+
+  @impl true
+  def handle_event("hide-game-info", _params, socket) do
+    {:noreply, socket |> assign(:show_game_info, false)}
+  end
+
+  @impl true
   def handle_info({:pgn_result, %{pgn: pgn, game_id: game_id}}, socket) do
     {:noreply,
      socket |> assign(:games, update_session_game(socket.assigns[:games], game_id, %{pgn: pgn}))}
@@ -236,12 +272,20 @@ defmodule ElswisserWeb.RoundLive.Round do
   def result_actions(assigns) do
     ~H"""
     <button
+      phx-click="show-game-info"
+      phx-value-white-id={@game.white_id}
+      phx-value-black-id={@game.black_id}
+      title="Show matchup information"
+    >
+      <.icon class="-mt-1 ml-4" name="hero-question-mark-circle" />
+    </button>
+    <button
       phx-click={show_modal("game-#{@game.id}-edit-modal")}
       disabled={is_nil(@game.result) && !@bye}
       class="disabled:text-zinc-400 disabled:cursor-not-allowed"
       title="Edit game information"
     >
-      <.icon class="-mt-1 ml-4" name="hero-ellipsis-horizontal-circle" />
+      <.icon class="-mt-1 ml-2" name="hero-ellipsis-horizontal-circle" />
     </button>
     <a href={~p"/tournaments/#{@game.tournament_id}/games/#{@game}"} title="Go to game page">
       <.icon class="-mt-1 ml-2" name="hero-arrow-top-right-on-square" />
@@ -307,6 +351,15 @@ defmodule ElswisserWeb.RoundLive.Round do
     case socket.assigns[:round].status do
       :playing -> {:ok, nil}
       _ -> {:error, "Round status is #{socket.assigns[:round].status}"}
+    end
+  end
+
+  defp fetch_player_with_history(player_id, tournament_id, roster) do
+    games = Games.get_games_from_tournament_for_player(tournament_id, player_id, roster)
+
+    case Players.get_player_with_tournament_history(player_id, games) do
+      nil -> {:error, "Could not fetch tournament history for player"}
+      player -> {:ok, player}
     end
   end
 end

@@ -66,6 +66,12 @@ defmodule Elswisser.Players do
     |> Repo.one()
   end
 
+  def get_tournament_partipants(tournament_id) do
+    Player.from()
+    |> Player.where_tournament_id(tournament_id)
+    |> Repo.all()
+  end
+
   @doc """
   Creates a player.
 
