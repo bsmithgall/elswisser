@@ -3,9 +3,9 @@ export const FlashHook = {
     const timeoutAfter = parseInt(
       this.el.getAttribute("phx-value-fade-after") ?? "2000"
     );
-    const flashVisible = window.getComputedStyle(this.el) !== "none";
+    const flashVisible = window.getComputedStyle(this.el).display !== "none";
 
-    if (flashVisible && timeoutAfter != -1) {
+    if (flashVisible && timeoutAfter !== -1) {
       setTimeout(() => this.el.click(), timeoutAfter);
     }
   },
