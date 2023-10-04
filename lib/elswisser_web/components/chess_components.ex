@@ -6,8 +6,13 @@ defmodule ElswisserWeb.ChessComponents do
   go, but what can you do.
   """
 
+  import ElswisserWeb.CoreComponents
+  import Phoenix.HTML, only: [raw: 1]
+
   use Phoenix.Component
   use Phoenix.VerifiedRoutes, endpoint: ElswisserWeb.Endpoint, router: ElswisserWeb.Router
+
+  alias Elswisser.Players
 
   attr(:game, :map, required: true)
   attr(:highlight, :atom, values: [:white, :black, nil], default: nil)
@@ -103,6 +108,124 @@ defmodule ElswisserWeb.ChessComponents do
   def rating_change(%{change: change} = assigns) when change < 0 do
     ~H"""
     <span class="text-red-600"><%= @change %></span>
+    """
+  end
+
+  attr(:class, :string, default: nil)
+  attr(:white, :string, required: true)
+  attr(:black, :string, required: true)
+  attr(:result, :integer, required: true)
+
+  def result(assigns) do
+    assigns =
+      assign(
+        assigns,
+        case assigns.result do
+          -1 -> %{white_result: "0", black_result: "1"}
+          0 -> %{white_result: "&half;", black_result: "&half;"}
+          1 -> %{white_result: "1", black_result: "0"}
+          _ -> %{white_result: nil, black_result: nil}
+        end
+      )
+
+    ~H"""
+    <div class={[@class]}>
+      <span class={["pr-1", @result == 1 && "font-bold"]}>
+        <%= @white %> <%= raw(@white_result) %>
+      </span>
+      &#8212;
+      <span class={["pl-1", @result == -1 && "font-bold"]}>
+        <%= @black %> <%= raw(@black_result) %>
+      </span>
+      <span :if={is_nil(@result)}>(Unplayed)</span>
+    </div>
+    """
+  end
+
+  attr(:player, :map)
+  attr(:black, :boolean, default: false)
+
+  def player_card(%{player: %Ecto.Association.NotLoaded{}}) do
+    player_card(%{player: nil})
+  end
+
+  def player_card(%{player: nil} = assigns) do
+    ~H"""
+    <div class="w-full pb-8">
+      <.header>Select player</.header>
+
+      <.condensed_list>
+        <:item title="Score"></:item>
+        <:item title="Rating"></:item>
+        <:item title="White Games"></:item>
+        <:item title="Black Games"></:item>
+      </.condensed_list>
+    </div>
+    <hr />
+    <div class="w-full">
+      <.section_title class="mb-4">Tournament History</.section_title>
+    </div>
+    """
+  end
+
+  def player_card(%{player: player} = assigns) do
+    all_games = Players.Player.all_games(player)
+
+    assigns =
+      assign(assigns, %{
+        games: all_games,
+        score: Elswisser.Scores.raw_score_for_player(all_games, assigns[:player].id)
+      })
+
+    ~H"""
+    <div class="w-full">
+      <.header><%= @player.name %></.header>
+
+      <.condensed_list>
+        <:item title="Score"><%= @score %></:item>
+        <:item title="Rating"><%= @player.rating %></:item>
+        <:item title="White Games"><%= length(@player.white_games) %></:item>
+        <:item title="Black Games"><%= length(@player.black_games) %></:item>
+      </.condensed_list>
+    </div>
+    <hr class="my-4" />
+    <div class="w-full">
+      <.section_title class="mb-4">Tournament History</.section_title>
+      <ol class="list-decimal text-sm pl-4">
+        <%= for game <- @games do %>
+          <li class="pb-1">
+            <.link
+              class={["underline inline", @black && "text-cyan-800", !@black && "text-cyan-600"]}
+              href={~p"/tournaments/#{game.tournament_id}/games/#{game.id}"}
+            >
+              <.result white={game.white.name} black={game.black.name} result={game.result} />
+            </.link>
+          </li>
+        <% end %>
+      </ol>
+    </div>
+    """
+  end
+
+  attr(:white, :map)
+  attr(:black, :map)
+
+  def matchup(assigns) do
+    ~H"""
+    <div class="md:flex flex-row justify-center gap-2">
+      <div class="md:w-1/2">
+        <.section_title class="text-xs text-center uppercase mb-4">White</.section_title>
+        <div class="mb-4 md:mb-0 p-4 bg-zinc-50 rounded-md border border-solid border-zinc-400">
+          <.player_card player={@white} />
+        </div>
+      </div>
+      <div class="md:w-1/2">
+        <.section_title class="text-xs text-center uppercase mb-4">Black</.section_title>
+        <div class="mb-4 md:mb-0 p-4 bg-indigo-200 rounded-md border border-solid border-zinc-400">
+          <.player_card player={@black} black={true} />
+        </div>
+      </div>
+    </div>
     """
   end
 end

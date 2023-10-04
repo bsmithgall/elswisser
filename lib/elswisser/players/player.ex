@@ -34,7 +34,7 @@ defmodule Elswisser.Players.Player do
   round ID.
   """
   def all_games(%Elswisser.Players.Player{} = player) do
-    Enum.sort_by(player.white_games ++ player.black_games, & &1.round_id, :desc)
+    Enum.sort_by(player.white_games ++ player.black_games, & &1.round_id)
   end
 
   def with_k_factor(%{rating: rating} = player, games_played)
