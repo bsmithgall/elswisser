@@ -243,7 +243,14 @@ defmodule ElswisserWeb.RoundLive.Round do
   def result_select(%{bye: true} = assigns) do
     ~H"""
     <div class="-mt-1">
-      <.input type="select" name="result" options={["Draw (Bye)": 0]} disabled={true} value={0} />
+      <.input
+        class="leading-4 sm:leading-4"
+        type="select"
+        name="result"
+        options={["Draw (Bye)": 0]}
+        disabled={true}
+        value={0}
+      />
     </div>
     """
   end
@@ -259,7 +266,7 @@ defmodule ElswisserWeb.RoundLive.Round do
         disabled={@disabled}
         value={@game.result}
         form={"game-#{@game.id}"}
-        class="z-10 relative"
+        class="z-10 relative leading-4 sm:leading-4"
       />
     </div>
     """
