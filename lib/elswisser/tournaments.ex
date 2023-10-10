@@ -83,20 +83,6 @@ defmodule Elswisser.Tournaments do
     |> Repo.one()
   end
 
-  def get_all_games_in_tournament!(id) do
-    Repo.all(
-      from(g in Game,
-        join: r in Round,
-        on: g.round_id == r.id,
-        join: t in Tournament,
-        on: r.tournament_id == t.id,
-        where: t.id == ^id,
-        select: {g, r.number}
-      )
-    )
-    |> Enum.map(fn x -> %{game: elem(x, 0), rnd: %Round{number: elem(x, 1)}} end)
-  end
-
   def current_round(%Tournament{} = tournament) when is_map_key(tournament, :rounds) do
     case tournament.rounds do
       %Ecto.Association.NotLoaded{} -> %Elswisser.Rounds.Round{number: 0}
