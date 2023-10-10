@@ -74,6 +74,7 @@ defmodule Elswisser.Tournaments do
   def get_tournament_with_all(id) do
     Tournament.from()
     |> Tournament.where_id(id)
+    |> Tournament.with_players()
     |> Tournament.with_rounds()
     |> Round.with_games()
     |> Round.order_by_number()
@@ -93,7 +94,7 @@ defmodule Elswisser.Tournaments do
         select: {g, r.number}
       )
     )
-    |> Enum.map(fn x -> %{game: elem(x, 0), rnd: elem(x, 1)} end)
+    |> Enum.map(fn x -> %{game: elem(x, 0), rnd: %Round{number: elem(x, 1)}} end)
   end
 
   def current_round(%Tournament{} = tournament) when is_map_key(tournament, :rounds) do

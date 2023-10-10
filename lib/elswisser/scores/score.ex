@@ -3,6 +3,8 @@ defmodule Elswisser.Scores.Score do
   alias Elswisser.Players.Player
   alias Elswisser.Scores.Score
   alias Elswisser.Pairings.Bye
+  alias Elswisser.Games.Game
+  alias Elswisser.Rounds.Round
 
   embedded_schema do
     field :player_id, :integer
@@ -21,5 +23,54 @@ defmodule Elswisser.Scores.Score do
 
   def had_bye?(%Score{} = score) do
     Enum.any?(score.opponents, fn o -> o == Bye.bye_player_id() end)
+  end
+
+  def white(%Game{} = game, %Round{} = rnd) do
+    %Score{
+      player_id: game.white_id,
+      player: game.white,
+      score: Game.white_score(game),
+      rating_change: game.white_rating_change,
+      opponents: [game.black_id],
+      results: [Game.white_result(game)],
+      cumulative_sum: Game.white_score(game) * rnd.number,
+      lastwhite: true
+    }
+  end
+
+  def black(%Game{} = game, %Round{} = rnd) do
+    %Score{
+      player_id: game.black_id,
+      score: Game.black_score(game),
+      rating_change: game.black_rating_change,
+      opponents: [game.white_id],
+      results: [Game.black_result(game)],
+      cumulative_sum: Game.black_score(game) * rnd.number,
+      nblack: 1,
+      lastwhite: false
+    }
+  end
+
+  def merge_white(%Score{} = ex, %Game{} = game, %Round{} = rnd) do
+    Map.merge(ex, %{
+      score: ex.score + Game.white_score(game),
+      rating_change: ex.rating_change + game.white_rating_change,
+      opponents: ex.opponents ++ [game.black_id],
+      results: ex.results ++ [Game.white_result(game)],
+      cumulative_sum: ex.cumulative_sum + Game.white_score(game) * rnd.number,
+      lastwhite: true
+    })
+  end
+
+  def merge_black(%Score{} = ex, %Game{} = game, %Round{} = rnd) do
+    Map.merge(ex, %{
+      score: ex.score + Game.black_score(game),
+      rating_change: ex.rating_change + game.black_rating_change,
+      opponents: ex.opponents ++ [game.white_id],
+      results: ex.results ++ [Game.black_result(game)],
+      cumulative_sum: ex.cumulative_sum + Game.black_score(game) * rnd.number,
+      nblack: ex.nblack + 1,
+      lastwhite: false
+    })
   end
 end

@@ -1,5 +1,6 @@
 defmodule Elswisser.ScoresFixtures do
   alias Elswisser.Games.Game
+  alias Elswisser.Rounds.Round
 
   alias Elswisser.PlayersFixtures
 
@@ -16,7 +17,7 @@ defmodule Elswisser.ScoresFixtures do
           black_id: 1,
           result: -1
         },
-        rnd: 1
+        rnd: %Round{number: 1}
       },
       %{
         game: %Game{
@@ -24,7 +25,7 @@ defmodule Elswisser.ScoresFixtures do
           black_id: 2,
           result: -1
         },
-        rnd: 1
+        rnd: %Round{number: 1}
       },
       %{
         game: %Game{
@@ -32,7 +33,7 @@ defmodule Elswisser.ScoresFixtures do
           black_id: 6,
           result: 1
         },
-        rnd: 1
+        rnd: %Round{number: 1}
       },
       %{
         game: %Game{
@@ -40,7 +41,7 @@ defmodule Elswisser.ScoresFixtures do
           black_id: 5,
           result: 1
         },
-        rnd: 1
+        rnd: %Round{number: 1}
       },
       %{
         game: %Game{
@@ -48,7 +49,7 @@ defmodule Elswisser.ScoresFixtures do
           black_id: 1,
           result: 1
         },
-        rnd: 2
+        rnd: %Round{number: 2}
       },
       %{
         game: %Game{
@@ -56,7 +57,7 @@ defmodule Elswisser.ScoresFixtures do
           black_id: 7,
           result: -1
         },
-        rnd: 2
+        rnd: %Round{number: 2}
       },
       %{
         game: %Game{
@@ -64,7 +65,7 @@ defmodule Elswisser.ScoresFixtures do
           black_id: 3,
           result: -1
         },
-        rnd: 2
+        rnd: %Round{number: 2}
       },
       %{
         game: %Game{
@@ -72,7 +73,7 @@ defmodule Elswisser.ScoresFixtures do
           black_id: 4,
           result: -1
         },
-        rnd: 2
+        rnd: %Round{number: 2}
       },
       %{
         game: %Game{
@@ -80,7 +81,7 @@ defmodule Elswisser.ScoresFixtures do
           black_id: 2,
           result: 1
         },
-        rnd: 3
+        rnd: %Round{number: 3}
       },
       %{
         game: %Game{
@@ -88,7 +89,7 @@ defmodule Elswisser.ScoresFixtures do
           black_id: 3,
           result: 1
         },
-        rnd: 3
+        rnd: %Round{number: 3}
       },
       %{
         game: %Game{
@@ -96,7 +97,7 @@ defmodule Elswisser.ScoresFixtures do
           black_id: 8,
           result: -1
         },
-        rnd: 3
+        rnd: %Round{number: 3}
       },
       %{
         game: %Game{
@@ -104,7 +105,7 @@ defmodule Elswisser.ScoresFixtures do
           black_id: 5,
           result: -1
         },
-        rnd: 3
+        rnd: %Round{number: 3}
       }
     ])
   end

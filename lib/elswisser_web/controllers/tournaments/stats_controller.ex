@@ -1,14 +1,13 @@
 defmodule ElswisserWeb.Tournaments.StatsController do
   use ElswisserWeb, :controller
 
-  alias Elswisser.Tournaments
   alias Elswisser.Rounds
   alias Elswisser.Scores
   alias ElswisserWeb.Plugs.EnsureTournament
 
-  plug EnsureTournament, "rounds_players"
+  plug EnsureTournament, "all" when action not in [:stats]
+  plug EnsureTournament, "rounds" when action in [:stats]
 
-  plug :fetch_games when action not in [:stats]
   plug :calculate_scores when action not in [:stats]
 
   def crosstable(conn, _params) do
@@ -43,14 +42,9 @@ defmodule ElswisserWeb.Tournaments.StatsController do
     |> render(:stats, stats: round_stats, tournament_stats: tourn_stats, active: "stats")
   end
 
-  defp fetch_games(conn, _) do
-    games = Tournaments.get_all_games_in_tournament!(conn.assigns[:tournament_id])
-    assign(conn, :games, games)
-  end
-
   defp calculate_scores(conn, _) do
     scores =
-      Scores.calculate(conn.assigns[:games])
+      Scores.calculate(conn.assigns[:tournament])
       |> Scores.with_players(conn.assigns[:tournament].players)
       |> Scores.sort()
 
