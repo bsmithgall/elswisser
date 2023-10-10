@@ -3,7 +3,7 @@ defmodule ElswisserWeb.Plugs.EnsureTournament do
 
   alias Elswisser.Tournaments
 
-  @needs ["all", "rounds", "none"]
+  @needs ["all", "rounds", "rounds_players", "none"]
 
   def init(needs) when needs in @needs, do: needs
 
@@ -26,22 +26,21 @@ defmodule ElswisserWeb.Plugs.EnsureTournament do
   end
 
   defp fetch_tournament(conn, "rounds") do
-    fetch_with_rounds(conn)
-  end
-
-  defp fetch_tournament(conn, "all") do
-    fetch_with_all(conn)
-  end
-
-  defp fetch_with_all(conn) do
-    case Tournaments.get_tournament_with_all(conn.assigns[:tournament_id]) do
+    case Tournaments.get_tournament_with_rounds(conn.assigns[:tournament_id]) do
       nil -> not_found(conn)
       tournament -> assign(conn, :tournament, tournament)
     end
   end
 
-  defp fetch_with_rounds(conn) do
-    case Tournaments.get_tournament_with_rounds(conn.assigns[:tournament_id]) do
+  defp fetch_tournament(conn, "rounds_players") do
+    case Tournaments.get_tournament_with_rounds_and_players(conn.assigns[:tournament_id]) do
+      nil -> not_found(conn)
+      tournament -> assign(conn, :tournament, tournament)
+    end
+  end
+
+  defp fetch_tournament(conn, "all") do
+    case Tournaments.get_tournament_with_all(conn.assigns[:tournament_id]) do
       nil -> not_found(conn)
       tournament -> assign(conn, :tournament, tournament)
     end

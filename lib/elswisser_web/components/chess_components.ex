@@ -45,6 +45,35 @@ defmodule ElswisserWeb.ChessComponents do
     """
   end
 
+  attr(:game_link, :string, default: nil)
+
+  def has_game_link(assigns) do
+    ~H"""
+    <span :if={is_nil(@game_link)}>
+      <.icon class="-ml-1 mr-1 h-4 w-4" name="hero-no-symbol-mini" />Link
+    </span>
+    <span :if={!is_nil(@game_link)}>
+      <.icon class="-ml-1 mr-1 h-4 w-4" name="hero-check-mini" />
+      <.link class="hover:underline" href={@game_link}>
+        Link
+      </.link>
+    </span>
+    """
+  end
+
+  attr(:pgn, :string, default: nil)
+
+  def has_pgn(assigns) do
+    ~H"""
+    <span :if={is_nil(@pgn)} class="self-center">
+      <.icon class="-ml-1 mr-1 h-4 w-4" name="hero-no-symbol-mini" />PGN
+    </span>
+    <span :if={!is_nil(@pgn)} class="self-center">
+      <.icon class="-ml-1 mr-1 h-4 w-4" name="hero-check-mini" />PGN
+    </span>
+    """
+  end
+
   attr(:winner, :boolean)
 
   def white_square(assigns) do

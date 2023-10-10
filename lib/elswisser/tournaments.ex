@@ -69,11 +69,22 @@ defmodule Elswisser.Tournaments do
     |> Repo.preload(:players)
   end
 
-  def get_tournament_with_all(id) do
+  def get_tournament_with_rounds_and_players(id) do
     Tournament
-    |> Repo.get!(id)
+    |> Repo.get(id)
     |> Repo.preload(:players)
     |> Repo.preload(:rounds)
+  end
+
+  def get_tournament_with_all(id) do
+    Tournament.from()
+    |> Tournament.where_id(id)
+    |> Tournament.with_rounds()
+    |> Round.with_games()
+    |> Round.order_by_number()
+    |> Game.with_both_players()
+    |> Tournament.preload_all()
+    |> Repo.one()
   end
 
   def get_all_games_in_tournament!(id) do
