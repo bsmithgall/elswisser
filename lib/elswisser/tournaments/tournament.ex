@@ -42,8 +42,19 @@ defmodule Elswisser.Tournaments.Tournament do
     )
   end
 
+  def with_players(query) do
+    from([tournament: t] in query,
+      left_join: p in assoc(t, :players),
+      as: :player
+    )
+  end
+
   def preload_rounds(query) do
     from([round: r] in query, preload: [rounds: r])
+  end
+
+  def preload_players(query) do
+    from([player: p] in query, preload: [players: p])
   end
 
   def preload_rounds_and_games(query) do

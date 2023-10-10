@@ -38,42 +38,37 @@ defmodule Elswisser.Tournaments do
 
   """
   def get_tournament!(id) do
-    Repo.get!(Tournament, id)
+    Tournament.from() |> Tournament.where_id(id) |> Repo.one!()
   end
 
   def get_tournament(id) do
-    Repo.get(Tournament, id)
+    Tournament.from() |> Tournament.where_id(id) |> Repo.one()
   end
 
   def get_tournament_with_rounds(id) do
-    Tournament
-    |> Repo.get(id)
-    |> Repo.preload(:rounds)
-  end
-
-  def current_round(%Tournament{} = tournament) when is_map_key(tournament, :rounds) do
-    case tournament.rounds do
-      %Ecto.Association.NotLoaded{} -> %Elswisser.Rounds.Round{number: 0}
-      rnds when is_list(rnds) and length(rnds) == 0 -> %Elswisser.Rounds.Round{number: 0}
-      _ -> Enum.max_by(tournament.rounds, fn r -> r.number end)
-    end
-  end
-
-  def current_round(%Tournament{} = tournament) when not is_map_key(tournament, :rounds) do
-    %Elswisser.Rounds.Round{number: 0}
+    Tournament.from()
+    |> Tournament.where_id(id)
+    |> Tournament.with_rounds()
+    |> Tournament.preload_rounds()
+    |> Repo.one()
   end
 
   def get_tournament_with_players!(id) do
-    Tournament
-    |> Repo.get!(id)
-    |> Repo.preload(:players)
+    Tournament.from()
+    |> Tournament.where_id(id)
+    |> Tournament.with_players()
+    |> Tournament.preload_players()
+    |> Repo.one()
   end
 
   def get_tournament_with_rounds_and_players(id) do
-    Tournament
-    |> Repo.get(id)
-    |> Repo.preload(:players)
-    |> Repo.preload(:rounds)
+    Tournament.from()
+    |> Tournament.where_id(id)
+    |> Tournament.with_players()
+    |> Tournament.with_rounds()
+    |> Tournament.preload_players()
+    |> Tournament.preload_rounds()
+    |> Repo.one()
   end
 
   def get_tournament_with_all(id) do
@@ -99,6 +94,18 @@ defmodule Elswisser.Tournaments do
       )
     )
     |> Enum.map(fn x -> %{game: elem(x, 0), rnd: elem(x, 1)} end)
+  end
+
+  def current_round(%Tournament{} = tournament) when is_map_key(tournament, :rounds) do
+    case tournament.rounds do
+      %Ecto.Association.NotLoaded{} -> %Elswisser.Rounds.Round{number: 0}
+      rnds when is_list(rnds) and length(rnds) == 0 -> %Elswisser.Rounds.Round{number: 0}
+      _ -> Enum.max_by(tournament.rounds, fn r -> r.number end)
+    end
+  end
+
+  def current_round(%Tournament{} = tournament) when not is_map_key(tournament, :rounds) do
+    %Elswisser.Rounds.Round{number: 0}
   end
 
   @doc """
