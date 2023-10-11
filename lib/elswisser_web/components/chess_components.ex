@@ -218,7 +218,7 @@ defmodule ElswisserWeb.ChessComponents do
 
     ~H"""
     <div class="w-full">
-      <.header><span class={@black && "text-boardwhite-lighter"}>Select player</span></.header>
+      <.header><span class={@black && "text-boardwhite-lighter"}><%= @player.name %></span></.header>
 
       <.condensed_list
         dt_color={if @black, do: "text-boardwhite-lighter", else: "text-zinc-500"}
