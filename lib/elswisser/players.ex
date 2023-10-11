@@ -138,14 +138,13 @@ defmodule Elswisser.Players do
   end
 
   def with_k_factor(ids) when is_list(ids) do
-    from(
-      p in Player,
-      join: w in subquery(Game.from() |> Game.count_white_games(ids)),
+    from(p in Player,
+      left_join: w in subquery(Game.from() |> Game.count_white_games(ids)),
       on: p.id == w.id,
-      join: b in subquery(Game.from() |> Game.count_black_games(ids)),
+      left_join: b in subquery(Game.from() |> Game.count_black_games(ids)),
       on: p.id == b.id,
       where: p.id != -1,
-      select: {p, w.ct + b.ct}
+      select: {p, coalesce(w.ct, 0) + coalesce(b.ct, 0)}
     )
     |> Repo.all()
     |> Enum.reduce(%{}, fn {player, games_played}, acc ->
