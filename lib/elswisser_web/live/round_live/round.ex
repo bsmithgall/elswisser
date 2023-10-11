@@ -18,7 +18,7 @@ defmodule ElswisserWeb.RoundLive.Round do
      |> assign(round: rnd)
      |> assign(games: rnd.games)
      |> assign(roster: roster)
-     |> assign(display: :share)
+     |> assign(display: :pairings)
      |> assign(show_game_info: false)
      |> assign(signed_in: !is_nil(session["user_token"])), layout: false}
   end
@@ -26,6 +26,8 @@ defmodule ElswisserWeb.RoundLive.Round do
   @impl true
   def render(%{games: games} = assigns) when length(games) == 0 do
     ~H"""
+    <.round_header round={@round} display={@display} signed_in={@signed_in} />
+
     <.header class="mt-11">No pairings made yet!</.header>
     """
   end

@@ -5,3 +5,15 @@
 @import "../node_modules/@chrisoakman/chessboard2/dist/chessboard2.min.css";
 
 /* This file is for your main application CSS */
+
+/* Override the chessboard2 default snowflaked colors for the board */
+
+.black-b7cb6 {
+  background-color: #71828f;
+  color: #f2f5f3;
+}
+
+.white-3b784 {
+  background-color: #f2f5f3;
+  color: #71828f;
+}

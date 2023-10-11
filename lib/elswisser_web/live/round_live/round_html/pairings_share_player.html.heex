@@ -1,8 +1,8 @@
 <div class={[
   "border text-center p-4 relative uppercase",
   if(@black,
-    do: "bg-zinc-600 border-zinc-600 text-white rounded-b-md",
-    else: "bg-white border-zinc-600 text-zinc-600 border-b-0 rounded-t-md"
+    do: "bg-boardblack border-boardblack text-zinc-100 rounded-b-md",
+    else: "bg-boardwhite border-boardblack text-zinc-800 border-b-0 rounded-t-md"
   )
 ]}>
   <div
@@ -24,7 +24,7 @@
       ]}
     >
       <span :if={@player.chesscom} class="flex items-center gap-1">
-        <.icon name="icon-chesscom" class="bg-green-600 opacity-70" />
+        <.icon name="icon-chesscom" class="bg-green-400 opacity-70" />
         <%= @player.chesscom %>
       </span>
       <span :if={@player.lichess} class="flex items-center gap-1">

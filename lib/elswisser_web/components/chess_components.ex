@@ -80,7 +80,7 @@ defmodule ElswisserWeb.ChessComponents do
     ~H"""
     <div class={[
       "inline-block align-text-bottom rounded-sm w-4 h-4 mr-1 border border-zinc-600",
-      @winner && "ring-2 ring-emerald-600 ring-opacity-40"
+      @winner && "ring-2 ring-emerald-600 ring-opacity-40 bg-boardwhite"
     ]}>
     </div>
     """
@@ -91,7 +91,7 @@ defmodule ElswisserWeb.ChessComponents do
   def black_square(assigns) do
     ~H"""
     <div class={[
-      "inline-block align-text-bottom rounded-sm w-4 h-4 mr-1 bg-cyan-800",
+      "inline-block align-text-bottom rounded-sm w-4 h-4 mr-1 bg-boardblack",
       @winner && "ring-2 ring-emerald-600 ring-opacity-40"
     ]}>
     </div>
@@ -182,18 +182,27 @@ defmodule ElswisserWeb.ChessComponents do
   def player_card(%{player: nil} = assigns) do
     ~H"""
     <div class="w-full">
-      <.header>Select player</.header>
+      <.header><span class={@black && "text-boardwhite-lighter"}>Select player</span></.header>
 
-      <.condensed_list>
+      <.condensed_list
+        dt_color={if @black, do: "text-boardwhite-lighter", else: "text-zinc-500"}
+        dd_color={if @black, do: "text-boardwhite", else: "text-zinc-700"}
+        divide_color={if @black, do: "divide-boardblack-lighter", else: "divide-boardwhite-darker"}
+      >
         <:item title="Score"></:item>
         <:item title="Rating"></:item>
         <:item title="White Games"></:item>
         <:item title="Black Games"></:item>
       </.condensed_list>
     </div>
-    <hr class="my-4" />
+    <hr class={[
+      "h-px my-4 border-0",
+      if(@black, do: "bg-boardblack-lighter", else: "bg-boardwhite-darker")
+    ]} />
     <div class="w-full">
-      <.section_title class="mb-4">Tournament History</.section_title>
+      <.section_title class="mb-4">
+        <span class={@black && "text-boardwhite-lighter"}>Tournament History</span>
+      </.section_title>
     </div>
     """
   end
@@ -209,23 +218,32 @@ defmodule ElswisserWeb.ChessComponents do
 
     ~H"""
     <div class="w-full">
-      <.header><%= @player.name %></.header>
+      <.header><span class={@black && "text-boardwhite-lighter"}>Select player</span></.header>
 
-      <.condensed_list>
+      <.condensed_list
+        dt_color={if @black, do: "text-boardwhite-lighter", else: "text-zinc-500"}
+        dd_color={if @black, do: "text-boardwhite", else: "text-zinc-700"}
+        divide_color={if @black, do: "divide-boardblack-lighter", else: "divide-boardwhite-darker"}
+      >
         <:item title="Score"><%= @score %></:item>
         <:item title="Rating"><%= @player.rating %></:item>
         <:item title="White Games"><%= length(@player.white_games) %></:item>
         <:item title="Black Games"><%= length(@player.black_games) %></:item>
       </.condensed_list>
     </div>
-    <hr class="my-4" />
+    <hr class={[
+      "h-px my-4 border-0",
+      if(@black, do: "bg-boardblack-lighter", else: "bg-boardwhite-darker")
+    ]} />
     <div class="w-full">
-      <.section_title class="mb-4">Tournament History</.section_title>
+      <.section_title class="mb-4">
+        <span class={@black && "text-boardwhite-lighter"}>Tournament History</span>
+      </.section_title>
       <ol class="list-decimal text-sm pl-4">
         <%= for game <- @games do %>
           <li class="pb-1">
             <.link
-              class={["underline block", @black && "text-cyan-800", !@black && "text-cyan-600"]}
+              class="underline block"
               href={~p"/tournaments/#{game.tournament_id}/games/#{game.id}"}
             >
               <.result white={game.white.name} black={game.black.name} result={game.result} nopad />
@@ -245,13 +263,13 @@ defmodule ElswisserWeb.ChessComponents do
     <div class="md:flex flex-row justify-center gap-2">
       <div class="md:w-1/2">
         <.section_title class="text-xs text-center uppercase mb-4">White</.section_title>
-        <div class="mb-4 md:mb-0 p-4 bg-zinc-50 rounded-md border border-solid border-zinc-400">
+        <div class="mb-4 md:mb-0 p-4 bg-boardwhite rounded-md border border-solid border-zinc-400">
           <.player_card player={@white} />
         </div>
       </div>
       <div class="md:w-1/2">
         <.section_title class="text-xs text-center uppercase mb-4">Black</.section_title>
-        <div class="mb-4 md:mb-0 p-4 bg-indigo-200 rounded-md border border-solid border-zinc-400">
+        <div class="mb-4 md:mb-0 p-4 bg-boardblack text-boardwhite rounded-md border border-solid border-zinc-400">
           <.player_card player={@black} black={true} />
         </div>
       </div>
