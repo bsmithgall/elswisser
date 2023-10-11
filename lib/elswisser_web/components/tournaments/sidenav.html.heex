@@ -29,6 +29,12 @@
     icon="hero-chart-bar-square-mini"
     active={@active == "stats"}
   />
+  <.navlink
+    label="Games"
+    href={~p"/tournaments/#{@tournament}/games"}
+    icon="icon-chessboard"
+    active={@active == "games"}
+  />
 </div>
 <hr />
 <div class="py-2">

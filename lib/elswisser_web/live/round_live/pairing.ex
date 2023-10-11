@@ -8,7 +8,6 @@ defmodule ElswisserWeb.RoundLive.Pairing do
   alias Elswisser.Rounds
   alias Elswisser.Scores
   alias Elswisser.Scores.Score
-  alias Elswisser.Tournaments
 
   embed_templates("pairing_html/*")
 
@@ -20,7 +19,8 @@ defmodule ElswisserWeb.RoundLive.Pairing do
      |> assign(:round_id, session["round_id"])
      |> assign(:round_number, session["round_number"])
      |> assign(:roster, session["tournament"].players)
-     |> assign(:tournament_id, session["tournament_id"])
+     |> assign(:tournament, session["tournament"])
+     |> assign(:tournament_id, session["tournament"].id)
      |> assign(:players, fetch_unpaired_players(session["tournament_id"], session["round_id"])),
      layout: false}
   end
@@ -104,12 +104,10 @@ defmodule ElswisserWeb.RoundLive.Pairing do
 
   @impl true
   def handle_event("auto-pair-remaining", _params, socket) do
-    all_games = Tournaments.get_all_games_in_tournament!(socket.assigns[:tournament_id])
-
     remaining_ids = socket.assigns[:players] |> Enum.map(fn p -> p.id end)
 
     remaining =
-      Scores.calculate(all_games)
+      Scores.calculate(socket.assigns[:tournament])
       |> Scores.with_players(socket.assigns[:roster])
       |> Map.filter(fn {player_id, _score} -> Enum.member?(remaining_ids, player_id) end)
 

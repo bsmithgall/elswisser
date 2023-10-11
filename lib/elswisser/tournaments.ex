@@ -38,17 +38,49 @@ defmodule Elswisser.Tournaments do
 
   """
   def get_tournament!(id) do
-    Repo.get!(Tournament, id)
+    Tournament.from() |> Tournament.where_id(id) |> Repo.one!()
   end
 
   def get_tournament(id) do
-    Repo.get(Tournament, id)
+    Tournament.from() |> Tournament.where_id(id) |> Repo.one()
   end
 
   def get_tournament_with_rounds(id) do
-    Tournament
-    |> Repo.get(id)
-    |> Repo.preload(:rounds)
+    Tournament.from()
+    |> Tournament.where_id(id)
+    |> Tournament.with_rounds()
+    |> Tournament.preload_rounds()
+    |> Repo.one()
+  end
+
+  def get_tournament_with_players!(id) do
+    Tournament.from()
+    |> Tournament.where_id(id)
+    |> Tournament.with_players()
+    |> Tournament.preload_players()
+    |> Repo.one()
+  end
+
+  def get_tournament_with_rounds_and_players(id) do
+    Tournament.from()
+    |> Tournament.where_id(id)
+    |> Tournament.with_players()
+    |> Tournament.with_rounds()
+    |> Tournament.preload_players()
+    |> Tournament.preload_rounds()
+    |> Repo.one()
+  end
+
+  def get_tournament_with_all(id) do
+    Tournament.from()
+    |> Tournament.where_id(id)
+    |> Tournament.with_players()
+    |> Tournament.with_rounds()
+    |> Round.with_games()
+    |> Round.order_by_number()
+    |> Game.with_both_players()
+    |> Tournament.preload_all()
+    |> Repo.one()
   end
 
   def current_round(%Tournament{} = tournament) when is_map_key(tournament, :rounds) do
@@ -61,33 +93,6 @@ defmodule Elswisser.Tournaments do
 
   def current_round(%Tournament{} = tournament) when not is_map_key(tournament, :rounds) do
     %Elswisser.Rounds.Round{number: 0}
-  end
-
-  def get_tournament_with_players!(id) do
-    Tournament
-    |> Repo.get!(id)
-    |> Repo.preload(:players)
-  end
-
-  def get_tournament_with_all(id) do
-    Tournament
-    |> Repo.get!(id)
-    |> Repo.preload(:players)
-    |> Repo.preload(:rounds)
-  end
-
-  def get_all_games_in_tournament!(id) do
-    Repo.all(
-      from(g in Game,
-        join: r in Round,
-        on: g.round_id == r.id,
-        join: t in Tournament,
-        on: r.tournament_id == t.id,
-        where: t.id == ^id,
-        select: {g, r.number}
-      )
-    )
-    |> Enum.map(fn x -> %{game: elem(x, 0), rnd: elem(x, 1)} end)
   end
 
   @doc """

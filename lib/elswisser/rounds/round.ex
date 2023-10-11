@@ -48,6 +48,6 @@ defmodule Elswisser.Rounds.Round do
   end
 
   def order_by_number(query) do
-    from([round: r] in query, order_by: [asc: :number])
+    from([round: r] in query, order_by: [asc: r.number])
   end
 end

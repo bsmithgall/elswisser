@@ -45,6 +45,35 @@ defmodule ElswisserWeb.ChessComponents do
     """
   end
 
+  attr(:game_link, :string, default: nil)
+
+  def has_game_link(assigns) do
+    ~H"""
+    <span :if={is_nil(@game_link)}>
+      <.icon class="-ml-1 mr-1 h-4 w-4" name="hero-no-symbol-mini" />Link
+    </span>
+    <span :if={!is_nil(@game_link)}>
+      <.icon class="-ml-1 mr-1 h-4 w-4" name="hero-check-mini" />
+      <.link class="hover:underline" href={@game_link}>
+        Link
+      </.link>
+    </span>
+    """
+  end
+
+  attr(:pgn, :string, default: nil)
+
+  def has_pgn(assigns) do
+    ~H"""
+    <span :if={is_nil(@pgn)} class="self-center">
+      <.icon class="-ml-1 mr-1 h-4 w-4" name="hero-no-symbol-mini" />PGN
+    </span>
+    <span :if={!is_nil(@pgn)} class="self-center">
+      <.icon class="-ml-1 mr-1 h-4 w-4" name="hero-check-mini" />PGN
+    </span>
+    """
+  end
+
   attr(:winner, :boolean)
 
   def white_square(assigns) do
@@ -115,6 +144,7 @@ defmodule ElswisserWeb.ChessComponents do
   attr(:white, :string, required: true)
   attr(:black, :string, required: true)
   attr(:result, :integer, required: true)
+  attr(:nopad, :boolean, default: false)
 
   def result(assigns) do
     assigns =
@@ -130,11 +160,11 @@ defmodule ElswisserWeb.ChessComponents do
 
     ~H"""
     <div class={[@class]}>
-      <span class={["pr-1", @result == 1 && "font-bold"]}>
+      <span class={[!@nopad && "pr-1", @result == 1 && "font-bold"]}>
         <%= @white %> <%= raw(@white_result) %>
       </span>
       &#8212;
-      <span class={["pl-1", @result == -1 && "font-bold"]}>
+      <span class={[!@nopad && "pl-1", @result == -1 && "font-bold"]}>
         <%= @black %> <%= raw(@black_result) %>
       </span>
       <span :if={is_nil(@result)}>(Unplayed)</span>
@@ -151,7 +181,7 @@ defmodule ElswisserWeb.ChessComponents do
 
   def player_card(%{player: nil} = assigns) do
     ~H"""
-    <div class="w-full pb-8">
+    <div class="w-full">
       <.header>Select player</.header>
 
       <.condensed_list>
@@ -161,7 +191,7 @@ defmodule ElswisserWeb.ChessComponents do
         <:item title="Black Games"></:item>
       </.condensed_list>
     </div>
-    <hr />
+    <hr class="my-4" />
     <div class="w-full">
       <.section_title class="mb-4">Tournament History</.section_title>
     </div>
@@ -195,10 +225,10 @@ defmodule ElswisserWeb.ChessComponents do
         <%= for game <- @games do %>
           <li class="pb-1">
             <.link
-              class={["underline inline", @black && "text-cyan-800", !@black && "text-cyan-600"]}
+              class={["underline block", @black && "text-cyan-800", !@black && "text-cyan-600"]}
               href={~p"/tournaments/#{game.tournament_id}/games/#{game.id}"}
             >
-              <.result white={game.white.name} black={game.black.name} result={game.result} />
+              <.result white={game.white.name} black={game.black.name} result={game.result} nopad />
             </.link>
           </li>
         <% end %>

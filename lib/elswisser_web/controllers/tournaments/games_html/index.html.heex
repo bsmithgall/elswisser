@@ -1,0 +1,27 @@
+<.header class="py-4">
+  Tournament Games
+</.header>
+
+<%= for rnd <- @tournament.rounds do %>
+  <div class="mb-8">
+    <.section_title>Round <%= rnd.number %></.section_title>
+
+    <.table
+      id={"round-#{rnd.number}"}
+      rows={rnd.games}
+      row_click={&JS.navigate(~p"/tournaments/#{@tournament}/games/#{&1.id}")}
+      striped
+      rounded_hover={false}
+    >
+      <:col :let={game}>
+        <.game_result game={game} class="ml-6 my-1" />
+      </:col>
+      <:col :let={game}>
+        <.has_game_link game_link={game.game_link} />
+      </:col>
+      <:col :let={game}>
+        <.has_pgn pgn={game.pgn} />
+      </:col>
+    </.table>
+  </div>
+<% end %>

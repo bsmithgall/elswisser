@@ -3,6 +3,8 @@ defmodule Elswisser.Games.Game do
   import Ecto.Changeset
   import Ecto.Query, warn: false
 
+  alias Elswisser.Games.Game
+
   schema "games" do
     field(:game_link, :string)
     field(:pgn, :string)
@@ -48,7 +50,7 @@ defmodule Elswisser.Games.Game do
   end
 
   def from() do
-    from(g in Elswisser.Games.Game, as: :game)
+    from(g in Game, as: :game)
   end
 
   def where_id(query, id) do
@@ -131,7 +133,7 @@ defmodule Elswisser.Games.Game do
   preloads from a query unfortunately; since we have multiple :belongs_to, there
   isn't really a clean way of dealing with it.
   """
-  def load_players_from_roster(%Elswisser.Games.Game{} = game, roster) when is_list(roster) do
+  def load_players_from_roster(%Game{} = game, roster) when is_list(roster) do
     from_roster =
       Enum.reduce(roster, %{}, fn
         white, acc when white.id == game.white_id -> Map.put(acc, :white, white)
@@ -140,6 +142,32 @@ defmodule Elswisser.Games.Game do
       end)
 
     Map.merge(game, from_roster)
+  end
+
+  def white_score(%Game{} = game) do
+    case game.result do
+      -1 -> 0
+      0 -> 0.5
+      1 -> 1
+      nil -> 0
+    end
+  end
+
+  def white_result(%Game{} = game) do
+    if is_nil(game.result), do: nil, else: white_score(game)
+  end
+
+  def black_score(%Game{} = game) do
+    case game.result do
+      -1 -> 1
+      0 -> 0.5
+      1 -> 0
+      nil -> 0
+    end
+  end
+
+  def black_result(%Game{} = game) do
+    if is_nil(game.result), do: nil, else: black_score(game)
   end
 
   defp validate_different_players(changeset) do

@@ -1,25 +1,36 @@
 <div class={[
-  "border border-zinc-800 text-center text-base uppercase p-4 font-bold",
+  "border text-center p-4 relative uppercase",
   if(@black,
-    do: "bg-zinc-800 text-white rounded-b-md",
-    else: "bg-white border-zinc-800 border-b-0 rounded-t-md"
+    do: "bg-zinc-600 border-zinc-600 text-white rounded-b-md",
+    else: "bg-white border-zinc-600 text-zinc-600 border-b-0 rounded-t-md"
   )
 ]}>
-  <%= @player.name %>
   <div
-    :if={!is_nil(@player.chesscom) or !is_nil(@player.lichess)}
-    class={[
-      "mt-2 grid grid-flow-col gap-6 place-content-center normal-case",
-      "normal-case font-light text-sm font-mono"
-    ]}
+    :if={!@black}
+    class="absolute top-0 left-0 text-xs border border-zinc-600 rounded-sm px-0.5 ml-0.5 mt-0.5"
   >
-    <span :if={@player.chesscom} class="flex items-center gap-1">
-      <.icon name="icon-chesscom" class="bg-green-600 opacity-70" />
-      <%= @player.chesscom %>
-    </span>
-    <span :if={@player.lichess} class="flex items-center gap-1">
-      <.icon name="icon-lichess" />
-      <%= @player.lichess %>
-    </span>
+    White
+  </div>
+  <div :if={@black} class="absolute top-0 left-0 text-xs border rounded-sm px-0.5 ml-0.5 mt-0.5">
+    Black
+  </div>
+  <div class="text-base font-bold">
+    <%= @player.name %>
+    <div
+      :if={!is_nil(@player.chesscom) or !is_nil(@player.lichess)}
+      class={[
+        "mt-2 grid grid-flow-col gap-6 place-content-center",
+        "normal-case font-light text-sm font-mono"
+      ]}
+    >
+      <span :if={@player.chesscom} class="flex items-center gap-1">
+        <.icon name="icon-chesscom" class="bg-green-600 opacity-70" />
+        <%= @player.chesscom %>
+      </span>
+      <span :if={@player.lichess} class="flex items-center gap-1">
+        <.icon name="icon-lichess" />
+        <%= @player.lichess %>
+      </span>
+    </div>
   </div>
 </div>

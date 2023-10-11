@@ -1,4 +1,4 @@
-defmodule ElswisserWeb.RosterHTML do
+defmodule ElswisserWeb.Tournaments.RosterHTML do
   use ElswisserWeb, :html
   import ElswisserWeb.PlayerHTML, only: [player_form: 1]
 

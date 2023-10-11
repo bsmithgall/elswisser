@@ -19,7 +19,7 @@ defmodule ElswisserWeb.Router do
     pipe_through(:browser)
     pipe_through(:require_authenticated_user)
 
-    resources "/tournaments", TournamentController, except: [:index, :show] do
+    resources "/tournaments", Tournaments.TournamentController, except: [:index, :show] do
       resources("/rounds", RoundController, only: [:create, :update])
 
       scope("/rounds") do
@@ -31,8 +31,8 @@ defmodule ElswisserWeb.Router do
     end
 
     scope("/tournaments") do
-      put("/:id/roster", RosterController, :update)
-      patch("/:id/roster", RosterController, :update)
+      put("/:id/roster", Tournaments.RosterController, :update)
+      patch("/:id/roster", Tournaments.RosterController, :update)
     end
 
     resources("/players", PlayerController, except: [:index, :show])
@@ -45,18 +45,18 @@ defmodule ElswisserWeb.Router do
 
     get("/", PageController, :home)
 
-    resources "/tournaments", TournamentController, only: [:index, :show] do
+    resources "/tournaments", Tournaments.TournamentController, only: [:index, :show] do
       resources("/rounds", RoundController, only: [:show])
 
       resources("/games", GameController, only: [:show])
     end
 
     scope("/tournaments") do
-      get("/:id/crosstable", TournamentController, :crosstable, as: :crosstable)
-      get("/:id/scores", TournamentController, :scores, as: :scores)
-      get("/:id/stats", TournamentController, :stats, as: :stats)
-
-      get("/:id/roster", RosterController, :index)
+      get("/:id/crosstable", Tournaments.StatsController, :crosstable, as: :crosstable)
+      get("/:id/scores", Tournaments.StatsController, :scores, as: :scores)
+      get("/:id/stats", Tournaments.StatsController, :stats, as: :stats)
+      get("/:id/roster", Tournaments.RosterController, :index)
+      get("/:id/games", Tournaments.GamesController, :index)
     end
 
     resources("/players", PlayerController, only: [:index, :show])

@@ -1,4 +1,4 @@
-defmodule ElswisserWeb.RosterController do
+defmodule ElswisserWeb.Tournaments.RosterController do
   use ElswisserWeb, :controller
 
   alias Elswisser.Tournaments

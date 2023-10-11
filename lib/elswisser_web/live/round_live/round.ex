@@ -18,7 +18,7 @@ defmodule ElswisserWeb.RoundLive.Round do
      |> assign(round: rnd)
      |> assign(games: rnd.games)
      |> assign(roster: roster)
-     |> assign(display: :pairings)
+     |> assign(display: :share)
      |> assign(show_game_info: false)
      |> assign(signed_in: !is_nil(session["user_token"])), layout: false}
   end

@@ -1,11 +1,20 @@
 defmodule Elswisser.Scores do
+  alias Elswisser.Tournaments.Tournament
   alias Elswisser.Scores.Score
+  alias Elswisser.Games.Game
 
   def calculate(nil), do: calculate([])
 
   def calculate(games) when is_list(games) do
     raw_scores(games)
     |> tiebreaks()
+  end
+
+  def calculate(%Tournament{} = tournament) do
+    Enum.flat_map(tournament.rounds, fn r ->
+      Enum.map(r.games, fn g -> %{game: g, rnd: r} end)
+    end)
+    |> calculate()
   end
 
   def with_players(scores, players) do
@@ -37,8 +46,8 @@ defmodule Elswisser.Scores do
   def raw_score_for_player(games, player_id) when is_list(games) do
     Enum.reduce(games, 0, fn g, acc ->
       cond do
-        player_id == g.white_id -> acc + white_score_from_result(g.result)
-        player_id == g.black_id -> acc + black_score_from_result(g.result)
+        player_id == g.white_id -> acc + Game.white_score(g)
+        player_id == g.black_id -> acc + Game.black_score(g)
         true -> acc
       end
     end)
@@ -52,63 +61,21 @@ defmodule Elswisser.Scores do
   """
   def raw_scores(games) when is_list(games) do
     Enum.reduce(games, %{}, fn g, acc ->
-      white_score = white_score_from_result(g.game.result)
-      black_score = black_score_from_result(g.game.result)
-
-      white_result = if is_nil(g.game.result), do: nil, else: white_score
-      black_result = if is_nil(g.game.result), do: nil, else: black_score
-
       # update score map for white-side player
       acc =
         Map.update(
           acc,
           g.game.white_id,
-          %Score{
-            player_id: g.game.white_id,
-            score: white_score,
-            rating_change: g.game.white_rating_change,
-            opponents: [g.game.black_id],
-            results: [white_result],
-            cumulative_sum: white_score * g.rnd,
-            lastwhite: true
-          },
-          fn ex ->
-            Map.merge(ex, %{
-              score: ex.score + white_score,
-              rating_change: ex.rating_change + g.game.white_rating_change,
-              opponents: ex.opponents ++ [g.game.black_id],
-              results: ex.results ++ [white_result],
-              cumulative_sum: ex.cumulative_sum + white_score * g.rnd,
-              lastwhite: true
-            })
-          end
+          Score.white(g.game, g.rnd),
+          fn ex -> Score.merge_white(ex, g.game, g.rnd) end
         )
 
       # update score map for black-side player
       Map.update(
         acc,
         g.game.black_id,
-        %Score{
-          player_id: g.game.black_id,
-          score: black_score,
-          rating_change: g.game.black_rating_change,
-          opponents: [g.game.white_id],
-          results: [black_result],
-          cumulative_sum: black_score * g.rnd,
-          nblack: 1,
-          lastwhite: false
-        },
-        fn ex ->
-          Map.merge(ex, %{
-            score: ex.score + black_score,
-            rating_change: ex.rating_change + g.game.black_rating_change,
-            opponents: ex.opponents ++ [g.game.white_id],
-            results: ex.results ++ [black_result],
-            cumulative_sum: ex.cumulative_sum + black_score * g.rnd,
-            nblack: ex.nblack + 1,
-            lastwhite: false
-          })
-        end
+        Score.black(g.game, g.rnd),
+        fn ex -> Score.merge_black(ex, g.game, g.rnd) end
       )
     end)
   end
@@ -167,23 +134,5 @@ defmodule Elswisser.Scores do
   """
   def solkoff(%Score{} = v, scores) when is_map(scores) do
     Enum.reduce(v.opponents, 0, fn opp, sum -> sum + scores[opp].score end)
-  end
-
-  defp black_score_from_result(result) do
-    case result do
-      -1 -> 1
-      0 -> 0.5
-      1 -> 0
-      nil -> 0
-    end
-  end
-
-  defp white_score_from_result(result) do
-    case result do
-      -1 -> 0
-      0 -> 0.5
-      1 -> 1
-      nil -> 0
-    end
   end
 end
