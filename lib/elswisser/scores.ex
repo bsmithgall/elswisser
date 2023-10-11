@@ -111,13 +111,13 @@ defmodule Elswisser.Scores do
 
     cond do
       v.score > length(v.opponents) / 2 ->
-        solkoff(v, scores) - min_score
+        max(solkoff(v, scores) - min_score, 0)
 
       v.score < length(v.opponents) / 2 ->
-        solkoff(v, scores) - max_score
+        max(solkoff(v, scores) - max_score, 0)
 
       true ->
-        solkoff(v, scores) - (min_score + max_score)
+        max(solkoff(v, scores) - (min_score + max_score), 0)
     end
   end
 
