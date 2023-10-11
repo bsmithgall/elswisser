@@ -35,7 +35,7 @@ defmodule Elswisser.Players.ELO do
 
   defp invert(result) do
     case result do
-      1 -> 0
+      1 -> -1
       0 -> 0
       -1 -> 1
     end

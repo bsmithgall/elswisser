@@ -76,6 +76,11 @@ defmodule Elswisser.PlayersTest do
       assert ELO.recalculate(1600, 800, 40, -1) == {1600 - 40, -40}
     end
 
+    test "800 (with black) beats 1600 with K-factor of 40 yields +40" do
+      assert ELO.recalculate(1600, 800, 40, -1) == {1600 - 40, -40}
+      assert ELO.recalculate(800, 1600, 40, 1) == {800 + 40, 40}
+    end
+
     test "rating cannot fall below 100" do
       assert ELO.recalculate(100, 110, 40, -1) == {100, 0}
       assert ELO.recalculate(110, 100, 40, 1) == {100 + 29, 19}
