@@ -57,7 +57,7 @@
     <.rating_change :if={@player.id == game.black_id} change={game.black_rating_change} />
   </:col>
   <:col :let={game} label="Finished" center>
-    <%= Timex.from_now(game.finished_at) %>
+    <%= if is_nil(game.finished_at), do: "-", else: Timex.from_now(game.finished_at) %>
   </:col>
 </.table>
 

@@ -708,6 +708,10 @@ defmodule ElswisserWeb.CoreComponents do
         <:item title="Views"><%= @post.views %></:item>
       </.list>
   """
+  attr(:dt_color, :string, default: "text-zinc-500")
+  attr(:dd_color, :string, default: "text-zinc-700")
+  attr(:divide_color, :string, default: "divide-zinc-100")
+
   slot :item, required: true do
     attr(:title, :string, required: true)
   end
@@ -715,10 +719,10 @@ defmodule ElswisserWeb.CoreComponents do
   def condensed_list(assigns) do
     ~H"""
     <div class="mt-4">
-      <dl class="-my-1 divide-y divide-zinc-100">
+      <dl class={["-my-1 divide-y", @divide_color]}>
         <div :for={item <- @item} class="flex gap-1 py-1 text-sm leading-6 sm:gap-6">
-          <dt class="w-2/5 flex-none text-zinc-500"><%= item.title %></dt>
-          <dd class="text-zinc-700"><%= render_slot(item) %></dd>
+          <dt class={["w-2/5 flex-none", @dt_color]}><%= item.title %></dt>
+          <dd class={@dd_color}><%= render_slot(item) %></dd>
         </div>
       </dl>
     </div>

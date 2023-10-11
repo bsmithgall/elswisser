@@ -11,6 +11,16 @@ module.exports = {
     extend: {
       colors: {
         brand: "#15803d",
+        boardwhite: {
+          lighter: "#f6f8f7",
+          DEFAULT: "#f2f5f3",
+          darker: "#c9d5cd",
+        },
+        boardblack: {
+          lighter: "#9ca7b1",
+          DEFAULT: "#71828f",
+          darker: "#606e7a",
+        },
       },
     },
   },
