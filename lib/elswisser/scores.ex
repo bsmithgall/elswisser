@@ -60,7 +60,9 @@ defmodule Elswisser.Scores do
   completed.
   """
   def raw_scores(games) when is_list(games) do
-    Enum.reduce(games, %{}, fn g, acc ->
+    games
+    |> Enum.filter(&Game.complete?(&1.game))
+    |> Enum.reduce(%{}, fn g, acc ->
       # update score map for white-side player
       acc =
         Map.update(

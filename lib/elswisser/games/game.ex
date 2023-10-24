@@ -160,7 +160,7 @@ defmodule Elswisser.Games.Game do
   end
 
   def white_result(%Game{} = game) do
-    if is_nil(game.result), do: nil, else: white_score(game)
+    if complete?(game), do: white_score(game), else: nil
   end
 
   def black_score(%Game{} = game) do
@@ -173,7 +173,11 @@ defmodule Elswisser.Games.Game do
   end
 
   def black_result(%Game{} = game) do
-    if is_nil(game.result), do: nil, else: black_score(game)
+    if complete?(game), do: black_score(game), else: nil
+  end
+
+  def complete?(%Game{} = game) do
+    !(is_nil(game.result) and is_nil(game.finished_at))
   end
 
   def validate_game_link(changeset) do

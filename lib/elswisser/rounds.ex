@@ -84,6 +84,7 @@ defmodule Elswisser.Rounds do
       |> Round.where_tournament_id(tournament_id)
       |> Round.with_games()
       |> Game.with_both_players()
+      |> Game.where_finished()
       |> Stats.compute()
       |> Round.order_by_number()
       |> Repo.all()
