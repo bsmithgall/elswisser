@@ -3,6 +3,7 @@ defmodule Elswisser.Games.Game do
   import Ecto.Changeset
   import Ecto.Query, warn: false
 
+  alias Elswisser.Games.PgnProvider
   alias Elswisser.Games.Game
 
   schema "games" do
@@ -22,7 +23,7 @@ defmodule Elswisser.Games.Game do
   end
 
   @doc false
-  def changeset(game, attrs) do
+  def changeset(game, attrs \\ %{}) do
     game
     |> cast(attrs, [
       :black_id,
@@ -38,6 +39,7 @@ defmodule Elswisser.Games.Game do
     ])
     |> validate_required([:white_id, :black_id, :round_id, :tournament_id])
     |> validate_different_players()
+    |> validate_game_link()
     |> unique_constraint(:unique_white_players, name: :games_white_id_round_id_unique_idx)
     |> unique_constraint(:unique_black_players, name: :games_black_id_round_id_unique_idx)
     |> prepare_changes(fn cs ->
@@ -47,6 +49,10 @@ defmodule Elswisser.Games.Game do
         cs
       end
     end)
+  end
+
+  def link_changeset(game, attrs \\ %{}) do
+    game |> cast(attrs, [:game_link]) |> validate_game_link()
   end
 
   def from() do
@@ -168,6 +174,21 @@ defmodule Elswisser.Games.Game do
 
   def black_result(%Game{} = game) do
     if is_nil(game.result), do: nil, else: black_score(game)
+  end
+
+  def validate_game_link(changeset) do
+    validate_change(changeset, :game_link, fn
+      :game_link, nil ->
+        []
+
+      :game_link, game_link ->
+        with {:ok, provider} <- PgnProvider.find_provider(game_link),
+             {:ok, _link} <- provider.extract_id(game_link) do
+          []
+        else
+          {:error, _} -> [game_link: "Invalid game link"]
+        end
+    end)
   end
 
   defp validate_different_players(changeset) do

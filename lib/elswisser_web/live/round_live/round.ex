@@ -3,6 +3,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   use ElswisserWeb, :live_view
 
   alias Elswisser.Games
+  alias Elswisser.Games.PgnProvider
   alias Elswisser.Rounds
   alias Elswisser.Players
 
@@ -16,7 +17,10 @@ defmodule ElswisserWeb.RoundLive.Round do
     {:ok,
      socket
      |> assign(round: rnd)
-     |> assign(games: rnd.games)
+     |> assign(
+       games:
+         Enum.map(rnd.games, fn g -> Map.merge(g, %{valid_link: valid_link?(g.game_link)}) end)
+     )
      |> assign(roster: roster)
      |> assign(display: :pairings)
      |> assign(show_game_info: false)
@@ -50,7 +54,11 @@ defmodule ElswisserWeb.RoundLive.Round do
     </.modal>
 
     <%= for game <- @games do %>
-      <.game_form game={game} />
+      <form id={"game-#{game.id}-result"} phx-change="save-result">
+        <input type="hidden" name="id" value={game.id} />
+      </form>
+
+      <.game_detail_form game={game} />
     <% end %>
 
     <.table id="results" rows={@games}>
@@ -91,6 +99,21 @@ defmodule ElswisserWeb.RoundLive.Round do
   end
 
   @impl true
+  def handle_event("validate-game-link", %{"game_link" => link, "id" => id}, socket) do
+    {:noreply,
+     socket
+     |> assign(
+       games:
+         Enum.map(socket.assigns[:games], fn g ->
+           case to_string(g.id) == id do
+             true -> Map.merge(g, %{game_link: link, valid_link: valid_link?(link)})
+             false -> g
+           end
+         end)
+     )}
+  end
+
+  @impl true
   def handle_event("save-result", %{"id" => id} = params, socket) do
     with :ok <- ensure_updatable(params, socket),
          game <- find_game(socket, id),
@@ -112,11 +135,11 @@ defmodule ElswisserWeb.RoundLive.Round do
   end
 
   @impl true
-  def handle_event("generate-pgn", params, socket) do
+  def handle_event("generate-pgn", %{"game-id" => game_id, "game-link" => game_link}, socket) do
     pid = self()
 
     Task.start(fn ->
-      case Games.fetch_pgn(params["game-id"], params["game-link"]) do
+      case Games.fetch_pgn(game_id, game_link) do
         {:ok, result} -> send(pid, {:pgn_result, result})
         {:error, msg} -> send(pid, {:pgn_error, msg})
       end
@@ -211,8 +234,9 @@ defmodule ElswisserWeb.RoundLive.Round do
   def round_header(assigns)
 
   attr(:game, :map, required: true)
+  attr(:link_valid, :boolean, default: nil)
 
-  def game_form(assigns)
+  def game_detail_form(assigns)
 
   attr(:games, :list, required: true)
   attr(:number, :integer, required: true)
@@ -260,7 +284,7 @@ defmodule ElswisserWeb.RoundLive.Round do
         options={["Select Result": nil, "White won": 1, "Black won": -1, Draw: 0]}
         disabled={@disabled}
         value={@game.result}
-        form={"game-#{@game.id}"}
+        form={"game-#{@game.id}-result"}
         class="z-10 relative"
       />
     </div>
@@ -315,6 +339,40 @@ defmodule ElswisserWeb.RoundLive.Round do
     """
   end
 
+  attr(:game_id, :any, default: nil)
+  attr(:value, :any)
+  attr(:valid, :boolean, default: nil)
+
+  def game_link_input(assigns) do
+    ~H"""
+    <div phx-feedback-for={"game-#{@game_id}-link"}>
+      <.label for={"game-#{@game_id}-link"}>
+        Game Link
+        <span :if={@valid == false}>
+          <.icon class="-mt-1 ml-0.5 bg-rose-400" name="hero-x-circle-mini" />
+        </span>
+        <span :if={@valid == true}>
+          <.icon class="-mt-1 ml-0.5 bg-emerald-700" name="hero-check-circle-mini" />
+        </span>
+      </.label>
+      <input
+        type="text"
+        name="game_link"
+        id={"game-#{@game_id}-link"}
+        form={"game-#{@game_id}"}
+        value={Phoenix.HTML.Form.normalize_value("text", @value)}
+        phx-debounce="blur"
+        class={[
+          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
+          "phx-no-feedback:border-zinc-300 phx-no-feedback:focus:border-zinc-400",
+          @valid != false && "border-zinc-300 focus:border-zinc-400",
+          @valid == false && "border-rose-400 focus:border-rose-400"
+        ]}
+      />
+    </div>
+    """
+  end
+
   defp fetch_round(round_id) do
     Rounds.get_round_with_games_and_players!(round_id)
   end
@@ -362,6 +420,17 @@ defmodule ElswisserWeb.RoundLive.Round do
     case Players.get_player_with_tournament_history(player_id, games) do
       nil -> {:error, "Could not fetch tournament history for player"}
       player -> {:ok, player}
+    end
+  end
+
+  defp valid_link?(nil), do: nil
+
+  defp valid_link?(link) do
+    with {:ok, provider} <- PgnProvider.find_provider(link),
+         {:ok, _link} <- provider.extract_id(link) do
+      true
+    else
+      {:error, _} -> false
     end
   end
 end

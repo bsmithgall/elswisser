@@ -44,3 +44,6 @@ npm-debug.log
 node_modules/
 
 __pycache__
+
+/priv/plts/*.plt
+/priv/plts/*.plt.hash

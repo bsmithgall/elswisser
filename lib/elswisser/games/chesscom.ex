@@ -7,6 +7,23 @@ defmodule Elswisser.Games.Chesscom do
 
   Glad that this is the biggest chess website!
   """
+
+  alias Elswisser.Games.PgnProvider
+
+  @behaviour PgnProvider
+
+  @impl PgnProvider
+  def provides_for, do: ~r/chess\.com\/\w+\/\w+\/(\w+\/)?(?<id>\d+)/
+
+  @impl PgnProvider
+  def extract_id(game_link) do
+    case Regex.named_captures(provides_for(), game_link) do
+      %{"id" => game_id} when not is_nil(game_id) -> {:ok, game_id}
+      _ -> {:error, "Could not find game ID in game link!"}
+    end
+  end
+
+  @impl PgnProvider
   def fetch_pgn(game_link) do
     with {:ok, game_id} <- extract_id(game_link),
          {:ok, httpbody} <- fetch_callback_info(game_id),
@@ -17,13 +34,6 @@ defmodule Elswisser.Games.Chesscom do
       {:ok, games}
     else
       {:error, reason} -> {:error, reason}
-    end
-  end
-
-  def extract_id(game_link) do
-    case Regex.named_captures(~r/chess\.com\/\w+\/\w+\/(\w+\/)?(?<id>\d+)/, game_link) do
-      %{"id" => game_id} when not is_nil(game_id) -> {:ok, game_id}
-      _ -> {:error, "Could not find game ID in game link!"}
     end
   end
 
