@@ -1,5 +1,6 @@
 defmodule Elswisser.Games do
   import Ecto.Query, warn: false
+  alias Elswisser.Games.PgnProvider
   alias Elswisser.Repo
 
   alias Elswisser.Games.Game
@@ -66,6 +67,10 @@ defmodule Elswisser.Games do
     Game.changeset(game, attrs)
   end
 
+  def delete_game(%Game{} = game) do
+    Repo.delete(game)
+  end
+
   def add_pgn(id, pgn, game_link) do
     case get_game(id) do
       nil -> {:error, "Could not find game!"}
@@ -78,25 +83,12 @@ defmodule Elswisser.Games do
   end
 
   def fetch_pgn(game_id, game_link) do
-    with {:ok, fetchfn} <- parse_game_source(game_link),
-         {:ok, pgn} <- fetchfn.(game_link),
+    with {:ok, provider} <- PgnProvider.find_provider(game_link),
+         {:ok, pgn} <- provider.fetch_pgn(game_link),
          {:ok, game} <- add_pgn(game_id, pgn, game_link) do
       {:ok, %{game_id: game.id, pgn: pgn}}
     else
       {:error, reason} -> {:error, reason}
-    end
-  end
-
-  def delete_game(%Game{} = game) do
-    Repo.delete(game)
-  end
-
-  defp parse_game_source(game_link) do
-    cond do
-      is_nil(game_link) -> {:error, "Missing game link"}
-      String.contains?(game_link, "chess.com/") -> {:ok, &Elswisser.Games.Chesscom.fetch_pgn/1}
-      String.contains?(game_link, "lichess.org/") -> {:ok, &Elswisser.Games.Lichess.fetch_pgn/1}
-      true -> {:error, "Could not find valid game link"}
     end
   end
 end

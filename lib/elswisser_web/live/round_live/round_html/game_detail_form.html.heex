@@ -1,0 +1,27 @@
+<form id={"game-#{@game.id}"} phx-change="validate-game-link">
+  <input type="hidden" name="id" value={@game.id} />
+</form>
+
+<.modal id={"game-#{@game.id}-edit-modal"} clickaway={false}>
+  <.section_title>Edit game information</.section_title>
+  <.game_link_input game_id={@game.id} value={@game.game_link} valid={@game.valid_link} />
+  <.input
+    :if={not is_nil(@game.pgn)}
+    wrapper_class="mt-4"
+    id={"game-#{@game.id}-pgn"}
+    name="pgn"
+    label="PGN"
+    type="textarea"
+    disabled="true"
+    value={@game.pgn}
+  />
+  <.button
+    class="mt-4"
+    phx-click="generate-pgn"
+    phx-value-game-id={@game.id}
+    phx-value-game-link={@game.game_link}
+    disabled={!@game.valid_link}
+  >
+    (Re)fetch PGN
+  </.button>
+</.modal>

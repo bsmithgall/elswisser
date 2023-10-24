@@ -38,6 +38,7 @@ defmodule ElswisserWeb.CoreComponents do
   """
   attr(:id, :string, required: true)
   attr(:show, :boolean, default: false)
+  attr(:clickaway, :boolean, default: true)
   attr(:on_cancel, JS, default: %JS{})
   slot(:inner_block, required: true)
 
@@ -65,7 +66,7 @@ defmodule ElswisserWeb.CoreComponents do
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
-              phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
+              phx-click-away={if @clickaway, do: JS.exec("data-cancel", to: "##{@id}")}
               class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition"
             >
               <div class="absolute top-6 right-5">
@@ -373,6 +374,7 @@ defmodule ElswisserWeb.CoreComponents do
   """
   attr(:id, :any, default: nil)
   attr(:class, :string, default: nil)
+  attr(:wrapper_class, :string, default: nil)
   attr(:name, :any)
   attr(:label, :string, default: nil)
   attr(:value, :any)
@@ -457,7 +459,7 @@ defmodule ElswisserWeb.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div phx-feedback-for={@name}>
+    <div class={@wrapper_class} phx-feedback-for={@name}>
       <.label for={@id}><%= @label %></.label>
       <textarea
         id={@id}
@@ -466,6 +468,7 @@ defmodule ElswisserWeb.CoreComponents do
           "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
           "phx-no-feedback:border-zinc-300 phx-no-feedback:focus:border-zinc-400",
           "min-h-[6rem] border-zinc-300 focus:border-zinc-400",
+          "disabled:bg-gray-100",
           @errors != [] && "border-rose-400 focus:border-rose-400"
         ]}
         {@rest}
@@ -478,7 +481,7 @@ defmodule ElswisserWeb.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div phx-feedback-for={@name}>
+    <div class={@wrapper_class} phx-feedback-for={@name}>
       <.label for={@id}><%= @label %></.label>
       <input
         type={@type}

@@ -9,7 +9,11 @@ defmodule Elswisser.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      dialyzer: [
+        # Put the project-level PLT in the priv/ directory (instead of the default _build/ location)
+        plt_file: {:no_warn, "priv/plts/project.plt"}
+      ]
     ]
   end
 
@@ -56,7 +60,8 @@ defmodule Elswisser.MixProject do
       {:erlport, "~> 0.10.1"},
       {:poolboy, "~> 1.5.2"},
       {:timex, "~> 3.0"},
-      {:prom_ex, "~> 1.8.0"}
+      {:prom_ex, "~> 1.8.0"},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end
 
