@@ -30,8 +30,8 @@ defmodule Elswisser.Rounds.Stats do
               """
                 CASE WHEN (result = 1 AND ?) OR (result = -1 AND ?) THEN 1 ELSE 0 END
               """,
-              b.rating > w.rating,
-              w.rating > b.rating
+              g.black_rating > g.white_rating,
+              g.white_rating > g.black_rating
             )
           ),
         total: count(1)

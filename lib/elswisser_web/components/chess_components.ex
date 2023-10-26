@@ -27,7 +27,7 @@ defmodule ElswisserWeb.ChessComponents do
           class={["hover:underline", @highlight == :white && "font-bold"]}
           href={~p"/players/#{@game.white.id}"}
         >
-          <%= @game.white.name %>
+          <%= @game.white.name %><span :if={@game.white_rating}> (<%= @game.white_rating %>)</span>
         </.link>
       </span>
       <span><.score color={:white} result={@game.result} /></span>
@@ -37,7 +37,7 @@ defmodule ElswisserWeb.ChessComponents do
           class={["hover:underline", @highlight == :black && "font-bold"]}
           href={~p"/players/#{@game.black.id}"}
         >
-          <%= @game.black.name %>
+          <%= @game.black.name %><span :if={@game.black_rating}> (<%= @game.black_rating %>)</span>
         </.link>
       </span>
       <span><.score color={:black} result={@game.result} /></span>
