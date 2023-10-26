@@ -245,7 +245,10 @@ defmodule ElswisserWeb.RoundLive.Pairing do
     do: [
       %{
         white_id: assigned_bye.player_id,
+        white_rating:
+          Enum.find(socket.assigns[:roster], &(&1.id == assigned_bye.player_id)).rating,
         black_id: -1,
+        black_rating: nil,
         tournament_id: socket.assigns[:tournament_id],
         round_id: socket.assigns[:round_id]
       }
@@ -258,7 +261,9 @@ defmodule ElswisserWeb.RoundLive.Pairing do
   defp to_game_params(socket, white_id, black_id) do
     %{
       white_id: white_id,
+      white_rating: Enum.find(socket.assigns[:roster], &(&1.id == white_id)).rating,
       black_id: black_id,
+      black_rating: Enum.find(socket.assigns[:roster], &(&1.id == black_id)).rating,
       tournament_id: socket.assigns[:tournament_id],
       round_id: socket.assigns[:round_id]
     }

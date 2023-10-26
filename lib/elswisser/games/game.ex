@@ -11,6 +11,8 @@ defmodule Elswisser.Games.Game do
     field(:pgn, :string)
     field(:result, :integer)
     field(:finished_at, :utc_datetime)
+    field(:white_rating, :integer, default: 0)
+    field(:black_rating, :integer, default: 0)
     field(:white_rating_change, :integer, default: 0)
     field(:black_rating_change, :integer, default: 0)
 
@@ -27,6 +29,7 @@ defmodule Elswisser.Games.Game do
     game
     |> cast(attrs, [
       :black_id,
+      :black_rating,
       :black_rating_change,
       :game_link,
       :pgn,
@@ -34,6 +37,7 @@ defmodule Elswisser.Games.Game do
       :round_id,
       :tournament_id,
       :white_id,
+      :white_rating,
       :white_rating_change,
       :finished_at
     ])
