@@ -258,17 +258,42 @@ defmodule ElswisserWeb.ChessComponents do
   attr(:white, :map)
   attr(:black, :map)
 
+  attr(:remove, :boolean,
+    default: false,
+    doc: "adds a 'remove-player' phx-click with 'phx-value-color'"
+  )
+
   def matchup(assigns) do
     ~H"""
     <div class="md:flex flex-row justify-center gap-2">
       <div class="md:w-1/2">
-        <.section_title class="text-xs text-center uppercase mb-4">White</.section_title>
+        <.section_title class="text-xs text-center uppercase mb-4 relative">
+          White
+          <span
+            :if={@remove && !is_nil(@white)}
+            class="absolute right-0 cursor-pointer"
+            phx-click="remove-player"
+            phx-value-color="white"
+          >
+            <.icon class="-mt-1" name="hero-x-mark-mini" />
+          </span>
+        </.section_title>
         <div class="mb-4 md:mb-0 p-4 bg-boardwhite rounded-md border border-solid border-zinc-400">
           <.player_card player={@white} />
         </div>
       </div>
       <div class="md:w-1/2">
-        <.section_title class="text-xs text-center uppercase mb-4">Black</.section_title>
+        <.section_title class="text-xs text-center uppercase mb-4 relative">
+          Black
+          <span
+            :if={@remove && !is_nil(@black)}
+            class="absolute right-0 cursor-pointer"
+            phx-click="remove-player"
+            phx-value-color="black"
+          >
+            <.icon class="-mt-1" name="hero-x-mark-mini" />
+          </span>
+        </.section_title>
         <div class="mb-4 md:mb-0 p-4 bg-boardblack text-boardwhite rounded-md border border-solid border-zinc-400">
           <.player_card player={@black} black={true} />
         </div>

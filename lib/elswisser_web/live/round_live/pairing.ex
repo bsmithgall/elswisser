@@ -50,7 +50,7 @@ defmodule ElswisserWeb.RoundLive.Pairing do
           white_id={assigns[:white] && assigns[:white].id}
           black_id={assigns[:black] && assigns[:black].id}
         />
-        <.matchup white={assigns[:white]} black={assigns[:black]} />
+        <.matchup white={assigns[:white]} black={assigns[:black]} remove />
       </div>
     </div>
     """
@@ -71,6 +71,16 @@ defmodule ElswisserWeb.RoundLive.Pairing do
       nil -> {:error, socket}
       player -> {:noreply, socket |> switch_color() |> assign(socket.assigns[:color], player)}
     end
+  end
+
+  @impl true
+  def handle_event("remove-player", %{"color" => "white"}, socket) do
+    {:noreply, socket |> assign(:color, :white) |> assign(:white, nil)}
+  end
+
+  @impl true
+  def handle_event("remove-player", %{"color" => "black"}, socket) do
+    {:noreply, socket |> assign(:color, :black) |> assign(:black, nil)}
   end
 
   @impl true
