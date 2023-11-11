@@ -3,11 +3,16 @@ defmodule Elswisser.Tournaments.Tournament do
   import Ecto.Changeset
   import Ecto.Query, warn: false
 
+  require IEx
   alias Elswisser.Players.Player
+
+  @types ~w[swiss single_elimination double_elimination]a
 
   schema "tournaments" do
     field(:name, :string)
     field(:length, :integer)
+
+    field(:type, Ecto.Enum, values: @types)
 
     many_to_many(:players, Player,
       join_through: Elswisser.Tournaments.TournamentPlayer,
@@ -23,8 +28,10 @@ defmodule Elswisser.Tournaments.Tournament do
   @doc false
   def changeset(tournament, attrs) do
     tournament
-    |> cast(attrs, [:name, :length])
-    |> validate_required([:name, :length])
+    |> cast(attrs, [:name, :length, :type])
+    |> validate_required([:name, :length, :type])
+    |> validate_inclusion(:type, @types)
+    |> validate_tournament_type_unchaged()
   end
 
   def from() do
@@ -69,5 +76,13 @@ defmodule Elswisser.Tournaments.Tournament do
 
   def most_recent_first(query) do
     from(t in query, order_by: [desc: :inserted_at])
+  end
+
+  def validate_tournament_type_unchaged(changeset) do
+    if !changed?(changeset, :type) or changed?(changeset, :type, from: nil) do
+      changeset
+    else
+      add_error(changeset, :type, "Type cannot be changed after it is set")
+    end
   end
 end

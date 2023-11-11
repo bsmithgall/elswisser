@@ -3,6 +3,7 @@ defmodule ElswisserWeb.Tournaments.TournamentController do
 
   import Phoenix.Controller
 
+  require IEx
   alias Elswisser.Tournaments
   alias Elswisser.Tournaments.Tournament
   alias ElswisserWeb.Plugs.EnsureTournament

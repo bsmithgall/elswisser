@@ -444,6 +444,7 @@ defmodule ElswisserWeb.CoreComponents do
         name={@name}
         class={[
           "mt-1 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm",
+          "disabled:bg-gray-100 disabled:cursor-not-allowed",
           @class && @class
         ]}
         multiple={@multiple}

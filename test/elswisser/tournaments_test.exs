@@ -21,7 +21,7 @@ defmodule Elswisser.TournamentsTest do
     end
 
     test "create_tournament/1 with valid data creates a tournament" do
-      valid_attrs = %{name: "some name"}
+      valid_attrs = %{name: "some name", type: :swiss}
 
       assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_attrs)
       assert tournament.name == "some name"

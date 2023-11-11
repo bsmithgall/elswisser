@@ -1,8 +1,8 @@
-<.header>
+<.header class="pt-4">
   Edit Tournament <%= @tournament.id %>
   <:subtitle>Use this form to manage tournament records in your database.</:subtitle>
 </.header>
 
-<.tournament_form changeset={@changeset} action={~p"/tournaments/#{@tournament}"} />
+<.tournament_form changeset={@changeset} action={~p"/tournaments/#{@tournament}"} new={false} />
 
 <.back navigate={~p"/tournaments"}>Back to tournaments</.back>

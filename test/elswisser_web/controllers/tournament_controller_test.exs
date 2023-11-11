@@ -3,9 +3,10 @@ defmodule ElswisserWeb.TournamentControllerTest do
 
   import Elswisser.TournamentsFixtures
 
-  @create_attrs %{name: "some name", player_ids: [1, 2]}
+  @create_attrs %{name: "some name", type: :swiss, player_ids: [1, 2]}
   @update_attrs %{name: "some updated name"}
   @invalid_attrs %{name: nil}
+  @invalid_type_update %{type: "single_elimination"}
 
   describe "index" do
     test "lists all tournaments", %{conn: conn} do
@@ -65,6 +66,11 @@ defmodule ElswisserWeb.TournamentControllerTest do
     test "renders errors when data is invalid", %{conn: conn, tournament: tournament} do
       conn = put(conn, ~p"/tournaments/#{tournament}", tournament: @invalid_attrs)
       assert html_response(conn, 200) =~ "Edit Tournament"
+    end
+
+    test "renders errors when attempting to update type", %{conn: conn, tournament: tournament} do
+      conn = put(conn, ~p"/tournaments/#{tournament}", tournament: @invalid_type_update)
+      assert html_response(conn, 200) =~ "cannot be changed"
     end
   end
 
