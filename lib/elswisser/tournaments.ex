@@ -161,13 +161,15 @@ defmodule Elswisser.Tournaments do
 
   def change_tournament(%Tournament{} = tournament, attrs)
       when not is_map_key(attrs, :length) do
-    players = Elswisser.Players.list_by_id(ensure_atom(attrs)[:player_ids])
-    len = calculate_length(players)
+    atoms = ensure_atom(attrs)
+
+    players = Elswisser.Players.list_by_id(atoms[:player_ids])
+    len = calculate_length(players, tournament.type)
 
     tournament
     |> Repo.preload(:players)
     |> Repo.preload(:rounds)
-    |> Tournament.changeset(attrs |> ensure_atom |> Map.merge(%{length: len}))
+    |> Tournament.changeset(atoms |> Map.merge(%{length: len}))
     |> maybe_put_players(players)
   end
 
@@ -234,15 +236,22 @@ defmodule Elswisser.Tournaments do
     |> Enum.split_with(fn p -> p.in_tournament end)
   end
 
-  def calculate_length(players) when is_list(players) do
-    if Enum.empty?(players) do
-      0
-    else
-      length(players) |> Math.log2() |> ceil()
-    end
+  def calculate_length(players, _type) when length(players) == 0 do
+    0
   end
 
-  def calculate_length(_), do: 0
+  def calculate_length(players, type)
+      when is_list(players) and type in [:swiss, :single_elimination] do
+    players |> length() |> Math.log(2) |> ceil()
+  end
+
+  def calculate_length(players, type) when is_list(players) and type in [:double_elimination] do
+    single_rnds = players |> length() |> Math.log(2) |> ceil()
+
+    2 * single_rnds - 1
+  end
+
+  def calculate_length(_, _), do: 0
 
   defp ensure_atom(attrs) when is_map(attrs) do
     Enum.reduce(attrs, %{}, fn

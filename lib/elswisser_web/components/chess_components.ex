@@ -14,9 +14,25 @@ defmodule ElswisserWeb.ChessComponents do
 
   alias Elswisser.Players
 
-  attr(:game, :map, required: true)
+  attr(:game, :map, default: nil)
   attr(:highlight, :atom, values: [:white, :black, nil], default: nil)
   attr(:class, :string, default: nil)
+
+  def game_result(%{game: nil} = assigns) do
+    ~H"""
+    <div class={["grid grid-cols-3 grid-rows-2 gap-x-4 min-w-min", @class && @class]}>
+      <span class="col-span-2">
+        <.white_square />
+        <span>—</span>
+      </span>
+      <span />
+      <span class="col-span-2">
+        <.black_square />
+        <span>—</span>
+      </span>
+    </div>
+    """
+  end
 
   def game_result(assigns) do
     ~H"""
@@ -74,7 +90,7 @@ defmodule ElswisserWeb.ChessComponents do
     """
   end
 
-  attr(:winner, :boolean)
+  attr(:winner, :boolean, default: false)
 
   def white_square(assigns) do
     ~H"""
@@ -86,7 +102,7 @@ defmodule ElswisserWeb.ChessComponents do
     """
   end
 
-  attr(:winner, :boolean)
+  attr(:winner, :boolean, default: false)
 
   def black_square(assigns) do
     ~H"""

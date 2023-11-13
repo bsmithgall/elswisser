@@ -68,4 +68,35 @@ defmodule Elswisser.TournamentsTest do
       assert(out_ == [Map.merge(not_in_tournament, %{in_tournament: false})])
     end
   end
+
+  describe "calculate_length" do
+    test "calculate_length/2 with nils returns 0" do
+      assert Tournaments.calculate_length(nil, nil) == 0
+    end
+
+    test "calculate_length/2 with empty players returns 0" do
+      assert Tournaments.calculate_length([], nil) == 0
+    end
+
+    test "calculate_length/2 works as expected for swiss tournaments" do
+      assert Tournaments.calculate_length(
+               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+               :swiss
+             ) == 5
+    end
+
+    test "calculate_length/2 works as expected for single_elimination tournaments" do
+      assert Tournaments.calculate_length(
+               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+               :single_elimination
+             ) == 5
+    end
+
+    test "calculate_length/2 works as expected for double_elimination tournaments" do
+      assert Tournaments.calculate_length(
+               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+               :double_elimination
+             ) == 9
+    end
+  end
 end

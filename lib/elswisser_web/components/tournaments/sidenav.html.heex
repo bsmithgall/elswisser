@@ -12,12 +12,14 @@
     active={@active == "roster"}
   />
   <.navlink
+    :if={@tournament.type == :swiss}
     label="Scores"
     href={~p"/tournaments/#{@tournament}/scores"}
     icon="hero-list-bullet-mini"
     active={@active == "scores"}
   />
   <.navlink
+    :if={@tournament.type == :swiss}
     label="Crosstable"
     href={~p"/tournaments/#{@tournament}/crosstable"}
     icon="hero-table-cells-mini"
@@ -37,7 +39,7 @@
   />
 </div>
 <hr />
-<div class="py-2">
+<div :if={@tournament.type == :swiss} class="py-2">
   <h2 class="mt-2 text-sm leading-6 text-zinc-600 pl-1 pb-1">
     Rounds (<%= @tournament.length %> total)
   </h2>

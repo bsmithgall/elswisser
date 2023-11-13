@@ -1,19 +1,71 @@
 @import "tailwindcss/base";
+/* note: this import needs to be before the components in order for the
+cascanding to work properly */
+@import "../node_modules/@chrisoakman/chessboard2/dist/chessboard2.min.css";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-@import "../node_modules/@chrisoakman/chessboard2/dist/chessboard2.min.css";
-
 /* This file is for your main application CSS */
 
-/* Override the chessboard2 default snowflaked colors for the board */
+@layer components {
+  /* Override the chessboard2 default snowflaked colors for the board. Note that
+  * these "snowflaked" styles are the way to override the default colors. See:
+  * https://github.com/oakmac/chessboard2/issues/46 */
+  .black-b7cb6 {
+    background-color: theme(colors.boardblack.DEFAULT);
+    color: theme(colors.boardwhite.DEFAULT);
+  }
 
-.black-b7cb6 {
-  background-color: #71828f;
-  color: #f2f5f3;
+  .white-3b784 {
+    background-color: theme(colors.boardwhite.DEFAULT);
+    color: theme(colors.boardblack.DEFAULT);
+  }
 }
 
-.white-3b784 {
-  background-color: #f2f5f3;
-  color: #71828f;
+@layer components {
+  /* Add custom ::before and ::after classes to display bracket connectors */
+
+  .els__round:first-child .els__match::before {
+    @apply hidden;
+  }
+
+  .els__round:first-child .els__match-content::before {
+    @apply hidden;
+  }
+
+  .els__round:last-child .els__match::after {
+    @apply hidden;
+  }
+
+  .els__match::before {
+    content: "";
+    height: 8px;
+    margin-top: -5px;
+
+    @apply absolute block -left-2 top-1/2;
+    @apply border border-transparent border-l-zinc-400;
+  }
+
+  .els__match:nth-child(odd)::after {
+    content: "";
+    @apply absolute block top-1/2 h-1/2 rounded-tr-sm;
+    @apply -right-[9px] w-[10px];
+    @apply border border-transparent border-t-zinc-400 border-r-zinc-400;
+  }
+
+  .els__match:nth-child(even)::after {
+    content: "";
+
+    @apply absolute block bottom-1/2 h-1/2 rounded-br-sm;
+    @apply -right-[9px] w-[10px];
+    @apply border border-transparent border-b-zinc-400 border-r-zinc-400;
+  }
+
+  .els__match-content::before {
+    content: "";
+
+    @apply absolute block top-1/2;
+    @apply -left-[9px] w-[9px];
+    @apply border border-transparent border-b-zinc-400;
+  }
 }

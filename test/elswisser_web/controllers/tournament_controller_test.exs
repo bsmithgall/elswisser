@@ -34,7 +34,7 @@ defmodule ElswisserWeb.TournamentControllerTest do
       assert redirected_to(conn) == ~p"/tournaments/#{id}"
 
       conn = get(conn, ~p"/tournaments/#{id}")
-      assert html_response(conn, 200) =~ "Tournament #{id}"
+      assert html_response(conn, 200) =~ "some name"
     end
 
     test "renders errors when data is invalid", %{conn: conn} do

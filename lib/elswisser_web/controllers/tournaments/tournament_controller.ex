@@ -35,7 +35,7 @@ defmodule ElswisserWeb.Tournaments.TournamentController do
   def show(conn, _params) do
     conn
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
-    |> render(:show,
+    |> render("show_#{conn.assigns[:tournament].type}.html",
       tournament: conn.assigns[:tournament],
       current_round: conn.assigns[:current_round]
     )
