@@ -1,11 +1,11 @@
 defmodule Elswisser.TournamentsTest do
+  alias Elswisser.Tournaments.Tournament
   use Elswisser.DataCase
 
   alias Elswisser.Tournaments
 
   describe "tournaments" do
     alias Elswisser.Tournaments.Tournament
-
     import Elswisser.TournamentsFixtures
 
     @invalid_attrs %{name: nil}
@@ -97,6 +97,21 @@ defmodule Elswisser.TournamentsTest do
                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
                :double_elimination
              ) == 9
+    end
+  end
+
+  describe "create_next_round/2" do
+    import Elswisser.TournamentsFixtures
+
+    test "works as expected for creating rounds past the end of the tournament" do
+      assert Tournaments.create_next_round(%Tournament{length: 4}, 6) == :finished
+    end
+
+    test "works as expected for creating a random swiss round" do
+      tournament = tournament_fixture(%{length: 2})
+      {:ok, rnd} = Tournaments.create_next_round(tournament, 0)
+
+      assert rnd.number == 1
     end
   end
 end

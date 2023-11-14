@@ -189,21 +189,22 @@ defmodule Elswisser.Tournaments do
     create_next_round(tournament, String.to_integer(current_round_number))
   end
 
+  def create_next_round(%Tournament{} = tournament, current_round_number)
+      when current_round_number > tournament.length do
+    :finished
+  end
+
   @doc """
   Attempt to create the next round for a tournament. If the next round number is
   > than the tournament's length, return :completed, otherwise return :ok or
   > :error based on the results from Ecto.
   """
-  def create_next_round(%Tournament{} = tournament, current_round_number) do
-    if current_round_number + 1 > tournament.length do
-      :finished
-    else
-      Elswisser.Rounds.create_round(%{
-        tournament_id: tournament.id,
-        number: current_round_number + 1,
-        status: :pairing
-      })
-    end
+  def create_next_round(%Tournament{type: :swiss} = tournament, current_round_number) do
+    Elswisser.Rounds.create_round(%{
+      tournament_id: tournament.id,
+      number: current_round_number + 1,
+      status: :pairing
+    })
   end
 
   def empty_changeset(%Tournament{} = tournament, attrs \\ %{}) do

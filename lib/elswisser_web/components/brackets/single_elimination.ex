@@ -33,7 +33,7 @@ defmodule ElswisserWeb.Brackets.SingleElimination do
   def match(assigns) do
     ~H"""
     <div class="els__match flex flex-col justify-center grow relative py-4 mx-2 min-w-fit w-52">
-      <div class="els__match-content border border-zinc-400 relative py-1 px-2 w-100 rounded-md">
+      <div class="els__match-content border border-zinc-400 relative py-1 px-2 w-100 rounded-md truncate">
         <.game_result />
       </div>
     </div>
