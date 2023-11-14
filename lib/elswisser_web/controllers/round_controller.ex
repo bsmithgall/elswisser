@@ -52,7 +52,13 @@ defmodule ElswisserWeb.RoundController do
     end
   end
 
-  def pairings(conn, %{"id" => id}) do
+  def pairings(conn, %{"id" => id, "tournament_id" => tournament_id}) do
+    if conn.assigns[:tournament].type != :swiss do
+      conn
+      |> put_flash(:info, "Cannot manually set pairings for non-swiss tournaments!")
+      |> redirect(to: ~p"/tournaments/#{tournament_id}/rounds/#{id}")
+    end
+
     conn
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
     |> render(:pairing,
