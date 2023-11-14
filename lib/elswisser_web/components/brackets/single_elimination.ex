@@ -8,9 +8,9 @@ defmodule ElswisserWeb.Brackets.SingleElimination do
 
   def bracket(assigns) do
     ~H"""
-    <div class="els__bracket flex overflow-x-auto">
+    <div class="els__bracket flex text-sm text-zinc-700 overflow-x-auto">
       <%= for idx <- 1..@length do %>
-        <.bracket_round round={Enum.at(@rounds, idx)} number={idx} size={@size} />
+        <.bracket_round round={Enum.at(@rounds, idx - 1)} number={idx} size={@size} />
       <% end %>
     </div>
     """
@@ -30,11 +30,23 @@ defmodule ElswisserWeb.Brackets.SingleElimination do
     """
   end
 
+  def bracket_round(assigns) do
+    ~H"""
+    <div class="els__round flex flex-col grow">
+      <%= for game <- @round.games do %>
+        <.match game={game} />
+      <% end %>
+    </div>
+    """
+  end
+
+  attr(:game, Elswisser.Games.Game, default: nil)
+
   def match(assigns) do
     ~H"""
-    <div class="els__match flex flex-col justify-center grow relative py-4 mx-2 min-w-fit w-52">
-      <div class="els__match-content border border-zinc-400 relative py-1 px-2 w-100 rounded-md truncate">
-        <.game_result />
+    <div class="els__match flex flex-col justify-center grow relative py-4 mx-2 min-w-fit w-64">
+      <div class="els__match-content border border-zinc-400 relative py-1 px-2 rounded-md">
+        <.game_result game={@game} ratings={false} />
       </div>
     </div>
     """

@@ -4,6 +4,12 @@
   </.error>
   <.input field={f[:game_link]} type="text" label="Game Link" />
   <.input field={f[:pgn]} type="textarea" label="PGN" />
+  <.input
+    field={f[:result]}
+    type="select"
+    label="Result"
+    options={["Select Result": nil, "White won": 1, "Black won": -1, Draw: 0]}
+  />
   <:actions>
     <.button>Save Game</.button>
   </:actions>

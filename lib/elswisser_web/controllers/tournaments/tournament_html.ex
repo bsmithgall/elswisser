@@ -1,6 +1,4 @@
 defmodule ElswisserWeb.Tournaments.TournamentHTML do
-  require Integer
-  require IEx
   alias Elswisser.Tournaments.Tournament
   use ElswisserWeb, :html
 

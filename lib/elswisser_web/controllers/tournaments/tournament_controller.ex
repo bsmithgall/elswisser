@@ -3,12 +3,11 @@ defmodule ElswisserWeb.Tournaments.TournamentController do
 
   import Phoenix.Controller
 
-  require IEx
   alias Elswisser.Tournaments
   alias Elswisser.Tournaments.Tournament
   alias ElswisserWeb.Plugs.EnsureTournament
 
-  plug EnsureTournament, "rounds_players" when action in [:show, :edit]
+  plug EnsureTournament, "all" when action in [:show, :edit]
 
   def index(conn, _params) do
     tournaments = Tournaments.list_tournaments()

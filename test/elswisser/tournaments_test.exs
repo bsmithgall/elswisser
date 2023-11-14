@@ -1,4 +1,5 @@
 defmodule Elswisser.TournamentsTest do
+  alias Elswisser.Rounds
   alias Elswisser.Tournaments.Tournament
   use Elswisser.DataCase
 
@@ -112,6 +113,16 @@ defmodule Elswisser.TournamentsTest do
       {:ok, rnd} = Tournaments.create_next_round(tournament, 0)
 
       assert rnd.number == 1
+    end
+
+    test "works as expected for creating the first round of a single_elimination tournament" do
+      tournament = tournament_with_players_fixture(%{type: :single_elimination, length: 2})
+      {:ok, rnd} = Tournaments.create_next_round(tournament, 0)
+
+      assert rnd.number == 1
+
+      rnd = Rounds.get_round_with_games(rnd.id)
+      assert length(rnd.games) == 2
     end
   end
 end

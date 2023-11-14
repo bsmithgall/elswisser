@@ -17,6 +17,7 @@ defmodule ElswisserWeb.ChessComponents do
   attr(:game, :map, default: nil)
   attr(:highlight, :atom, values: [:white, :black, nil], default: nil)
   attr(:class, :string, default: nil)
+  attr(:ratings, :boolean, default: true)
 
   def game_result(%{game: nil} = assigns) do
     ~H"""
@@ -36,14 +37,17 @@ defmodule ElswisserWeb.ChessComponents do
 
   def game_result(assigns) do
     ~H"""
-    <div class={["grid grid-cols-3 grid-rows-2 gap-x-4 min-w-min", @class && @class]}>
+    <div class={[
+      "grid grid-cols-3 grid-rows-2 gap-x-4 min-w-min text-sm text-zinc-700",
+      @class && @class
+    ]}>
       <span class="col-span-2">
         <.white_square winner={@game.result == 1} />
         <.link
           class={["hover:underline", @highlight == :white && "font-bold"]}
           href={~p"/players/#{@game.white.id}"}
         >
-          <%= @game.white.name %><span :if={@game.white_rating}> (<%= @game.white_rating %>)</span>
+          <%= @game.white.name %><span :if={@game.white_rating && @ratings}> (<%= @game.white_rating %>)</span>
         </.link>
       </span>
       <span><.score color={:white} result={@game.result} /></span>
@@ -53,7 +57,7 @@ defmodule ElswisserWeb.ChessComponents do
           class={["hover:underline", @highlight == :black && "font-bold"]}
           href={~p"/players/#{@game.black.id}"}
         >
-          <%= @game.black.name %><span :if={@game.black_rating}> (<%= @game.black_rating %>)</span>
+          <%= @game.black.name %><span :if={@game.black_rating && @ratings}> (<%= @game.black_rating %>)</span>
         </.link>
       </span>
       <span><.score color={:black} result={@game.result} /></span>

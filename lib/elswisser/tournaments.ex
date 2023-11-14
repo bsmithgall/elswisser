@@ -4,6 +4,8 @@ defmodule Elswisser.Tournaments do
   """
 
   import Ecto.Query, warn: false
+  alias Elswisser.Games
+  alias Elswisser.Pairings.BracketPairing
   alias Elswisser.Repo
 
   alias Elswisser.Tournaments.Tournament
@@ -205,6 +207,37 @@ defmodule Elswisser.Tournaments do
       number: current_round_number + 1,
       status: :pairing
     })
+  end
+
+  def create_next_round(
+        %Tournament{type: :single_elimination} = tournament,
+        0
+      ) do
+    {:ok, rnd} =
+      Elswisser.Rounds.create_round(%{
+        tournament_id: tournament.id,
+        number: 1,
+        status: :playing
+      })
+
+    BracketPairing.rating_based_pairings(tournament)
+    |> Enum.map(&BracketPairing.assign_colors/1)
+    |> Enum.map(&BracketPairing.to_game_params(&1, rnd.id))
+    |> Games.create_games()
+
+    {:ok, rnd}
+  end
+
+  def create_next_round(
+        %Tournament{type: :single_elimination} = _tournament,
+        _current_next_round
+      ) do
+    {:error,
+     %Ecto.Changeset{
+       errors: [
+         number: {"Could not automatically create next round for this tournament type!", []}
+       ]
+     }}
   end
 
   def empty_changeset(%Tournament{} = tournament, attrs \\ %{}) do

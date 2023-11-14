@@ -6,8 +6,11 @@ defmodule ElswisserWeb.RoundController do
 
   plug(:fetch_round when action not in [:create])
   plug(:ensure_round_in_tournament when action not in [:create])
-  plug(ElswisserWeb.Plugs.EnsureTournament, "all" when action in [:show, :pairings])
-  plug(ElswisserWeb.Plugs.EnsureTournament, "none" when action in [:create, :finalize])
+
+  plug(
+    ElswisserWeb.Plugs.EnsureTournament,
+    "all" when action in [:show, :pairings, :create, :finalize]
+  )
 
   plug(
     :put_root_layout,
@@ -27,10 +30,15 @@ defmodule ElswisserWeb.RoundController do
 
   def create(conn, %{"tournament_id" => tournament_id, "number" => number}) do
     case(Tournaments.create_next_round(conn.assigns[:tournament], number)) do
-      {:ok, round} ->
+      {:ok, rnd} ->
+        redirect_to =
+          if conn.assigns[:tournament].type == :swiss,
+            do: ~p"/tournaments/#{rnd.tournament_id}/rounds/#{rnd.id}/pairings",
+            else: ~p"/tournaments/#{rnd.tournament_id}"
+
         conn
         |> put_flash(:info, "Round created successfully.")
-        |> redirect(to: ~p"/tournaments/#{round.tournament_id}/rounds/#{round.id}/pairings")
+        |> redirect(to: redirect_to)
 
       :finished ->
         conn

@@ -1,28 +1,27 @@
-defmodule Elswisser.Pairings.BracketTest do
+defmodule Elswisser.Pairings.BracketPairingTest do
   use ExUnit.Case, async: true
 
-  alias Elswisser.Pairings.Bye
   alias Elswisser.Tournaments.Tournament
-  alias Elswisser.Pairings.Bracket
+  alias Elswisser.Pairings.BracketPairing
 
   describe "next_power_of_two/1" do
     test "works as expected for powers of two" do
-      assert Bracket.next_power_of_two(4) == 4
+      assert BracketPairing.next_power_of_two(4) == 4
     end
 
     test "works as expected for non-powers of two" do
-      assert Bracket.next_power_of_two(9) == 16
+      assert BracketPairing.next_power_of_two(9) == 16
     end
   end
 
   describe "partition/1" do
     test "works as expected for powers of two" do
-      assert Bracket.partition([1, 2, 3, 4, 5, 6, 7, 8]) ==
+      assert BracketPairing.partition([1, 2, 3, 4, 5, 6, 7, 8]) ==
                {[], [1, 2, 3, 4, 5, 6, 7, 8]}
     end
 
     test "works as expected for non-powers of two" do
-      assert Bracket.partition([1, 2, 3, 4, 5, 6, 7, 8, 9]) ==
+      assert BracketPairing.partition([1, 2, 3, 4, 5, 6, 7, 8, 9]) ==
                {[1, 2, 3, 4, 5, 6, 7], [8, 9]}
     end
   end
@@ -30,7 +29,7 @@ defmodule Elswisser.Pairings.BracketTest do
   describe "rating_based_pairings/1" do
     test "works as expected for powers of two (no byes)" do
       pairings =
-        Bracket.rating_based_pairings(%Tournament{
+        BracketPairing.rating_based_pairings(%Tournament{
           players: [
             %{rating: 800},
             %{rating: 700},
@@ -45,17 +44,17 @@ defmodule Elswisser.Pairings.BracketTest do
 
       assert length(pairings) == 4
 
-      assert pairings == [
-               {%{rating: 800}, %{rating: 100}},
-               {%{rating: 700}, %{rating: 200}},
-               {%{rating: 600}, %{rating: 300}},
-               {%{rating: 500}, %{rating: 400}}
+      assert Enum.map(pairings, fn p -> {p.player_one.rating, p.player_two.rating} end) == [
+               {800, 100},
+               {700, 200},
+               {600, 300},
+               {500, 400}
              ]
     end
 
     test "works as expected for non-powers of two (with byes)" do
       pairings =
-        Bracket.rating_based_pairings(%Tournament{
+        BracketPairing.rating_based_pairings(%Tournament{
           players: [
             %{rating: 1300},
             %{rating: 1200},
@@ -73,15 +72,15 @@ defmodule Elswisser.Pairings.BracketTest do
           ]
         })
 
-      assert pairings == [
-               {%{rating: 1300}, Bye.bye_player()},
-               {%{rating: 1200}, Bye.bye_player()},
-               {%{rating: 1100}, Bye.bye_player()},
-               {%{rating: 1000}, %{rating: 100}},
-               {%{rating: 900}, %{rating: 200}},
-               {%{rating: 800}, %{rating: 300}},
-               {%{rating: 700}, %{rating: 400}},
-               {%{rating: 600}, %{rating: 500}}
+      assert Enum.map(pairings, fn p -> {p.player_one.rating, p.player_two.rating} end) == [
+               {1300, nil},
+               {1200, nil},
+               {1100, nil},
+               {1000, 100},
+               {900, 200},
+               {800, 300},
+               {700, 400},
+               {600, 500}
              ]
     end
   end
