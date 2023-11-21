@@ -2,6 +2,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   alias Elswisser.Pairings.Bye
   use ElswisserWeb, :live_view
 
+  alias Elswisser.Matches
   alias Elswisser.Games
   alias Elswisser.Games.PgnProvider
   alias Elswisser.Rounds
@@ -198,7 +199,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   def handle_event("unpair-players", %{"id" => id}, socket) do
     game = find_game(socket, id)
 
-    with {:ok, _deleted} <- Games.delete_game(game),
+    with {:ok, _} <- Matches.delete_from_game(game),
          {:ok, _} <- Rounds.set_pairing(socket.assigns[:round]) do
       {:noreply,
        socket |> assign(:games, Enum.filter(socket.assigns[:games], fn g -> g.id != game.id end))}
@@ -401,7 +402,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   end
 
   defp fetch_round(round_id) do
-    Rounds.get_round_with_games_and_players!(round_id)
+    Rounds.get_round_with_matches_and_players!(round_id)
   end
 
   # Given an update to an individual game, merge the update into the socket's

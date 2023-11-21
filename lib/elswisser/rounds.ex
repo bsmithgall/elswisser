@@ -45,13 +45,13 @@ defmodule Elswisser.Rounds do
     |> Repo.one()
   end
 
-  def get_round_with_games_and_players!(id) do
+  def get_round_with_matches_and_players!(id) do
     Round.from()
     |> Round.where_id(id)
-    |> Round.with_games()
+    |> Round.with_matches_and_games()
     |> Game.with_white_player()
     |> Game.with_black_player()
-    |> Round.preload_games_and_players()
+    |> Round.preload_all()
     |> Repo.one!()
   end
 

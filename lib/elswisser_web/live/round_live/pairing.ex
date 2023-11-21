@@ -1,8 +1,10 @@
 defmodule ElswisserWeb.RoundLive.Pairing do
+  require IEx
+  alias Elswisser.Games
+  alias Elswisser.Matches
   alias Elswisser.Pairings.Bye
   use ElswisserWeb, :live_view
 
-  alias Elswisser.Games
   alias Elswisser.Pairings
   alias Elswisser.Players
   alias Elswisser.Rounds
@@ -18,11 +20,10 @@ defmodule ElswisserWeb.RoundLive.Pairing do
      |> set_white()
      |> assign(:round_id, session["round_id"])
      |> assign(:round_number, session["round_number"])
-     |> assign(:roster, session["tournament"].players)
-     |> assign(:tournament, session["tournament"])
-     |> assign(:tournament_id, session["tournament"].id)
-     |> assign(:players, fetch_unpaired_players(session["tournament_id"], session["round_id"])),
-     layout: false}
+     |> assign(:roster, session["roster"])
+     |> assign(:tournament_id, session["tournament_id"])
+     |> assign(:players, fetch_unpaired_players(session["tournament_id"], session["round_id"]))
+     |> assign(:next_board, 1), layout: false}
   end
 
   @impl true
@@ -91,8 +92,11 @@ defmodule ElswisserWeb.RoundLive.Pairing do
 
   @impl true
   def handle_event("do-match", %{"white-id" => white_id, "black-id" => black_id}, socket) do
-    case Games.create_game(to_game_params(socket, white_id, black_id)) do
-      {:ok, game} ->
+    case Matches.create_match_from_game(
+           to_game_params(socket, white_id, black_id),
+           socket.assigns[:next_board]
+         ) do
+      {:ok, %{game: game, match: _match}} ->
         remaining = filter_just_matched(socket.assigns[:players], game)
 
         if length(remaining) == 0 do
@@ -129,7 +133,7 @@ defmodule ElswisserWeb.RoundLive.Pairing do
             |> Pairings.finalize_colors(socket.assigns[:round_number])},
          game_params <-
            to_game_params(socket, assignments) ++ bye_game_params(socket, assigned_bye),
-         {:ok, _games} <- Games.create_games(game_params) do
+         {:ok, _games} <- Matches.create_matches_from_games(game_params) do
       handle_pairing_finished(socket)
     else
       {:error, _reason} -> {:error, socket}
@@ -268,14 +272,27 @@ defmodule ElswisserWeb.RoundLive.Pairing do
     Enum.map(pairings, fn {white_id, black_id} -> to_game_params(socket, white_id, black_id) end)
   end
 
+  defp to_game_params(socket, white_id, black_id)
+       when is_binary(white_id) and is_binary(black_id) do
+    to_game_params(socket, String.to_integer(white_id), String.to_integer(black_id))
+  end
+
   defp to_game_params(socket, white_id, black_id) do
     %{
       white_id: white_id,
-      white_rating: Enum.find(socket.assigns[:roster], &(&1.id == white_id)).rating,
+      white_rating: find_player(socket, white_id).rating,
       black_id: black_id,
-      black_rating: Enum.find(socket.assigns[:roster], &(&1.id == black_id)).rating,
+      black_rating: find_player(socket, black_id).rating,
       tournament_id: socket.assigns[:tournament_id],
       round_id: socket.assigns[:round_id]
     }
+  end
+
+  defp find_player(socket, id) when is_binary(id) do
+    find_player(socket, String.to_integer(id))
+  end
+
+  defp find_player(socket, id) when is_number(id) do
+    Enum.find(socket.assigns[:roster], &(&1.id == id))
   end
 end
