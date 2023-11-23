@@ -5,7 +5,6 @@ defmodule Elswisser.Rounds.Round do
 
   alias Elswisser.Tournaments.Tournament
   alias Elswisser.Matches.Match
-  alias Elswisser.Games.Game
 
   schema "rounds" do
     field(:number, :integer)
@@ -14,7 +13,7 @@ defmodule Elswisser.Rounds.Round do
 
     belongs_to(:tournament, Tournament)
     has_many(:matches, Match)
-    has_many(:games, Game)
+    has_many(:games, through: [:matches, :games])
 
     timestamps()
   end
@@ -44,10 +43,6 @@ defmodule Elswisser.Rounds.Round do
 
   def with_games(query) do
     from([round: r] in query, left_join: g in assoc(r, :games), as: :game)
-  end
-
-  def with_matches_and_games(query) do
-    query |> with_matches() |> with_games()
   end
 
   def preload_games_and_players(query) do

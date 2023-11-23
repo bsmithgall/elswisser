@@ -32,15 +32,16 @@ defmodule Elswisser.Games.Game do
       :black_id,
       :black_rating,
       :black_rating_change,
+      :finished_at,
       :game_link,
+      :match_id,
       :pgn,
       :result,
       :round_id,
       :tournament_id,
       :white_id,
       :white_rating,
-      :white_rating_change,
-      :finished_at
+      :white_rating_change
     ])
     |> validate_required([:white_id, :black_id, :round_id, :tournament_id, :match_id])
     |> validate_different_players()

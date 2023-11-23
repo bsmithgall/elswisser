@@ -3,6 +3,12 @@ defmodule Elswisser.Matches do
   alias Elswisser.Repo
   alias Elswisser.Matches.Match
 
+  def create_match(attrs \\ %{}) do
+    %Match{}
+    |> Match.changeset(attrs)
+    |> Repo.insert()
+  end
+
   @doc """
   Given game attributes, create a match and a surrounding game for that match
   """

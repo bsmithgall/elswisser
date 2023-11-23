@@ -4,6 +4,7 @@ defmodule Elswisser.Rounds do
   """
 
   import Ecto.Query, warn: false
+  alias Elswisser.Matches.Match
   alias Ecto.Multi
   alias Elswisser.Repo
 
@@ -48,7 +49,8 @@ defmodule Elswisser.Rounds do
   def get_round_with_matches_and_players!(id) do
     Round.from()
     |> Round.where_id(id)
-    |> Round.with_matches_and_games()
+    |> Round.with_matches()
+    |> Match.with_games()
     |> Game.with_white_player()
     |> Game.with_black_player()
     |> Round.preload_all()

@@ -1,6 +1,7 @@
 defmodule Elswisser.Pairings.BracketPairing do
   use Ecto.Schema
 
+  alias Elswisser.Pairings.Seed
   alias Elswisser.Players.Player
   alias Elswisser.Pairings.Bye
   alias Elswisser.Tournaments.Tournament
@@ -9,6 +10,7 @@ defmodule Elswisser.Pairings.BracketPairing do
   embedded_schema do
     embeds_one :player_one, Player
     embeds_one :player_two, Player
+    field :display_order, :integer
     field :tournament_id, :integer
   end
 
@@ -25,24 +27,19 @@ defmodule Elswisser.Pairings.BracketPairing do
   """
   def rating_based_pairings(%Tournament{} = tournament) do
     sorted = Enum.sort_by(tournament.players, & &1.rating, :desc)
+    size = next_power_of_two(sorted)
 
-    {byes, to_pair} = partition(sorted)
+    all_players = Enum.concat(sorted, List.duplicate(Bye.bye_player(), size - length(sorted)))
 
-    byes
-    |> Enum.map(&{&1, Bye.bye_player()})
-    |> Enum.concat(
-      to_pair
-      |> Enum.reduce_while([], fn t, acc ->
-        if length(acc) == length(to_pair) / 2 do
-          {:halt, acc}
-        else
-          {:cont, [{t, Enum.at(to_pair, -length(acc) - 1)} | acc]}
-        end
-      end)
-      |> Enum.reverse()
-    )
-    |> Enum.map(fn {l, r} ->
-      %__MODULE__{player_one: l, player_two: r, tournament_id: tournament.id}
+    Seed.seed(all_players)
+    |> Enum.with_index()
+    |> Enum.map(fn {{l, r}, idx} ->
+      %__MODULE__{
+        player_one: l,
+        player_two: r,
+        tournament_id: tournament.id,
+        display_order: idx
+      }
     end)
   end
 
@@ -54,10 +51,6 @@ defmodule Elswisser.Pairings.BracketPairing do
     next_power_of_two(length(n))
   end
 
-  def partition(players) do
-    Enum.split(players, next_power_of_two(players) - length(players))
-  end
-
   def to_game_params(%__MODULE__{} = pairing, round_id) do
     %{
       white_id: pairing.player_one.id,
@@ -65,17 +58,18 @@ defmodule Elswisser.Pairings.BracketPairing do
       black_id: pairing.player_two.id,
       black_rating: pairing.player_two.rating,
       tournament_id: pairing.tournament_id,
-      round_id: round_id
+      round_id: round_id,
+      display_order: pairing.display_order
     }
   end
 
   def assign_colors(%__MODULE__{} = pairing) do
     if :rand.uniform() > 0.5,
-      do: %__MODULE__{
-        player_one: pairing.player_two,
-        player_two: pairing.player_one,
-        tournament_id: pairing.tournament_id
-      },
+      do:
+        Map.merge(pairing, %{
+          player_one: pairing.player_two,
+          player_two: pairing.player_one
+        }),
       else: pairing
   end
 end

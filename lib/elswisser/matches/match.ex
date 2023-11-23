@@ -27,4 +27,14 @@ defmodule Elswisser.Matches.Match do
   def from() do
     from(m in __MODULE__, as: :match)
   end
+
+  def with_games(query) do
+    from([match: m] in query, left_join: g in assoc(m, :games), as: :game)
+  end
+
+  def first_game_or_nil(nil), do: nil
+
+  def first_game_or_nil(%__MODULE__{} = match) do
+    Enum.at(match.games, 0)
+  end
 end

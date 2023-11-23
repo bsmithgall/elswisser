@@ -1,4 +1,5 @@
 defmodule ElswisserWeb.Brackets.SingleElimination do
+  alias Elswisser.Matches.Match
   import ElswisserWeb.ChessComponents
   use Phoenix.Component
 
@@ -23,7 +24,7 @@ defmodule ElswisserWeb.Brackets.SingleElimination do
   def bracket_round(%{round: nil} = assigns) do
     ~H"""
     <div class="els__round flex flex-col grow">
-      <%= for _ <- 1..game_count(@number, @size) do %>
+      <%= for _ <- 1..match_count(@number, @size) do %>
         <.match />
       <% end %>
     </div>
@@ -31,28 +32,31 @@ defmodule ElswisserWeb.Brackets.SingleElimination do
   end
 
   def bracket_round(assigns) do
+    assigns =
+      assigns |> assign(:sorted, Enum.sort_by(assigns.round.matches, & &1.display_order))
+
     ~H"""
     <div class="els__round flex flex-col grow">
-      <%= for game <- @round.games do %>
-        <.match game={game} />
+      <%= for match <- @sorted do %>
+        <.match match={match} />
       <% end %>
     </div>
     """
   end
 
-  attr(:game, Elswisser.Games.Game, default: nil)
+  attr(:match, Elswisser.Matches.Match, default: nil)
 
   def match(assigns) do
     ~H"""
     <div class="els__match flex flex-col justify-center grow relative py-4 mx-2 min-w-fit w-64">
       <div class="els__match-content border border-zinc-400 relative py-1 px-2 rounded-md">
-        <.game_result game={@game} ratings={false} />
+        <.game_result game={Match.first_game_or_nil(@match)} ratings={false} />
       </div>
     </div>
     """
   end
 
-  defp game_count(round_number, players) do
+  defp match_count(round_number, players) do
     div(players, Math.pow(2, round_number))
   end
 end

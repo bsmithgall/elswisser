@@ -4,7 +4,8 @@ defmodule Elswisser.Tournaments do
   """
 
   import Ecto.Query, warn: false
-  alias Elswisser.Games
+  alias Elswisser.Matches.Match
+  alias Elswisser.Matches
   alias Elswisser.Pairings.BracketPairing
   alias Elswisser.Repo
 
@@ -78,8 +79,9 @@ defmodule Elswisser.Tournaments do
     |> Tournament.where_id(id)
     |> Tournament.with_players()
     |> Tournament.with_rounds()
-    |> Round.with_games()
+    |> Round.with_matches()
     |> Round.order_by_number()
+    |> Match.with_games()
     |> Game.with_both_players()
     |> Tournament.preload_all()
     |> Repo.one()
@@ -222,8 +224,10 @@ defmodule Elswisser.Tournaments do
 
     BracketPairing.rating_based_pairings(tournament)
     |> Enum.map(&BracketPairing.assign_colors/1)
+    # re-sort here to get the proper board numbers
+    |> Enum.sort_by(&max(&1.player_one.rating, &1.player_two.rating), :desc)
     |> Enum.map(&BracketPairing.to_game_params(&1, rnd.id))
-    |> Games.create_games()
+    |> Matches.create_matches_from_games()
 
     {:ok, rnd}
   end

@@ -14,18 +14,6 @@ defmodule Elswisser.Pairings.BracketPairingTest do
     end
   end
 
-  describe "partition/1" do
-    test "works as expected for powers of two" do
-      assert BracketPairing.partition([1, 2, 3, 4, 5, 6, 7, 8]) ==
-               {[], [1, 2, 3, 4, 5, 6, 7, 8]}
-    end
-
-    test "works as expected for non-powers of two" do
-      assert BracketPairing.partition([1, 2, 3, 4, 5, 6, 7, 8, 9]) ==
-               {[1, 2, 3, 4, 5, 6, 7], [8, 9]}
-    end
-  end
-
   describe "rating_based_pairings/1" do
     test "works as expected for powers of two (no byes)" do
       pairings =
@@ -46,9 +34,9 @@ defmodule Elswisser.Pairings.BracketPairingTest do
 
       assert Enum.map(pairings, fn p -> {p.player_one.rating, p.player_two.rating} end) == [
                {800, 100},
-               {700, 200},
+               {500, 400},
                {600, 300},
-               {500, 400}
+               {700, 200}
              ]
     end
 
@@ -72,15 +60,17 @@ defmodule Elswisser.Pairings.BracketPairingTest do
           ]
         })
 
-      assert Enum.map(pairings, fn p -> {p.player_one.rating, p.player_two.rating} end) == [
+      assert length(pairings) == 8
+
+      assert Enum.map(pairings, &{&1.player_one.rating, &1.player_two.rating}) == [
                {1300, nil},
-               {1200, nil},
-               {1100, nil},
-               {1000, 100},
+               {600, 500},
                {900, 200},
+               {1000, 100},
+               {1100, nil},
                {800, 300},
                {700, 400},
-               {600, 500}
+               {1200, nil}
              ]
     end
   end
