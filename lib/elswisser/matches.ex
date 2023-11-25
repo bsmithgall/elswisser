@@ -30,7 +30,7 @@ defmodule Elswisser.Matches do
   """
   def create_matches_from_games(games \\ []) do
     games
-    |> Enum.with_index()
+    |> Enum.with_index(1)
     |> Enum.reduce(Ecto.Multi.new(), fn {game, idx}, acc ->
       {match_attrs, game_attrs} = parse_match_and_game(game, idx)
 

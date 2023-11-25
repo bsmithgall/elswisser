@@ -8,6 +8,7 @@ defmodule Elswisser.TournamentsTest do
   describe "tournaments" do
     alias Elswisser.Tournaments.Tournament
     import Elswisser.TournamentsFixtures
+    import Elswisser.PlayersFixtures
 
     @invalid_attrs %{name: nil}
 
@@ -30,6 +31,42 @@ defmodule Elswisser.TournamentsTest do
 
     test "create_tournament/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Tournaments.create_tournament(@invalid_attrs)
+    end
+
+    test "create_tournament/1 calculates length correctly" do
+      p1 = player_fixture()
+      p2 = player_fixture()
+      p3 = player_fixture()
+      p4 = player_fixture()
+
+      assert {:ok, %Tournament{} = tournament} =
+               Tournaments.create_tournament(%{
+                 name: "with players",
+                 type: :single_elimination,
+                 player_ids: [p1.id, p2.id, p3.id, p4.id]
+               })
+
+      assert tournament.length > 0
+    end
+
+    test "create_tournament/1 properly assigns seeds to players" do
+      p1 = player_fixture(%{rating: 200})
+      p2 = player_fixture(%{rating: 100})
+
+      assert {:ok, %Tournament{} = tournament} =
+               Tournaments.create_tournament(%{
+                 name: "seed test",
+                 type: :single_elimination,
+                 player_ids: [p1.id, p2.id]
+               })
+
+      players =
+        Tournaments.get_tournament_players(tournament.id)
+        |> Enum.sort_by(& &1.seed, :asc)
+
+      assert length(players) == 2
+      assert Enum.at(players, 0).player_id == p1.id
+      assert Enum.at(players, 1).player_id == p2.id
     end
 
     test "delete_tournament/1 deletes the tournament" do

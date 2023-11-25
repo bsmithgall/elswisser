@@ -11,9 +11,6 @@ defmodule Elswisser.Repo.Migrations.CreateMatch do
       add :display_order, :integer
 
       add(:round_id, references(:rounds, on_delete: :delete_all))
-      add(:winner_id, references(:players))
-      add(:winner_to_id, references(:matches))
-      add(:loser_to_id, references(:matches))
 
       timestamps()
     end

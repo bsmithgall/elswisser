@@ -49,7 +49,7 @@ defmodule ElswisserWeb.Brackets.SingleElimination do
   def match(assigns) do
     ~H"""
     <div class="els__match flex flex-col justify-center grow relative py-4 mx-2 min-w-fit w-64">
-      <div class="els__match-content border border-zinc-400 relative py-1 px-2 rounded-md">
+      <div class="els__match-content border border-zinc-400 relative py-1 px-2 rounded-md flex flex-row gap-1">
         <.game_result game={Match.first_game_or_nil(@match)} ratings={false} />
       </div>
     </div>

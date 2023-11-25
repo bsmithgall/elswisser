@@ -25,6 +25,8 @@ defmodule Elswisser.Pairings.BracketPairing do
   4. Match all remaining players together with the highest playing the lowest
 
   """
+  def rating_based_pairings(%Tournament{players: []} = _tournament), do: []
+
   def rating_based_pairings(%Tournament{} = tournament) do
     sorted = Enum.sort_by(tournament.players, & &1.rating, :desc)
     size = next_power_of_two(sorted)

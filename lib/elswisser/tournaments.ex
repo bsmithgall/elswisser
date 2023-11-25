@@ -4,6 +4,7 @@ defmodule Elswisser.Tournaments do
   """
 
   import Ecto.Query, warn: false
+  alias Elswisser.Tournaments.TournamentPlayer
   alias Elswisser.Matches.Match
   alias Elswisser.Matches
   alias Elswisser.Pairings.BracketPairing
@@ -87,6 +88,12 @@ defmodule Elswisser.Tournaments do
     |> Repo.one()
   end
 
+  def get_tournament_players(id) do
+    TournamentPlayer.from()
+    |> TournamentPlayer.where_tournament_id(id)
+    |> Repo.all()
+  end
+
   def current_round(%Tournament{} = tournament) when is_map_key(tournament, :rounds) do
     case tournament.rounds do
       %Ecto.Association.NotLoaded{} -> %Elswisser.Rounds.Round{number: 0}
@@ -166,9 +173,13 @@ defmodule Elswisser.Tournaments do
   def change_tournament(%Tournament{} = tournament, attrs)
       when not is_map_key(attrs, :length) do
     atoms = ensure_atom(attrs)
+    type = Map.get(atoms, :type)
 
-    players = Elswisser.Players.list_by_id(atoms[:player_ids])
-    len = calculate_length(players, tournament.type)
+    players =
+      Elswisser.Players.list_by_id(atoms[:player_ids])
+      |> TournamentPlayer.from_players(tournament.id, Tournament.knockout?(type))
+
+    len = calculate_length(players, type)
 
     tournament
     |> Repo.preload(:players)
@@ -179,7 +190,9 @@ defmodule Elswisser.Tournaments do
 
   def change_tournament(%Tournament{} = tournament, attrs)
       when is_map_key(attrs, :length) do
-    players = Elswisser.Players.list_by_id(ensure_atom(attrs)[:player_ids])
+    players =
+      Elswisser.Players.list_by_id(ensure_atom(attrs)[:player_ids])
+      |> TournamentPlayer.from_players(tournament.id, Tournament.knockout?(tournament))
 
     tournament
     |> Repo.preload(:players)
@@ -278,6 +291,9 @@ defmodule Elswisser.Tournaments do
     0
   end
 
+  def calculate_length(players, type) when is_binary(type),
+    do: calculate_length(players, String.to_atom(type))
+
   def calculate_length(players, type)
       when is_list(players) and type in [:swiss, :single_elimination] do
     players |> length() |> Math.log(2) |> ceil()
@@ -298,11 +314,11 @@ defmodule Elswisser.Tournaments do
     end)
   end
 
-  defp maybe_put_players(changeset, players) do
-    if Enum.empty?(players) do
+  defp maybe_put_players(changeset, tournament_players) do
+    if Enum.empty?(tournament_players) do
       changeset
     else
-      changeset |> Ecto.Changeset.put_assoc(:players, players)
+      changeset |> Ecto.Changeset.put_assoc(:tournament_players, tournament_players)
     end
   end
 end

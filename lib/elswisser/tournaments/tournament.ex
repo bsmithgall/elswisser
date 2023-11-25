@@ -3,8 +3,11 @@ defmodule Elswisser.Tournaments.Tournament do
   import Ecto.Changeset
   import Ecto.Query, warn: false
 
-  require IEx
-  alias Elswisser.Players.Player
+  alias Elswisser.Tournaments.TournamentPlayer
+  alias Elswisser.Rounds.Round
+  alias Elswisser.Games.Game
+
+  alias __MODULE__
 
   @types ~w[swiss single_elimination double_elimination]a
 
@@ -14,13 +17,11 @@ defmodule Elswisser.Tournaments.Tournament do
 
     field(:type, Ecto.Enum, values: @types)
 
-    many_to_many(:players, Player,
-      join_through: Elswisser.Tournaments.TournamentPlayer,
-      on_replace: :delete
-    )
+    has_many(:tournament_players, TournamentPlayer, on_replace: :delete)
+    has_many(:players, through: [:tournament_players, :player])
 
-    has_many(:rounds, Elswisser.Rounds.Round)
-    has_many(:games, Elswisser.Games.Game)
+    has_many(:rounds, Round)
+    has_many(:games, Game)
 
     timestamps()
   end
@@ -87,5 +88,13 @@ defmodule Elswisser.Tournaments.Tournament do
     else
       add_error(changeset, :type, "Type cannot be changed after it is set")
     end
+  end
+
+  def knockout?(type) when is_binary(type), do: knockout?(String.to_existing_atom(type))
+
+  def knockout?(%Tournament{} = tournament), do: knockout?(tournament.type)
+
+  def knockout?(type) when is_atom(type) do
+    type in ~w[single_elimination double_elimination]a
   end
 end

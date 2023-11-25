@@ -1,5 +1,4 @@
 defmodule ElswisserWeb.RoundLive.Pairing do
-  require IEx
   alias Elswisser.Games
   alias Elswisser.Matches
   alias Elswisser.Pairings.Bye
