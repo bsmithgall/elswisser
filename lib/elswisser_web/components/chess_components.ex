@@ -15,22 +15,22 @@ defmodule ElswisserWeb.ChessComponents do
   alias Elswisser.Players
 
   attr(:game, :map, default: nil)
+  attr(:show_seeds, :boolean, default: false)
   attr(:highlight, :atom, values: [:white, :black, nil], default: nil)
   attr(:class, :string, default: nil)
   attr(:ratings, :boolean, default: true)
 
   def game_result(%{game: nil} = assigns) do
     ~H"""
-    <div class={["grid grid-cols-3 grid-rows-2 gap-x-4 min-w-min", @class && @class]}>
-      <span class="col-span-2">
-        <.white_square />
-        <span>—</span>
-      </span>
-      <span />
-      <span class="col-span-2">
-        <.black_square />
-        <span>—</span>
-      </span>
+    <div class={["grid grid-cols-2 grid-rows-2 gap-x-4 min-w-min divide-y", @class && @class]}>
+      <div class="col-span-2 grid grid-cols-2">
+        <div class="inline-block"><.seed :if={@show_seeds} /><.white_square /></div>
+        <span class="justify-self-end">—</span>
+      </div>
+      <div class="col-span-2 grid grid-cols-2">
+        <div><.seed :if={@show_seeds} /><.black_square /></div>
+        <span class="justify-self-end">—</span>
+      </div>
     </div>
     """
   end
@@ -38,29 +38,57 @@ defmodule ElswisserWeb.ChessComponents do
   def game_result(assigns) do
     ~H"""
     <div class={[
-      "grid grid-cols-3 grid-rows-2 gap-x-4 min-w-min text-sm text-zinc-700",
+      "grid grid-rows-2 gap-x-4 min-w-min divide-y text-sm text-zinc-700",
       @class && @class
     ]}>
-      <span class="col-span-2">
-        <.white_square winner={@game.result == 1} />
-        <.link
-          class={["hover:underline", @highlight == :white && "font-bold"]}
-          href={~p"/players/#{@game.white.id}"}
-        >
-          <%= @game.white.name %><span :if={@game.white_rating && @ratings}> (<%= @game.white_rating %>)</span>
-        </.link>
-      </span>
-      <span><.score color={:white} result={@game.result} /></span>
-      <span class="col-span-2">
-        <.black_square winner={@game.result == -1} />
-        <.link
-          class={["hover:underline", @highlight == :black && "font-bold"]}
-          href={~p"/players/#{@game.black.id}"}
-        >
-          <%= @game.black.name %><span :if={@game.black_rating && @ratings}> (<%= @game.black_rating %>)</span>
-        </.link>
-      </span>
-      <span><.score color={:black} result={@game.result} /></span>
+      <.player_result
+        color={:white}
+        player={@game.white}
+        show_seed={@show_seeds}
+        seed={@game.white_seed}
+        result={@game.result}
+        rating={@ratings && @game.white_rating}
+      />
+      <.player_result
+        color={:black}
+        player={@game.black}
+        show_seed={@show_seeds}
+        seed={@game.black_seed}
+        result={@game.result}
+        rating={@ratings && @game.black_rating}
+      />
+    </div>
+    """
+  end
+
+  attr(:show_seed, :boolean, default: false)
+  attr(:seed, :integer, default: nil)
+  attr(:result, :integer, default: nil)
+  attr(:color, :atom, values: [:black, :white])
+  attr(:highlight, :boolean, default: false)
+  attr(:player, Elswisser.Players.Player)
+  attr(:rating, :integer, default: nil)
+
+  def player_result(assigns) do
+    ~H"""
+    <div class="flex">
+      <div class="flex gap-4 grow">
+        <div>
+          <.seed :if={@show_seed} seed={@seed} /><.black_square
+            :if={@color == :black}
+            winner={@result == -1}
+          /><.white_square :if={@color == :white} winner={@result == 1} />
+        </div>
+        <span>
+          <.link
+            class={["hover:underline", @highlight && "font-bold"]}
+            href={~p"/players/#{@player.id}"}
+          >
+            <%= @player.name %><span :if={@rating}> (<%= @rating %>)</span>
+          </.link>
+        </span>
+      </div>
+      <div class="justify-self-end mr-1"><.score color={@color} result={@result} /></div>
     </div>
     """
   end
@@ -99,8 +127,8 @@ defmodule ElswisserWeb.ChessComponents do
   def white_square(assigns) do
     ~H"""
     <div class={[
-      "inline-block align-text-bottom rounded-sm w-4 h-4 mr-1 border border-zinc-600",
-      @winner && "ring-2 ring-emerald-600 ring-opacity-40 bg-boardwhite"
+      "inline-block align-text-bottom rounded-sm w-4 h-4 mr-1 bg-boardwhite border border-zinc-600",
+      @winner && "ring-2 ring-emerald-600 ring-opacity-40"
     ]}>
     </div>
     """
@@ -115,6 +143,18 @@ defmodule ElswisserWeb.ChessComponents do
       @winner && "ring-2 ring-emerald-600 ring-opacity-40"
     ]}>
     </div>
+    """
+  end
+
+  attr(:seed, :integer, default: nil)
+
+  def seed(assigns) do
+    assigns = if is_nil(assigns.seed), do: assign(assigns, :seed, "-"), else: assigns
+
+    ~H"""
+    <span class="inline-block text-xs text-center align-text-bottom rounded-lg bg-zinc-200 w-4 h-4 mr-1 -ml-1">
+      <%= @seed %>
+    </span>
     """
   end
 

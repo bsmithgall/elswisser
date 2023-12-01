@@ -2,6 +2,7 @@ defmodule Elswisser.Pairings.BracketPairingTest do
   use ExUnit.Case, async: true
 
   alias Elswisser.Tournaments.Tournament
+  alias Elswisser.Players.Player
   alias Elswisser.Pairings.BracketPairing
 
   describe "next_power_of_two/1" do
@@ -19,14 +20,14 @@ defmodule Elswisser.Pairings.BracketPairingTest do
       pairings =
         BracketPairing.rating_based_pairings(%Tournament{
           players: [
-            %{rating: 800},
-            %{rating: 700},
-            %{rating: 600},
-            %{rating: 500},
-            %{rating: 400},
-            %{rating: 300},
-            %{rating: 200},
-            %{rating: 100}
+            %Player{rating: 800},
+            %Player{rating: 700},
+            %Player{rating: 600},
+            %Player{rating: 500},
+            %Player{rating: 400},
+            %Player{rating: 300},
+            %Player{rating: 200},
+            %Player{rating: 100}
           ]
         })
 
@@ -38,25 +39,32 @@ defmodule Elswisser.Pairings.BracketPairingTest do
                {600, 300},
                {700, 200}
              ]
+
+      assert Enum.map(pairings, &{&1.player_one_seed, &1.player_two_seed}) == [
+               {1, 8},
+               {4, 5},
+               {3, 6},
+               {2, 7}
+             ]
     end
 
     test "works as expected for non-powers of two (with byes)" do
       pairings =
         BracketPairing.rating_based_pairings(%Tournament{
           players: [
-            %{rating: 1300},
-            %{rating: 1200},
-            %{rating: 1100},
-            %{rating: 1000},
-            %{rating: 900},
-            %{rating: 800},
-            %{rating: 700},
-            %{rating: 600},
-            %{rating: 500},
-            %{rating: 400},
-            %{rating: 300},
-            %{rating: 200},
-            %{rating: 100}
+            %Player{rating: 1300},
+            %Player{rating: 1200},
+            %Player{rating: 1100},
+            %Player{rating: 1000},
+            %Player{rating: 900},
+            %Player{rating: 800},
+            %Player{rating: 700},
+            %Player{rating: 600},
+            %Player{rating: 500},
+            %Player{rating: 400},
+            %Player{rating: 300},
+            %Player{rating: 200},
+            %Player{rating: 100}
           ]
         })
 
@@ -71,6 +79,17 @@ defmodule Elswisser.Pairings.BracketPairingTest do
                {800, 300},
                {700, 400},
                {1200, nil}
+             ]
+
+      assert Enum.map(pairings, &{&1.player_one_seed, &1.player_two_seed}) == [
+               {1, nil},
+               {8, 9},
+               {5, 12},
+               {4, 13},
+               {3, nil},
+               {6, 11},
+               {7, 10},
+               {2, nil}
              ]
     end
   end

@@ -37,6 +37,10 @@ defmodule Elswisser.Rounds.Round do
     from([round: r] in query, where: r.tournament_id == ^id)
   end
 
+  def where_round_number(query, number) do
+    from([round: r] in query, where: r.number == ^number)
+  end
+
   def with_matches(query) do
     from([round: r] in query, left_join: m in assoc(r, :matches), as: :match)
   end
@@ -55,6 +59,15 @@ defmodule Elswisser.Rounds.Round do
 
   def preload_matches(query) do
     from([match: m] in query, preload: [matches: m])
+  end
+
+  def preload_matches_with_games(query) do
+    from([match: m, game: g] in query,
+      preload: [
+        matches: {m, games: g},
+        games: g
+      ]
+    )
   end
 
   def preload_all(query) do

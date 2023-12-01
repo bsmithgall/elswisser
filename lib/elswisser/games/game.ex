@@ -15,6 +15,8 @@ defmodule Elswisser.Games.Game do
     field(:black_rating, :integer, default: 0)
     field(:white_rating_change, :integer, default: 0)
     field(:black_rating_change, :integer, default: 0)
+    field(:white_seed, :integer)
+    field(:black_seed, :integer)
 
     belongs_to(:round, Elswisser.Rounds.Round)
     belongs_to(:match, Elswisser.Matches.Match)

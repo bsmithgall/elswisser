@@ -28,9 +28,28 @@ defmodule Elswisser.Matches.Match do
     from([match: m] in query, left_join: g in assoc(m, :games), as: :game)
   end
 
+  def order_by_display_number(query) do
+    from([match: m] in query, order_by: [asc: m.display_order])
+  end
+
   def first_game_or_nil(nil), do: nil
 
   def first_game_or_nil(%__MODULE__{} = match) do
     Enum.at(match.games, 0)
+  end
+
+  def winner(%__MODULE__{} = match) do
+    case match.games
+         |> Enum.map(& &1.result)
+         |> Enum.sum() do
+      n when n > 0 ->
+        {hd(match.games).white, hd(match.games).white_seed}
+
+      n when n < 0 ->
+        {hd(match.games).black, hd(match.games).black_seed}
+
+      _ ->
+        nil
+    end
   end
 end
