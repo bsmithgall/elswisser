@@ -1,0 +1,14 @@
+<.header class="pt-4">
+  <%= @tournament.name %>
+  <:actions>
+    <.link href={~p"/tournaments/#{@tournament}/edit"}>
+      <.button>Edit tournament</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<ElswisserWeb.Brackets.SingleElimination.bracket
+  length={@tournament.length}
+  rounds={@tournament.rounds}
+  size={length(@tournament.players)}
+/>

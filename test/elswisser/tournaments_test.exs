@@ -129,13 +129,6 @@ defmodule Elswisser.TournamentsTest do
                :single_elimination
              ) == 5
     end
-
-    test "calculate_length/2 works as expected for double_elimination tournaments" do
-      assert Tournaments.calculate_length(
-               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
-               :double_elimination
-             ) == 9
-    end
   end
 
   describe "create_next_round/2" do
@@ -153,6 +146,16 @@ defmodule Elswisser.TournamentsTest do
     end
 
     test "works as expected for creating the first round of a single_elimination tournament" do
+      tournament = tournament_with_players_fixture(%{type: :single_elimination, length: 2})
+      {:ok, rnd} = Tournaments.create_next_round(tournament, 0)
+
+      assert rnd.number == 1
+
+      rnd = Rounds.get_round_with_games(rnd.id)
+      assert length(rnd.games) == 2
+    end
+
+    test "works as expected for creating the second round of a single elimination tournament" do
       tournament = tournament_with_players_fixture(%{type: :single_elimination, length: 2})
       {:ok, rnd} = Tournaments.create_next_round(tournament, 0)
 

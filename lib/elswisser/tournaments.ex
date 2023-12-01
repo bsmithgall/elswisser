@@ -311,12 +311,6 @@ defmodule Elswisser.Tournaments do
     players |> length() |> Math.log(2) |> ceil()
   end
 
-  def calculate_length(players, type) when is_list(players) and type in [:double_elimination] do
-    single_rnds = players |> length() |> Math.log(2) |> ceil()
-
-    2 * single_rnds - 1
-  end
-
   def calculate_length(_, _), do: 0
 
   defp ensure_atom(attrs) when is_map(attrs) do
