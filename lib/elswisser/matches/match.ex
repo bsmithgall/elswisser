@@ -1,4 +1,6 @@
 defmodule Elswisser.Matches.Match do
+  require Elswisser.Pairings.Bye
+  alias Elswisser.Pairings.Bye
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query, warn: false
@@ -47,6 +49,12 @@ defmodule Elswisser.Matches.Match do
 
       n when n < 0 ->
         {hd(match.games).black, hd(match.games).black_seed}
+
+      0 when Bye.bye_player?(hd(match.games).white) ->
+        {hd(match.games).black, hd(match.games).black_seed}
+
+      0 when Bye.bye_player?(hd(match.games).black) ->
+        {hd(match.games).white, hd(match.games).white_seed}
 
       _ ->
         nil

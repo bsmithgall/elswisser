@@ -1,6 +1,7 @@
 defmodule Elswisser.Pairings.BracketPairing do
   use Ecto.Schema
 
+  require Elswisser.Pairings.Bye
   alias Elswisser.Matches.Match
   alias Elswisser.Pairings.Seed
   alias Elswisser.Players.Player
@@ -95,6 +96,10 @@ defmodule Elswisser.Pairings.BracketPairing do
       display_order: pairing.display_order
     }
   end
+
+  def assign_colors(%__MODULE__{player_two: player_two} = pairing)
+      when Bye.bye_player?(player_two),
+      do: pairing
 
   def assign_colors(%__MODULE__{} = pairing) do
     if :rand.uniform() > 0.5,

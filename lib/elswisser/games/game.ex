@@ -3,6 +3,8 @@ defmodule Elswisser.Games.Game do
   import Ecto.Changeset
   import Ecto.Query, warn: false
 
+  require Elswisser.Pairings.Bye
+  alias Elswisser.Pairings.Bye
   alias Elswisser.Games.PgnProvider
   alias Elswisser.Games.Game
 
@@ -186,6 +188,10 @@ defmodule Elswisser.Games.Game do
 
   def complete?(%Game{} = game) do
     !(is_nil(game.result) and is_nil(game.finished_at))
+  end
+
+  def bye?(%Game{} = game) do
+    Bye.bye_player?(game.white) or Bye.bye_player?(game.black)
   end
 
   def validate_game_link(changeset) do

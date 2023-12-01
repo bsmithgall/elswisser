@@ -12,4 +12,6 @@ defmodule Elswisser.Pairings.Bye do
       white_games: [],
       black_games: []
     }
+
+  defguard bye_player?(player) when player.id == @bye_player_id
 end
