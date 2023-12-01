@@ -12,6 +12,7 @@ defmodule ElswisserWeb.ChessComponents do
   use Phoenix.Component
   use Phoenix.VerifiedRoutes, endpoint: ElswisserWeb.Endpoint, router: ElswisserWeb.Router
 
+  alias Elswisser.Games.Game
   alias Elswisser.Players
 
   attr(:game, :map, default: nil)
@@ -48,6 +49,7 @@ defmodule ElswisserWeb.ChessComponents do
         seed={@game.white_seed}
         result={@game.result}
         rating={@ratings && @game.white_rating}
+        bye={Game.bye?(@game)}
       />
       <.player_result
         color={:black}
@@ -56,6 +58,7 @@ defmodule ElswisserWeb.ChessComponents do
         seed={@game.black_seed}
         result={@game.result}
         rating={@ratings && @game.black_rating}
+        bye={Game.bye?(@game)}
       />
     </div>
     """
@@ -68,6 +71,7 @@ defmodule ElswisserWeb.ChessComponents do
   attr(:highlight, :boolean, default: false)
   attr(:player, Elswisser.Players.Player)
   attr(:rating, :integer, default: nil)
+  attr(:bye, :boolean, default: false)
 
   def player_result(assigns) do
     ~H"""
@@ -88,7 +92,7 @@ defmodule ElswisserWeb.ChessComponents do
           </.link>
         </span>
       </div>
-      <div class="justify-self-end mr-1"><.score color={@color} result={@result} /></div>
+      <div class="justify-self-end mr-1"><.score color={@color} result={@result} bye={@bye} /></div>
     </div>
     """
   end
@@ -161,11 +165,18 @@ defmodule ElswisserWeb.ChessComponents do
   attr(:color, :atom, values: [:white, :black])
   attr(:result, :integer)
   attr(:highlight, :boolean)
+  attr(:bye, :boolean, default: false)
+
+  def score(%{bye: true} = assigns) do
+    ~H"""
+    <span class="font-mono">-</span>
+    """
+  end
 
   def score(%{color: :white} = assigns) do
     ~H"""
     <span :if={@result == 1} class="font-mono">1</span>
-    <span :if={@result == 0}>&half;</span>
+    <span :if={@result == 0} class="font-mono">&half;</span>
     <span :if={@result == -1} class="font-mono">0</span>
     <span :if={is_nil(@result)} class="font-mono">-</span>
     """
@@ -174,7 +185,7 @@ defmodule ElswisserWeb.ChessComponents do
   def score(%{color: :black} = assigns) do
     ~H"""
     <span :if={@result == 1} class="font-mono">0</span>
-    <span :if={@result == 0}>&half;</span>
+    <span :if={@result == 0} class="font-mono">&half;</span>
     <span :if={@result == -1} class="font-mono">1</span>
     <span :if={is_nil(@result)} class="font-mono">-</span>
     """

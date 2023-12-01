@@ -9,7 +9,8 @@ defmodule Elswisser.Tournaments.Tournament do
 
   alias __MODULE__
 
-  @types ~w[swiss single_elimination]a
+  @types ~w[swiss single_elimination double_elimination]a
+  @knockouts ~w[single_elimination double_elimination]a
 
   schema "tournaments" do
     field(:name, :string)
@@ -94,7 +95,7 @@ defmodule Elswisser.Tournaments.Tournament do
 
   def knockout?(%Tournament{} = tournament), do: knockout?(tournament.type)
 
-  def knockout?(type) when is_atom(type) do
-    type in ~w[single_elimination]a
-  end
+  def knockout?(type) when is_atom(type), do: type in @knockouts
+
+  defguard is_knockout?(type) when is_atom(type) and type in @knockouts
 end

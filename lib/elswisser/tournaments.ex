@@ -4,6 +4,7 @@ defmodule Elswisser.Tournaments do
   """
 
   import Ecto.Query, warn: false
+  require Elswisser.Tournaments.Tournament
   alias Elswisser.Tournaments.TournamentPlayer
   alias Elswisser.Matches.Match
   alias Elswisser.Matches
@@ -174,7 +175,7 @@ defmodule Elswisser.Tournaments do
   def change_tournament(%Tournament{} = tournament, attrs)
       when not is_map_key(attrs, :length) do
     atoms = ensure_atom(attrs)
-    type = Map.get(atoms, :type)
+    type = if is_nil(tournament.type), do: Map.get(atoms, :type), else: tournament.type
 
     players =
       Elswisser.Players.list_by_id(atoms[:player_ids])
@@ -226,9 +227,10 @@ defmodule Elswisser.Tournaments do
   end
 
   def create_next_round(
-        %Tournament{type: :single_elimination} = tournament,
+        %Tournament{type: type} = tournament,
         0
-      ) do
+      )
+      when Tournament.is_knockout?(type) do
     {:ok, rnd} =
       Rounds.create_round(%{
         tournament_id: tournament.id,
@@ -307,8 +309,15 @@ defmodule Elswisser.Tournaments do
     do: calculate_length(players, String.to_atom(type))
 
   def calculate_length(players, type)
-      when is_list(players) and type in [:swiss, :single_elimination] do
+      when is_list(players) and type in ~w[swiss single_elimination]a do
     players |> length() |> Math.log(2) |> ceil()
+  end
+
+  def calculate_length(players, :double_elimination) when is_list(players) do
+    wb = players |> length() |> Math.log(2) |> ceil()
+    lb = wb + (wb |> Math.log(2) |> ceil())
+
+    wb + lb + 1
   end
 
   def calculate_length(_, _), do: 0

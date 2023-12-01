@@ -1,4 +1,6 @@
 defmodule ElswisserWeb.RoundLive.Round do
+  require Elswisser.Tournaments.Tournament
+  alias Elswisser.Tournaments.Tournament
   alias Elswisser.Pairings.Bye
   use ElswisserWeb, :live_view
 
@@ -93,6 +95,7 @@ defmodule ElswisserWeb.RoundLive.Round do
           game={game}
           disabled={@round.status == :finished}
           bye={game.black_id == Bye.bye_player_id() or game.white_id == Bye.bye_player_id()}
+          tournament_type={@tournament_type}
         />
       </:col>
       <:col :let={game} label="Actions" center>
@@ -292,6 +295,16 @@ defmodule ElswisserWeb.RoundLive.Round do
   attr(:game, :map, required: true)
   attr(:disabled, :boolean, default: false)
   attr(:bye, :boolean, default: false)
+  attr(:tournament_type, :atom, default: :swiss)
+
+  def result_select(%{bye: true, tournament_type: type} = assigns)
+      when Tournament.is_knockout?(type) do
+    ~H"""
+    <div class="-mt-1">
+      <.input type="select" name="result" options={[Walkover: 1]} disabled={true} value={0} />
+    </div>
+    """
+  end
 
   def result_select(%{bye: true} = assigns) do
     ~H"""
