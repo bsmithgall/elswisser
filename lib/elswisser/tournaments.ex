@@ -4,9 +4,14 @@ defmodule Elswisser.Tournaments do
   """
 
   import Ecto.Query, warn: false
+  alias Elswisser.Tournaments.TournamentPlayer
+  alias Elswisser.Matches.Match
+  alias Elswisser.Matches
+  alias Elswisser.Pairings.BracketPairing
   alias Elswisser.Repo
 
   alias Elswisser.Tournaments.Tournament
+  alias Elswisser.Rounds
   alias Elswisser.Rounds.Round
   alias Elswisser.Games.Game
 
@@ -76,23 +81,30 @@ defmodule Elswisser.Tournaments do
     |> Tournament.where_id(id)
     |> Tournament.with_players()
     |> Tournament.with_rounds()
-    |> Round.with_games()
+    |> Round.with_matches()
     |> Round.order_by_number()
+    |> Match.with_games()
     |> Game.with_both_players()
     |> Tournament.preload_all()
     |> Repo.one()
   end
 
+  def get_tournament_players(id) do
+    TournamentPlayer.from()
+    |> TournamentPlayer.where_tournament_id(id)
+    |> Repo.all()
+  end
+
   def current_round(%Tournament{} = tournament) when is_map_key(tournament, :rounds) do
     case tournament.rounds do
-      %Ecto.Association.NotLoaded{} -> %Elswisser.Rounds.Round{number: 0}
-      rnds when is_list(rnds) and length(rnds) == 0 -> %Elswisser.Rounds.Round{number: 0}
+      %Ecto.Association.NotLoaded{} -> %Round{number: 0}
+      rnds when is_list(rnds) and length(rnds) == 0 -> %Round{number: 0}
       _ -> Enum.max_by(tournament.rounds, fn r -> r.number end)
     end
   end
 
   def current_round(%Tournament{} = tournament) when not is_map_key(tournament, :rounds) do
-    %Elswisser.Rounds.Round{number: 0}
+    %Round{number: 0}
   end
 
   @doc """
@@ -161,19 +173,27 @@ defmodule Elswisser.Tournaments do
 
   def change_tournament(%Tournament{} = tournament, attrs)
       when not is_map_key(attrs, :length) do
-    players = Elswisser.Players.list_by_id(ensure_atom(attrs)[:player_ids])
-    len = calculate_length(players)
+    atoms = ensure_atom(attrs)
+    type = Map.get(atoms, :type)
+
+    players =
+      Elswisser.Players.list_by_id(atoms[:player_ids])
+      |> TournamentPlayer.from_players(tournament.id, Tournament.knockout?(type))
+
+    len = calculate_length(players, type)
 
     tournament
     |> Repo.preload(:players)
     |> Repo.preload(:rounds)
-    |> Tournament.changeset(attrs |> ensure_atom |> Map.merge(%{length: len}))
+    |> Tournament.changeset(atoms |> Map.merge(%{length: len}))
     |> maybe_put_players(players)
   end
 
   def change_tournament(%Tournament{} = tournament, attrs)
       when is_map_key(attrs, :length) do
-    players = Elswisser.Players.list_by_id(ensure_atom(attrs)[:player_ids])
+    players =
+      Elswisser.Players.list_by_id(ensure_atom(attrs)[:player_ids])
+      |> TournamentPlayer.from_players(tournament.id, Tournament.knockout?(tournament))
 
     tournament
     |> Repo.preload(:players)
@@ -187,21 +207,66 @@ defmodule Elswisser.Tournaments do
     create_next_round(tournament, String.to_integer(current_round_number))
   end
 
+  def create_next_round(%Tournament{} = tournament, current_round_number)
+      when current_round_number > tournament.length do
+    :finished
+  end
+
   @doc """
   Attempt to create the next round for a tournament. If the next round number is
   > than the tournament's length, return :completed, otherwise return :ok or
   > :error based on the results from Ecto.
   """
-  def create_next_round(%Tournament{} = tournament, current_round_number) do
-    if current_round_number + 1 > tournament.length do
-      :finished
-    else
-      Elswisser.Rounds.create_round(%{
+  def create_next_round(%Tournament{type: :swiss} = tournament, current_round_number) do
+    Rounds.create_round(%{
+      tournament_id: tournament.id,
+      number: current_round_number + 1,
+      status: :pairing
+    })
+  end
+
+  def create_next_round(
+        %Tournament{type: :single_elimination} = tournament,
+        0
+      ) do
+    {:ok, rnd} =
+      Rounds.create_round(%{
+        tournament_id: tournament.id,
+        number: 1,
+        status: :playing
+      })
+
+    BracketPairing.rating_based_pairings(tournament)
+    |> Enum.map(&BracketPairing.assign_colors/1)
+    # re-sort here to get the proper board numbers
+    |> Enum.sort_by(&BracketPairing.max_player_rating/1, :desc)
+    |> Enum.map(&BracketPairing.to_game_params(&1, rnd.id))
+    |> Matches.create_matches_from_games()
+
+    {:ok, rnd}
+  end
+
+  def create_next_round(
+        %Tournament{type: :single_elimination} = tournament,
+        current_round_number
+      ) do
+    {:ok, rnd} =
+      Rounds.create_round(%{
         tournament_id: tournament.id,
         number: current_round_number + 1,
-        status: :pairing
+        status: :playing
       })
-    end
+
+    Rounds.get_round_with_matches_and_players(tournament.id, current_round_number)
+    |> BracketPairing.next_matchups(:winners)
+    |> Enum.map(&BracketPairing.assign_colors/1)
+    |> Enum.sort_by(&BracketPairing.max_player_rating/1, :desc)
+    |> Enum.map(&BracketPairing.to_game_params(&1, rnd.id))
+    |> Matches.create_matches_from_games()
+
+    # get all the matches and games from the just finished round
+
+    {:ok, rnd}
   end
 
   def empty_changeset(%Tournament{} = tournament, attrs \\ %{}) do
@@ -234,15 +299,19 @@ defmodule Elswisser.Tournaments do
     |> Enum.split_with(fn p -> p.in_tournament end)
   end
 
-  def calculate_length(players) when is_list(players) do
-    if Enum.empty?(players) do
-      0
-    else
-      length(players) |> Math.log2() |> ceil()
-    end
+  def calculate_length(players, _type) when length(players) == 0 do
+    0
   end
 
-  def calculate_length(_), do: 0
+  def calculate_length(players, type) when is_binary(type),
+    do: calculate_length(players, String.to_atom(type))
+
+  def calculate_length(players, type)
+      when is_list(players) and type in [:swiss, :single_elimination] do
+    players |> length() |> Math.log(2) |> ceil()
+  end
+
+  def calculate_length(_, _), do: 0
 
   defp ensure_atom(attrs) when is_map(attrs) do
     Enum.reduce(attrs, %{}, fn
@@ -251,11 +320,11 @@ defmodule Elswisser.Tournaments do
     end)
   end
 
-  defp maybe_put_players(changeset, players) do
-    if Enum.empty?(players) do
+  defp maybe_put_players(changeset, tournament_players) do
+    if Enum.empty?(tournament_players) do
       changeset
     else
-      changeset |> Ecto.Changeset.put_assoc(:players, players)
+      changeset |> Ecto.Changeset.put_assoc(:tournament_players, tournament_players)
     end
   end
 end

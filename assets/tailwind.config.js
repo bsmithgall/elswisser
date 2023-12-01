@@ -6,7 +6,12 @@ const fs = require("fs");
 const path = require("path");
 
 module.exports = {
-  content: ["./js/**/*.js", "../lib/*_web.ex", "../lib/*_web/**/*.*ex"],
+  content: [
+    "./js/**/*.js",
+    "../lib/*_web.ex",
+    "../lib/*_web/**/*.*ex",
+    "node_modules/@chrisoakman/chessboard2/dist/chessboard2.min.css",
+  ],
   theme: {
     extend: {
       colors: {

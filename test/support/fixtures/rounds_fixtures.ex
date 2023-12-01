@@ -10,7 +10,7 @@ defmodule Elswisser.RoundsFixtures do
   Generate a round.
   """
   def round_fixture(attrs \\ %{}) do
-    {:ok, tournament} = Tournaments.create_tournament(%{name: "test"})
+    {:ok, tournament} = Tournaments.create_tournament(%{name: "test", type: :swiss})
 
     {:ok, round} =
       attrs

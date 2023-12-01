@@ -11,7 +11,8 @@ defmodule Elswisser.TournamentsFixtures do
     {:ok, tournament} =
       attrs
       |> Enum.into(%{
-        name: "some name"
+        name: "some name",
+        type: :swiss
       })
       |> Elswisser.Tournaments.create_tournament()
 
@@ -28,6 +29,7 @@ defmodule Elswisser.TournamentsFixtures do
       attrs
       |> Enum.into(%{
         name: "some name",
+        type: :swiss,
         player_ids: [player1.id, player2.id, player3.id, player4.id]
       })
       |> Elswisser.Tournaments.create_tournament()

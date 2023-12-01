@@ -1,6 +1,5 @@
 <.header class="pt-4">
-  Tournament <%= @tournament.id %>
-  <:subtitle>This is a tournament record from your database.</:subtitle>
+  <%= @tournament.name %>
   <:actions>
     <.link href={~p"/tournaments/#{@tournament}/edit"}>
       <.button>Edit tournament</.button>

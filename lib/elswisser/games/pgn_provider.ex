@@ -1,7 +1,6 @@
 defmodule Elswisser.Games.PgnProvider do
   @type t :: module()
 
-  alias Elswisser.Games.PgnProvider
   @callback provides_for :: Regex.t()
 
   @callback extract_id(binary()) :: {:ok | :error, String.t()}
@@ -20,6 +19,6 @@ defmodule Elswisser.Games.PgnProvider do
     end
   end
 
-  @spec pgn_providers() :: [PgnProvider.t()]
+  @spec pgn_providers() :: [__MODULE__.t()]
   def pgn_providers(), do: [Elswisser.Games.Chesscom, Elswisser.Games.Lichess]
 end

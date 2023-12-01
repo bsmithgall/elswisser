@@ -11,7 +11,7 @@ defmodule ElswisserWeb.GameController do
   end
 
   def edit(conn, %{"id" => id}) do
-    game = Games.get_game!(id)
+    game = Games.get_game_with_players!(id)
     changeset = Games.change_game(game)
     render(conn, :edit, game: game, changeset: changeset)
   end

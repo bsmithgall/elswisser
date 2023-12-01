@@ -3,19 +3,25 @@ defmodule Elswisser.Tournaments.Tournament do
   import Ecto.Changeset
   import Ecto.Query, warn: false
 
-  alias Elswisser.Players.Player
+  alias Elswisser.Tournaments.TournamentPlayer
+  alias Elswisser.Rounds.Round
+  alias Elswisser.Games.Game
+
+  alias __MODULE__
+
+  @types ~w[swiss single_elimination]a
 
   schema "tournaments" do
     field(:name, :string)
     field(:length, :integer)
 
-    many_to_many(:players, Player,
-      join_through: Elswisser.Tournaments.TournamentPlayer,
-      on_replace: :delete
-    )
+    field(:type, Ecto.Enum, values: @types)
 
-    has_many(:rounds, Elswisser.Rounds.Round)
-    has_many(:games, Elswisser.Games.Game)
+    has_many(:tournament_players, TournamentPlayer, on_replace: :delete)
+    has_many(:players, through: [:tournament_players, :player])
+
+    has_many(:rounds, Round)
+    has_many(:games, Game)
 
     timestamps()
   end
@@ -23,8 +29,10 @@ defmodule Elswisser.Tournaments.Tournament do
   @doc false
   def changeset(tournament, attrs) do
     tournament
-    |> cast(attrs, [:name, :length])
-    |> validate_required([:name, :length])
+    |> cast(attrs, [:name, :length, :type])
+    |> validate_required([:name, :length, :type])
+    |> validate_inclusion(:type, @types)
+    |> validate_tournament_type_unchaged()
   end
 
   def from() do
@@ -62,12 +70,31 @@ defmodule Elswisser.Tournaments.Tournament do
   end
 
   def preload_all(query) do
-    from([round: r, game: g, white: w, black: b, player: p] in query,
-      preload: [rounds: {r, games: {g, white: w, black: b}}, players: p]
+    from([round: r, match: m, game: g, white: w, black: b, player: p] in query,
+      preload: [
+        rounds: {r, matches: {m, games: {g, white: w, black: b}}, games: {g, white: w, black: b}},
+        players: p
+      ]
     )
   end
 
   def most_recent_first(query) do
     from(t in query, order_by: [desc: :inserted_at])
+  end
+
+  def validate_tournament_type_unchaged(changeset) do
+    if !changed?(changeset, :type) or changed?(changeset, :type, from: nil) do
+      changeset
+    else
+      add_error(changeset, :type, "Type cannot be changed after it is set")
+    end
+  end
+
+  def knockout?(type) when is_binary(type), do: knockout?(String.to_existing_atom(type))
+
+  def knockout?(%Tournament{} = tournament), do: knockout?(tournament.type)
+
+  def knockout?(type) when is_atom(type) do
+    type in ~w[single_elimination]a
   end
 end

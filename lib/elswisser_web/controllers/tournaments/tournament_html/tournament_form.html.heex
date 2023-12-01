@@ -4,7 +4,14 @@
   </.error>
   <.input field={f[:name]} type="text" label="Name" />
 
-  <%= player_select(f, @changeset) %>
+  <.input field={f[:type]} type="select" options={tournament_opts()} disabled={!@new} />
+  <.input
+    field={f[:player_ids]}
+    type="select"
+    multiple
+    options={player_opts()}
+    value={selected_players(@changeset)}
+  />
 
   <:actions>
     <.button>Save Tournament</.button>

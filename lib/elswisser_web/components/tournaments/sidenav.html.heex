@@ -12,12 +12,14 @@
     active={@active == "roster"}
   />
   <.navlink
+    :if={@tournament.type == :swiss}
     label="Scores"
     href={~p"/tournaments/#{@tournament}/scores"}
     icon="hero-list-bullet-mini"
     active={@active == "scores"}
   />
   <.navlink
+    :if={@tournament.type == :swiss}
     label="Crosstable"
     href={~p"/tournaments/#{@tournament}/crosstable"}
     icon="hero-table-cells-mini"

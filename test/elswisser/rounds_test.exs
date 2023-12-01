@@ -17,7 +17,7 @@ defmodule Elswisser.RoundsTest do
     end
 
     test "create_round/1 with valid data creates a round" do
-      {:ok, tournament} = Tournaments.create_tournament(%{name: "test"})
+      {:ok, tournament} = Tournaments.create_tournament(%{name: "test", type: :swiss})
       valid_attrs = %{number: 42, tournament_id: tournament.id, status: :playing}
 
       assert {:ok, %Round{} = round} = Rounds.create_round(valid_attrs)

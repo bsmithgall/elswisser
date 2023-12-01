@@ -7,7 +7,7 @@ defmodule ElswisserWeb.Tournaments.TournamentController do
   alias Elswisser.Tournaments.Tournament
   alias ElswisserWeb.Plugs.EnsureTournament
 
-  plug EnsureTournament, "rounds_players" when action in [:show, :edit]
+  plug EnsureTournament, "all" when action in [:show, :edit]
 
   def index(conn, _params) do
     tournaments = Tournaments.list_tournaments()
@@ -34,7 +34,7 @@ defmodule ElswisserWeb.Tournaments.TournamentController do
   def show(conn, _params) do
     conn
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
-    |> render(:show,
+    |> render("show_#{conn.assigns[:tournament].type}.html",
       tournament: conn.assigns[:tournament],
       current_round: conn.assigns[:current_round]
     )

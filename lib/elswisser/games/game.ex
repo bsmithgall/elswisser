@@ -15,8 +15,11 @@ defmodule Elswisser.Games.Game do
     field(:black_rating, :integer, default: 0)
     field(:white_rating_change, :integer, default: 0)
     field(:black_rating_change, :integer, default: 0)
+    field(:white_seed, :integer)
+    field(:black_seed, :integer)
 
     belongs_to(:round, Elswisser.Rounds.Round)
+    belongs_to(:match, Elswisser.Matches.Match)
     belongs_to(:tournament, Elswisser.Tournaments.Tournament)
     belongs_to(:white, Elswisser.Players.Player)
     belongs_to(:black, Elswisser.Players.Player)
@@ -31,17 +34,18 @@ defmodule Elswisser.Games.Game do
       :black_id,
       :black_rating,
       :black_rating_change,
+      :finished_at,
       :game_link,
+      :match_id,
       :pgn,
       :result,
       :round_id,
       :tournament_id,
       :white_id,
       :white_rating,
-      :white_rating_change,
-      :finished_at
+      :white_rating_change
     ])
-    |> validate_required([:white_id, :black_id, :round_id, :tournament_id])
+    |> validate_required([:white_id, :black_id, :round_id, :tournament_id, :match_id])
     |> validate_different_players()
     |> validate_game_link()
     |> unique_constraint(:unique_white_players, name: :games_white_id_round_id_unique_idx)

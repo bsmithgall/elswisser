@@ -1,6 +1,12 @@
-<.header class="pt-4">
+<.header class="pt-4 pb-8">
   Edit Game <%= @game.id %>
 </.header>
+
+<.section_title>Result</.section_title>
+
+<.game_result game={@game} />
+
+<.section_title class="pt-8">Edit</.section_title>
 
 <.game_form
   changeset={@changeset}

@@ -2,6 +2,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   alias Elswisser.Pairings.Bye
   use ElswisserWeb, :live_view
 
+  alias Elswisser.Matches
   alias Elswisser.Games
   alias Elswisser.Games.PgnProvider
   alias Elswisser.Rounds
@@ -10,13 +11,22 @@ defmodule ElswisserWeb.RoundLive.Round do
   embed_templates("round_html/*")
 
   @impl true
-  def mount(_params, session, socket) do
-    rnd = fetch_round(session["round_id"])
+  def mount(
+        _params,
+        %{
+          "round_id" => round_id,
+          "tournament_type" => tournament_type,
+          "user_token" => user_token
+        },
+        socket
+      ) do
+    rnd = fetch_round(round_id)
     roster = Players.get_tournament_partipants(rnd.tournament_id)
 
     {:ok,
      socket
      |> assign(round: rnd)
+     |> assign(tournament_type: tournament_type)
      |> assign(
        games:
          Enum.map(rnd.games, fn g -> Map.merge(g, %{valid_link: valid_link?(g.game_link)}) end)
@@ -24,13 +34,18 @@ defmodule ElswisserWeb.RoundLive.Round do
      |> assign(roster: roster)
      |> assign(display: :pairings)
      |> assign(show_game_info: false)
-     |> assign(signed_in: !is_nil(session["user_token"])), layout: false}
+     |> assign(signed_in: !is_nil(user_token)), layout: false}
   end
 
   @impl true
   def render(%{games: games} = assigns) when length(games) == 0 do
     ~H"""
-    <.round_header round={@round} display={@display} signed_in={@signed_in} />
+    <.round_header
+      round={@round}
+      display={@display}
+      signed_in={@signed_in}
+      tournament_type={@tournament_type}
+    />
 
     <.header class="mt-11">No pairings made yet!</.header>
     """
@@ -42,7 +57,12 @@ defmodule ElswisserWeb.RoundLive.Round do
     <.flash id="round-success-flash" kind={:info} title="Success!" flash={@flash} />
     <.flash id="round-error-flash" kind={:error} title="Error!" flash={@flash} />
 
-    <.round_header round={@round} display={@display} signed_in={@signed_in} />
+    <.round_header
+      round={@round}
+      display={@display}
+      signed_in={@signed_in}
+      tournament_type={@tournament_type}
+    />
     <.modal
       :if={@show_game_info}
       id="game-info"
@@ -80,6 +100,7 @@ defmodule ElswisserWeb.RoundLive.Round do
           game={game}
           signed_in={@signed_in}
           bye={game.black_id == Bye.bye_player_id() or game.white_id == Bye.bye_player_id()}
+          swiss={@tournament_type == :swiss}
         />
       </:col>
     </.table>
@@ -92,7 +113,12 @@ defmodule ElswisserWeb.RoundLive.Round do
     <.flash id="round-success-flash" kind={:info} title="Success!" flash={@flash} />
     <.flash id="round-error-flash" kind={:error} title="Error!" flash={@flash} />
 
-    <.round_header round={@round} display={@display} signed_in={@signed_in} />
+    <.round_header
+      round={@round}
+      display={@display}
+      signed_in={@signed_in}
+      tournament_type={@tournament_type}
+    />
 
     <.pairings_share games={@games} number={@round.number} />
     """
@@ -173,7 +199,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   def handle_event("unpair-players", %{"id" => id}, socket) do
     game = find_game(socket, id)
 
-    with {:ok, _deleted} <- Games.delete_game(game),
+    with {:ok, _} <- Matches.delete_from_game(game),
          {:ok, _} <- Rounds.set_pairing(socket.assigns[:round]) do
       {:noreply,
        socket |> assign(:games, Enum.filter(socket.assigns[:games], fn g -> g.id != game.id end))}
@@ -230,6 +256,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   attr(:display, :string, required: true)
   attr(:round, :map, required: true)
   attr(:signed_in, :boolean, required: true)
+  attr(:tournament_type, :atom, required: true)
 
   def round_header(assigns)
 
@@ -294,6 +321,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   attr(:game, :map, required: true)
   attr(:signed_in, :boolean, default: false)
   attr(:bye, :boolean, default: false)
+  attr(:swiss, :boolean, required: true)
 
   def result_actions(assigns) do
     ~H"""
@@ -317,7 +345,7 @@ defmodule ElswisserWeb.RoundLive.Round do
       <.icon class="-mt-1 ml-2" name="hero-arrow-top-right-on-square" />
     </a>
     <button
-      :if={@signed_in}
+      :if={@signed_in && @swiss}
       phx-click="switch-player-colors"
       phx-value-id={@game.id}
       disabled={!is_nil(@game.result)}
@@ -327,7 +355,7 @@ defmodule ElswisserWeb.RoundLive.Round do
       <.icon class="-mt-1 ml-2" name="hero-arrow-path" />
     </button>
     <button
-      :if={@signed_in}
+      :if={@signed_in && @swiss}
       phx-click="unpair-players"
       phx-value-id={@game.id}
       disabled={!is_nil(@game.result) && !@bye}
@@ -374,7 +402,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   end
 
   defp fetch_round(round_id) do
-    Rounds.get_round_with_games_and_players!(round_id)
+    Rounds.get_round_with_matches_and_players!(round_id)
   end
 
   # Given an update to an individual game, merge the update into the socket's

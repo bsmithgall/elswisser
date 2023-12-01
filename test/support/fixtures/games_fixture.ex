@@ -9,6 +9,7 @@ defmodule Elswisser.GamesFixtures do
   """
   def game_fixture(attrs \\ %{}) do
     rnd = Elswisser.RoundsFixtures.round_fixture()
+    match = Elswisser.MatchFixture.match_fixture(rnd)
     white = Elswisser.PlayersFixtures.player_fixture()
     black = Elswisser.PlayersFixtures.player_fixture()
 
@@ -18,6 +19,7 @@ defmodule Elswisser.GamesFixtures do
         white_id: white.id,
         black_id: black.id,
         round_id: rnd.id,
+        match_id: match.id,
         tournament_id: rnd.tournament_id
       })
       |> Elswisser.Games.create_game()
@@ -30,11 +32,14 @@ defmodule Elswisser.GamesFixtures do
         %Elswisser.Players.Player{} = white,
         %Elswisser.Players.Player{} = black
       ) do
+    match = Elswisser.MatchFixture.match_fixture(rnd)
+
     {:ok, game} =
       Elswisser.Games.create_game(%{
         white_id: white.id,
         black_id: black.id,
         round_id: rnd.id,
+        match_id: match.id,
         tournament_id: rnd.tournament_id
       })
 

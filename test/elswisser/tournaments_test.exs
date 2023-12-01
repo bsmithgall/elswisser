@@ -1,12 +1,14 @@
 defmodule Elswisser.TournamentsTest do
+  alias Elswisser.Rounds
+  alias Elswisser.Tournaments.Tournament
   use Elswisser.DataCase
 
   alias Elswisser.Tournaments
 
   describe "tournaments" do
     alias Elswisser.Tournaments.Tournament
-
     import Elswisser.TournamentsFixtures
+    import Elswisser.PlayersFixtures
 
     @invalid_attrs %{name: nil}
 
@@ -21,7 +23,7 @@ defmodule Elswisser.TournamentsTest do
     end
 
     test "create_tournament/1 with valid data creates a tournament" do
-      valid_attrs = %{name: "some name"}
+      valid_attrs = %{name: "some name", type: :swiss}
 
       assert {:ok, %Tournament{} = tournament} = Tournaments.create_tournament(valid_attrs)
       assert tournament.name == "some name"
@@ -29,6 +31,42 @@ defmodule Elswisser.TournamentsTest do
 
     test "create_tournament/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Tournaments.create_tournament(@invalid_attrs)
+    end
+
+    test "create_tournament/1 calculates length correctly" do
+      p1 = player_fixture()
+      p2 = player_fixture()
+      p3 = player_fixture()
+      p4 = player_fixture()
+
+      assert {:ok, %Tournament{} = tournament} =
+               Tournaments.create_tournament(%{
+                 name: "with players",
+                 type: :single_elimination,
+                 player_ids: [p1.id, p2.id, p3.id, p4.id]
+               })
+
+      assert tournament.length > 0
+    end
+
+    test "create_tournament/1 properly assigns seeds to players" do
+      p1 = player_fixture(%{rating: 200})
+      p2 = player_fixture(%{rating: 100})
+
+      assert {:ok, %Tournament{} = tournament} =
+               Tournaments.create_tournament(%{
+                 name: "seed test",
+                 type: :single_elimination,
+                 player_ids: [p1.id, p2.id]
+               })
+
+      players =
+        Tournaments.get_tournament_players(tournament.id)
+        |> Enum.sort_by(& &1.seed, :asc)
+
+      assert length(players) == 2
+      assert Enum.at(players, 0).player_id == p1.id
+      assert Enum.at(players, 1).player_id == p2.id
     end
 
     test "delete_tournament/1 deletes the tournament" do
@@ -66,6 +104,65 @@ defmodule Elswisser.TournamentsTest do
       )
 
       assert(out_ == [Map.merge(not_in_tournament, %{in_tournament: false})])
+    end
+  end
+
+  describe "calculate_length" do
+    test "calculate_length/2 with nils returns 0" do
+      assert Tournaments.calculate_length(nil, nil) == 0
+    end
+
+    test "calculate_length/2 with empty players returns 0" do
+      assert Tournaments.calculate_length([], nil) == 0
+    end
+
+    test "calculate_length/2 works as expected for swiss tournaments" do
+      assert Tournaments.calculate_length(
+               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+               :swiss
+             ) == 5
+    end
+
+    test "calculate_length/2 works as expected for single_elimination tournaments" do
+      assert Tournaments.calculate_length(
+               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+               :single_elimination
+             ) == 5
+    end
+  end
+
+  describe "create_next_round/2" do
+    import Elswisser.TournamentsFixtures
+
+    test "works as expected for creating rounds past the end of the tournament" do
+      assert Tournaments.create_next_round(%Tournament{length: 4}, 6) == :finished
+    end
+
+    test "works as expected for creating a random swiss round" do
+      tournament = tournament_fixture(%{length: 2})
+      {:ok, rnd} = Tournaments.create_next_round(tournament, 0)
+
+      assert rnd.number == 1
+    end
+
+    test "works as expected for creating the first round of a single_elimination tournament" do
+      tournament = tournament_with_players_fixture(%{type: :single_elimination, length: 2})
+      {:ok, rnd} = Tournaments.create_next_round(tournament, 0)
+
+      assert rnd.number == 1
+
+      rnd = Rounds.get_round_with_games(rnd.id)
+      assert length(rnd.games) == 2
+    end
+
+    test "works as expected for creating the second round of a single elimination tournament" do
+      tournament = tournament_with_players_fixture(%{type: :single_elimination, length: 2})
+      {:ok, rnd} = Tournaments.create_next_round(tournament, 0)
+
+      assert rnd.number == 1
+
+      rnd = Rounds.get_round_with_games(rnd.id)
+      assert length(rnd.games) == 2
     end
   end
 end
