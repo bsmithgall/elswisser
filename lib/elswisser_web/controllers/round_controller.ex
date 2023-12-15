@@ -31,14 +31,9 @@ defmodule ElswisserWeb.RoundController do
   def create(conn, %{"tournament_id" => tournament_id, "number" => number}) do
     case(Tournaments.create_next_round(conn.assigns[:tournament], number)) do
       {:ok, rnd} ->
-        redirect_to =
-          if conn.assigns[:tournament].type == :swiss,
-            do: ~p"/tournaments/#{rnd.tournament_id}/rounds/#{rnd.id}/pairings",
-            else: ~p"/tournaments/#{rnd.tournament_id}"
-
         conn
         |> put_flash(:info, "Round created successfully.")
-        |> redirect(to: redirect_to)
+        |> redirect(to: redirect_to(conn.assigns[:tournament].type, rnd))
 
       :finished ->
         conn
@@ -92,7 +87,7 @@ defmodule ElswisserWeb.RoundController do
         :info,
         "Round successfully completed. Pairings players for round #{next_round.number}."
       )
-      |> redirect(to: ~p"/tournaments/#{tournament_id}/rounds/#{next_round}/pairings")
+      |> redirect(to: redirect_to(conn.assigns[:tournament].type, rnd, next_round))
     else
       :finished ->
         conn
@@ -127,4 +122,14 @@ defmodule ElswisserWeb.RoundController do
     |> render("404.html")
     |> halt()
   end
+
+  defp redirect_to(:swiss, rnd),
+    do: ~p"/tournaments/#{rnd.tournament_id}/rounds/#{rnd.id}/pairings"
+
+  defp redirect_to(_, rnd), do: ~p"/tournaments/#{rnd.tournament_id}"
+
+  defp redirect_to(:swiss, rnd, next_round),
+    do: ~p"/tournaments/#{rnd.tournament_id}/rounds/#{next_round}/pairings"
+
+  defp redirect_to(_, rnd, _), do: ~p"/tournaments/#{rnd.tournament_id}"
 end

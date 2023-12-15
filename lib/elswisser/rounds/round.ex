@@ -8,7 +8,6 @@ defmodule Elswisser.Rounds.Round do
 
   schema "rounds" do
     field(:number, :integer)
-    field(:expected_games, :integer, virtual: true)
     field(:status, Ecto.Enum, values: [:pairing, :playing, :complete])
 
     belongs_to(:tournament, Tournament)

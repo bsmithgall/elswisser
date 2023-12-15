@@ -47,3 +47,6 @@ __pycache__
 
 /priv/plts/*.plt
 /priv/plts/*.plt.hash
+
+# ignore scratchpad
+/priv/scratch

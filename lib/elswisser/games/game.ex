@@ -47,7 +47,7 @@ defmodule Elswisser.Games.Game do
       :white_rating,
       :white_rating_change
     ])
-    |> validate_required([:white_id, :black_id, :round_id, :tournament_id, :match_id])
+    |> validate_required([:round_id, :tournament_id, :match_id])
     |> validate_different_players()
     |> validate_game_link()
     |> unique_constraint(:unique_white_players, name: :games_white_id_round_id_unique_idx)
@@ -213,9 +213,10 @@ defmodule Elswisser.Games.Game do
     white_id = get_field(changeset, :white_id)
     black_id = get_field(changeset, :black_id)
 
-    case white_id == black_id do
-      false -> changeset
-      true -> add_error(changeset, :white_id, "A player cannot play themselves!")
+    cond do
+      is_nil(white_id) or is_nil(black_id) -> changeset
+      white_id == black_id -> add_error(changeset, :white_id, "A player cannot play themselves!")
+      true -> changeset
     end
   end
 end

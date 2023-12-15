@@ -9,6 +9,11 @@ defmodule Elswisser.Matches.Match do
     field :board, :integer
     field :display_order, :integer
 
+    belongs_to(:winner_to, __MODULE__)
+    belongs_to(:loser_to, __MODULE__)
+
+    belongs_to(:winner, Elswisser.Players.Player)
+
     belongs_to(:round, Elswisser.Rounds.Round)
     has_many(:games, Elswisser.Games.Game)
 
@@ -16,9 +21,9 @@ defmodule Elswisser.Matches.Match do
   end
 
   @doc false
-  def changeset(match, attrs) do
+  def changeset(match, attrs \\ %{}) do
     match
-    |> cast(attrs, [:board, :display_order, :round_id])
+    |> cast(attrs, [:board, :display_order, :round_id, :loser_to_id, :winner_to_id])
     |> validate_required([:board, :display_order, :round_id])
   end
 
