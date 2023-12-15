@@ -4,6 +4,8 @@
  * Changes include:
  *  - Adding a module.main handler for interop with Elswisser
  *  - Changing types to only take a player array
+ *  - adding a round "type" return
+ *  - add new
  *  - Some comments
  *  - Prettier formatting
  */
@@ -24,12 +26,10 @@ function DoubleElimination(playerArray, startingRound = 1) {
 
   // generate starting round
   let round = startingRound;
+  let round_type = "winner";
   if (remainder !== 0) {
     for (let i = 0; i < remainder; i++) {
-      matches.push({
-        round: round,
-        match: i + 1,
-      });
+      matches.push({ round: round, round_type, match: i + 1 });
     }
     round++;
   }
@@ -41,6 +41,7 @@ function DoubleElimination(playerArray, startingRound = 1) {
     for (let i = 0; i < 2 ** matchExponent; i++) {
       matches.push({
         round: round,
+        round_type,
         match: i + 1,
         player1: null,
         player2: null,
@@ -98,6 +99,7 @@ function DoubleElimination(playerArray, startingRound = 1) {
   // championship round
   matches.push({
     round: round,
+    round_type: "championship",
     match: 1,
     player1: null,
     player2: null,
@@ -108,6 +110,7 @@ function DoubleElimination(playerArray, startingRound = 1) {
   };
 
   round++;
+  round_type = "loser";
 
   // generate pre-first round of loser's bracket with byes
   const roundDiff = round - 1;
@@ -116,6 +119,7 @@ function DoubleElimination(playerArray, startingRound = 1) {
       for (let i = 0; i < remainder; i++) {
         matches.push({
           round: round,
+          round_type,
           match: i + 1,
           player1: null,
           player2: null,
@@ -126,6 +130,7 @@ function DoubleElimination(playerArray, startingRound = 1) {
       for (let i = 0; i < remainder - 2 ** (Math.floor(exponent) - 1); i++) {
         matches.push({
           round: round,
+          round_type,
           match: i + 1,
           player1: null,
           player2: null,
@@ -150,6 +155,7 @@ function DoubleElimination(playerArray, startingRound = 1) {
       for (let j = 0; j < 2 ** loserExponent; j++) {
         matches.push({
           round: round,
+          round_type,
           match: j + 1,
           player1: null,
           player2: null,
@@ -341,7 +347,7 @@ function DoubleElimination(playerArray, startingRound = 1) {
     round: roundDiff,
     match: 1,
   };
-  return matches;
+  return { matches, rounds: roundTypes(matches) };
 }
 
 const fillPattern = (matchCount, fillCount) => {
@@ -357,6 +363,32 @@ const fillPattern = (matchCount, fillCount) => {
     ? x.reverse().concat(y.reverse())
     : y.concat(x);
 };
+
+const roundTypes = (matches) => {
+  const roundNumbers = matches.reduce((acc, match) => {
+    if ((acc[match.round_type] || []).includes(match.round)) return acc;
+
+    return {
+      ...acc,
+      [match.round_type]: [...(acc[match.round_type] || []), match.round],
+    };
+  }, {});
+
+  const roundLabels = {};
+
+  Object.entries(roundNumbers).forEach(([type, numbers]) => {
+    let r = 1;
+
+    numbers.forEach((n) => {
+      roundLabels[n] = `${capFirst(type)} ${r}`;
+      r++;
+    });
+  });
+
+  return roundLabels;
+};
+
+const capFirst = (str) => `${str.charAt(0).toUpperCase()}${str.slice(1)}`;
 
 if (require.main === module) {
   if (process.argv.length !== 3) {

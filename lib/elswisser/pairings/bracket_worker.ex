@@ -1,11 +1,20 @@
 defmodule Elswisser.Pairings.BracketWorker do
   def generate_bracket(players) do
     with {:ok, raw} <- generate_async(players),
-         {:ok, decoded} <- Jason.decode(raw) do
-      {:ok, decoded}
+         {:ok, decoded} <- Jason.decode(raw),
+         {:ok, matches, rounds} <- parse(decoded) do
+      {:ok, matches, rounds}
     else
       {:error, msg} -> {:error, msg}
     end
+  end
+
+  def parse(decoded) do
+    {
+      :ok,
+      decoded["matches"],
+      decoded["rounds"] |> Enum.map(fn {k, v} -> {String.to_integer(k), v} end) |> Enum.into(%{})
+    }
   end
 
   def generate_async(players) do

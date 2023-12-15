@@ -11,6 +11,7 @@ defmodule Elswisser.Pairings.DoubleElimination do
   @primary_key false
   embedded_schema do
     field :round_number, :integer
+    field :round_type, :string
     field :winner_round, :integer
     field :winner_match, :integer
     field :loser_round, :integer
@@ -21,9 +22,10 @@ defmodule Elswisser.Pairings.DoubleElimination do
   def create_all(%Tournament{} = tournament) do
     players = Enum.sort_by(tournament.players, & &1.rating, :desc)
 
-    with {:ok, decoded} = BracketWorker.generate_bracket(players),
-         matches <- Enum.map(decoded, &parse(&1, players, tournament.id)),
-         {:ok, rounds_multi} <- make_round_multi(matches, tournament.id) |> Repo.transaction(),
+    with {:ok, raw_matches, rounds} <- BracketWorker.generate_bracket(players),
+         matches <- Enum.map(raw_matches, &parse(&1, players, tournament.id)),
+         {:ok, rounds_multi} <-
+           make_round_multi(matches, rounds, tournament.id) |> Repo.transaction(),
          {:ok, matches_and_games_multi} <-
            make_game_match_multi(matches, rounds_multi) |> Repo.transaction(),
          {:ok, _} <-
@@ -40,6 +42,7 @@ defmodule Elswisser.Pairings.DoubleElimination do
 
     %__MODULE__{
       round_number: m["round"],
+      round_type: m["round_type"],
       winner_round: if(m["win"], do: m["win"]["round"]),
       winner_match: if(m["win"], do: m["win"]["match"]),
       loser_round: if(m["loss"], do: m["loss"]["round"]),
@@ -55,10 +58,10 @@ defmodule Elswisser.Pairings.DoubleElimination do
     }
   end
 
-  def make_round_multi(matches, tournament_id) do
-    Enum.map(matches, & &1.round_number)
+  def make_round_multi(matches, rounds, tournament_id) do
+    Enum.map(matches, &{&1.round_number, &1.round_type})
     |> Enum.uniq()
-    |> Enum.reduce(Ecto.Multi.new(), fn round_number, acc ->
+    |> Enum.reduce(Ecto.Multi.new(), fn {round_number, round_type}, acc ->
       acc
       |> Ecto.Multi.append(
         Ecto.Multi.new()
@@ -67,6 +70,8 @@ defmodule Elswisser.Pairings.DoubleElimination do
           %Round{}
           |> Round.changeset(%{
             number: round_number,
+            type: round_type,
+            display_name: Map.get(rounds, round_number),
             status: :playing,
             tournament_id: tournament_id
           })

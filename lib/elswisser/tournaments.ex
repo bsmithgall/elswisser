@@ -106,7 +106,7 @@ defmodule Elswisser.Tournaments do
   end
 
   def current_round(%Tournament{} = tournament) when not is_map_key(tournament, :rounds) do
-    %Round{number: 0}
+    %{number: 0}
   end
 
   @doc """

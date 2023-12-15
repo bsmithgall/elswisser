@@ -13,7 +13,7 @@ defmodule Elswisser.Pairings.Worker do
   end
 
   def direct_call(pid, pairings) do
-    GenServer.call(pid, {:do_pairings, pairings})
+    GenServer.call(pid, {:swiss, pairings})
   end
 
   def pooled_call(pairings, :swiss) do
