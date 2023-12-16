@@ -57,6 +57,7 @@ defmodule ElswisserWeb.Router do
       get("/:id/stats", Tournaments.StatsController, :stats, as: :stats)
       get("/:id/roster", Tournaments.RosterController, :index)
       get("/:id/games", Tournaments.GamesController, :index)
+      get("/:id/current-games", Tournaments.GamesController, :current, as: :current)
     end
 
     resources("/players", PlayerController, only: [:index, :show])
