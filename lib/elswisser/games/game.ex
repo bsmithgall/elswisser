@@ -96,6 +96,10 @@ defmodule Elswisser.Games.Game do
     from([..., game: g] in query, where: not is_nil(g.result))
   end
 
+  def where_both_players(query) do
+    from([..., game: g] in query, where: not is_nil(g.white_id) and not is_nil(g.black_id))
+  end
+
   def with_both_players(query) do
     query |> with_white_player() |> with_black_player()
   end
@@ -115,7 +119,7 @@ defmodule Elswisser.Games.Game do
   end
 
   def preload_players(query) do
-    from([game: g, white: w, black: b] in query, preload: [white: w, black: b])
+    from([..., game: g, white: w, black: b] in query, preload: [white: w, black: b])
   end
 
   def select_white_id(query) do

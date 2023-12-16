@@ -36,6 +36,18 @@ defmodule Elswisser.Matches.Match do
     from([match: m] in query, where: m.id in ^ids)
   end
 
+  def where_tournament_id(query, tournament_id) do
+    from([match: m] in query,
+      join: r in assoc(m, :round),
+      join: t in assoc(r, :tournament),
+      where: t.id == ^tournament_id
+    )
+  end
+
+  def with_round(query) do
+    from([match: m] in query, join: r in assoc(m, :round), as: :round)
+  end
+
   def with_games(query), do: with_games(query, false)
 
   def with_games(query, false) do
@@ -44,6 +56,14 @@ defmodule Elswisser.Matches.Match do
 
   def preload_games(query) do
     from([game: g] in query, preload: [games: g])
+  end
+
+  def preload_games_and_players(query) do
+    from([..., game: g, white: w, black: b] in query, preload: [games: {g, black: b, white: w}])
+  end
+
+  def preload_round(query) do
+    from([..., round: r] in query, preload: [round: r])
   end
 
   def order_by_display_number(query) do

@@ -20,7 +20,7 @@ defmodule ElswisserWeb.RoundLive.Round do
         %{
           "round_id" => round_id,
           "tournament_type" => tournament_type,
-          "user_token" => user_token
+          "current_user" => user_token
         },
         socket
       ) do
@@ -129,7 +129,12 @@ defmodule ElswisserWeb.RoundLive.Round do
       tournament_type={@tournament_type}
     />
 
-    <.pairings_share games={@games} number={@round.number} />
+    <div id="pair-share" class="mt-11 bg-white">
+      <.header class="text-center mb-6">Round <%= @round.number %> Games</.header>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
+        <ElswisserWeb.PairShare.share_card :for={game <- @games} game={game} />
+      </div>
+    </div>
     """
   end
 
@@ -273,16 +278,6 @@ defmodule ElswisserWeb.RoundLive.Round do
   attr(:link_valid, :boolean, default: nil)
 
   def game_detail_form(assigns)
-
-  attr(:games, :list, required: true)
-  attr(:number, :integer, required: true)
-
-  def pairings_share(assigns)
-
-  attr(:black, :boolean, default: false)
-  attr(:player, :map, required: true)
-
-  def pairings_share_player(assigns)
 
   attr(:win, :boolean, default: false)
   attr(:draw, :boolean, default: false)

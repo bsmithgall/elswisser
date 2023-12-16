@@ -32,14 +32,21 @@
     active={@active == "stats"}
   />
   <.navlink
-    label="Games"
+    label="All games"
     href={~p"/tournaments/#{@tournament}/games"}
     icon="icon-chessboard"
     active={@active == "games"}
   />
+  <.navlink
+    href={~p"/tournaments/#{@tournament}/current-games"}
+    label="Active games"
+    icon="hero-play-circle-mini"
+    active={@active == "current-games"}
+  />
 </div>
 <hr />
-<div class="py-2">
+<hr />
+<div>
   <h2 class="mt-2 text-sm leading-6 text-zinc-600 pl-1 pb-1">
     Rounds (<%= @tournament.length %> total)
   </h2>

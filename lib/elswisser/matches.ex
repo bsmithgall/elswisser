@@ -11,6 +11,19 @@ defmodule Elswisser.Matches do
     |> Repo.all()
   end
 
+  def get_active_matches(tournament_id) do
+    Match.from()
+    |> Match.where_tournament_id(tournament_id)
+    |> Match.with_games()
+    |> Match.with_round()
+    |> Game.where_both_players()
+    |> Game.where_unfinished()
+    |> Game.with_both_players()
+    |> Match.preload_games_and_players()
+    |> Match.preload_round()
+    |> Repo.all()
+  end
+
   def create_match(attrs \\ %{}) do
     %Match{}
     |> Match.changeset(attrs)

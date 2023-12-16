@@ -12,6 +12,7 @@ defmodule ElswisserWeb.ChessComponents do
   use Phoenix.Component
   use Phoenix.VerifiedRoutes, endpoint: ElswisserWeb.Endpoint, router: ElswisserWeb.Router
 
+  alias Elswisser.Players.Player
   alias Elswisser.Games.Game
   alias Elswisser.Players
 
@@ -258,7 +259,7 @@ defmodule ElswisserWeb.ChessComponents do
     """
   end
 
-  attr(:player, :map)
+  attr(:player, Player)
   attr(:black, :boolean, default: false)
 
   def player_card(%{player: %Ecto.Association.NotLoaded{}}) do
