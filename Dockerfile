@@ -82,10 +82,19 @@ RUN mix release
 # the compiled release and other runtime necessities
 FROM ${RUNNER_IMAGE}
 
-RUN apt-get update -y \ 
-  && apt-get install -y libstdc++6 openssl libncurses5 locales python3 \
-  && apt-get clean && \
-  rm -f /var/lib/apt/lists/*_*
+# see: https://github.com/nodesource/distributions
+
+RUN set -uex \
+  && apt-get update \
+  && apt-get install -y ca-certificates curl gnupg \
+  && mkdir -p /etc/apt/keyrings \
+  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+  | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" \
+  > /etc/apt/sources.list.d/nodesource.list \
+  && apt-get update \
+  && apt-get install -y libstdc++6 openssl libncurses5 locales python3 nodejs \
+  && rm -f /var/lib/apt/lists/*_*
 
 # Set the locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen

@@ -347,7 +347,7 @@ function DoubleElimination(playerArray, startingRound = 1) {
     round: roundDiff,
     match: 1,
   };
-  return { matches, rounds: roundTypes(matches) };
+  return { matches, rounds: labelRounds(matches) };
 }
 
 const fillPattern = (matchCount, fillCount) => {
@@ -364,7 +364,7 @@ const fillPattern = (matchCount, fillCount) => {
     : y.concat(x);
 };
 
-const roundTypes = (matches) => {
+const labelRounds = (matches) => {
   const roundNumbers = matches.reduce((acc, match) => {
     if ((acc[match.round_type] || []).includes(match.round)) return acc;
 

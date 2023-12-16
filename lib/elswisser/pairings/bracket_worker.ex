@@ -1,6 +1,8 @@
 defmodule Elswisser.Pairings.BracketWorker do
   def generate_bracket(players) do
-    with {:ok, raw} <- generate_async(players),
+    encoded = players |> Enum.map(& &1.id) |> Jason.encode!()
+
+    with {:ok, raw} <- generate_async(encoded),
          {:ok, decoded} <- Jason.decode(raw),
          {:ok, matches, rounds} <- parse(decoded) do
       {:ok, matches, rounds}
@@ -18,36 +20,16 @@ defmodule Elswisser.Pairings.BracketWorker do
   end
 
   def generate_async(players) do
-    Task.async(fn ->
-      start(players |> Enum.map(& &1.id) |> Jason.encode!()) |> wait(nil)
-    end)
-    |> Task.await()
+    Task.async(fn -> start(players) end) |> Task.await()
   end
 
   defp start(players) do
     exe_path = System.find_executable("node")
     script_path = [:code.priv_dir(:elswisser), "nodejs", "bracket.js"] |> Path.join()
 
-    Port.open({:spawn_executable, exe_path}, [
-      :stderr_to_stdout,
-      :binary,
-      :exit_status,
-      args: [script_path, players]
-    ])
-  end
-
-  defp wait(port, results) do
-    receive do
-      {port, {:data, data}} ->
-        wait(port, data)
-
-      {^port, {:exit_status, 0}} ->
-        {:ok, results}
-
-      {^port, {:exit_status, _}} ->
-        {:error, results}
-    after
-      5_000 -> {:error, :timeout}
+    case System.cmd(exe_path, [script_path, players]) do
+      {raw, 0} -> {:ok, raw}
+      {error, _} -> {:error, error}
     end
   end
 end
