@@ -8,7 +8,9 @@ defmodule Elswisser.Repo.Migrations.AddRoundTypes do
     end
 
     execute """
-    UPDATE rounds SET display_name = (SELECT 'ROUND ' || number FROM rounds)
+    UPDATE rounds SET display_name = r.val
+    FROM (SELECT id, 'Round ' || number AS val FROM rounds) AS r
+    WHERE rounds.id = r.id
     """
   end
 
