@@ -22,3 +22,13 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 ```sh
 rm elswisser_dev.db* ||: && mix ecto.migrate && mix run priv/repo/seeds.exs
 ```
+
+## The dumbest release process on earth
+
+```sh
+docker build --platform linux/arm64 .
+docker tag <copy sha here> ghcr.io/bsmithgall/elswisser:<version>
+docker tag <copy sha here> ghcr.io/bsmithgall/elswisser:latest
+docker push ghcr.io/bsmithgall/elswisser:<version>
+docker push ghcr.io/bsmithgall/elswisser:latest
+```

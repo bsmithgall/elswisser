@@ -136,7 +136,9 @@ defmodule Elswisser.Pairings.DoubleElimination do
               Ecto.build_assoc(
                 match,
                 :games,
-                BracketPairing.to_game_params(de.pairing, round_id)
+                de.pairing
+                |> BracketPairing.assign_colors()
+                |> BracketPairing.to_game_params(round_id)
               )
             )
           end)
