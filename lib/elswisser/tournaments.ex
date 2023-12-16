@@ -272,7 +272,11 @@ defmodule Elswisser.Tournaments do
   end
 
   # everything is aleady created here
-  def create_next_round(%Tournament{type: :double_elimination} = tournament, _) do
+  def create_next_round(%Tournament{type: :double_elimination} = tournament, current_round_number) do
+    {:ok, _} =
+      Rounds.get_round_with_matches_and_players(tournament.id, current_round_number)
+      |> DoubleElimination.next_pairings()
+
     {:ok, %{tournament_id: tournament.id}}
   end
 

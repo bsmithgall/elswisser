@@ -1,12 +1,14 @@
 defmodule Elswisser.Pairings.DoubleElimination do
   use Ecto.Schema
 
+  alias Elswisser.Matches
   alias Elswisser.Pairings.BracketPairing
   alias Elswisser.Repo
   alias Elswisser.Rounds.Round
   alias Elswisser.Pairings.BracketWorker
   alias Elswisser.Tournaments.Tournament
   alias Elswisser.Matches.Match
+  alias Elswisser.Games.Game
 
   @primary_key false
   embedded_schema do
@@ -34,6 +36,40 @@ defmodule Elswisser.Pairings.DoubleElimination do
     else
       {:error, error} -> {:error, error}
     end
+  end
+
+  def next_pairings(rnd) do
+    linked_matches =
+      Enum.flat_map(rnd.matches, &[&1.winner_to_id, &1.loser_to_id])
+      |> Enum.filter(&(not is_nil(&1)))
+      |> Enum.uniq()
+      |> Matches.get_by_id()
+      |> Enum.map(&{&1.id, &1})
+      |> Enum.into(%{})
+
+    winners_to =
+      Enum.reduce(rnd.matches, %{}, fn match, acc ->
+        Map.update(acc, match.winner_to_id, [Match.winner(match)], &(&1 ++ [Match.winner(match)]))
+      end)
+      |> Enum.reduce(Ecto.Multi.new(), fn {k, v}, acc ->
+        acc
+        |> Ecto.Multi.append(
+          generate_changeset(:winner, Map.get(linked_matches, k), v, rnd.tournament_id)
+        )
+      end)
+
+    losers_to =
+      Enum.reduce(rnd.matches, %{}, fn match, acc ->
+        Map.update(acc, match.loser_to_id, [Match.loser(match)], &(&1 ++ [Match.loser(match)]))
+      end)
+      |> Enum.reduce(Ecto.Multi.new(), fn {k, v}, acc ->
+        acc
+        |> Ecto.Multi.append(
+          generate_changeset(:loser, Map.get(linked_matches, k), v, rnd.tournament_id)
+        )
+      end)
+
+    Ecto.Multi.append(winners_to, losers_to) |> Repo.transaction()
   end
 
   def parse(m, players, tournament_id) do
@@ -160,5 +196,75 @@ defmodule Elswisser.Pairings.DoubleElimination do
 
   defp has_game?(%__MODULE__{} = de) do
     [de.pairing.player_one, de.pairing.player_two] |> Enum.any?()
+  end
+
+  def generate_changeset(_, nil, _, _), do: %Ecto.Multi{}
+
+  def generate_changeset(
+        tag,
+        %Match{games: []} = match,
+        [{player_one, player_one_seed}, {player_two, player_two_seed}],
+        tournament_id
+      ) do
+    Ecto.Multi.insert(
+      Ecto.Multi.new(),
+      {tag, :game, match.id},
+      %Game{}
+      |> Game.changeset(
+        Map.merge(Game.take_seat(player_one, player_one_seed, player_two, player_two_seed), %{
+          tournament_id: tournament_id,
+          round_id: match.round_id,
+          match_id: match.id
+        })
+      )
+    )
+  end
+
+  def generate_changeset(
+        tag,
+        %Match{} = match,
+        [{player_one, player_one_seed}, {player_two, player_two_seed}],
+        _
+      ) do
+    Ecto.Multi.update(
+      Ecto.Multi.new(),
+      {tag, :game, match.id},
+      match.games
+      |> hd()
+      |> then(fn game ->
+        Game.changeset(
+          game,
+          Game.take_seat(player_one, player_one_seed, player_two, player_two_seed)
+        )
+      end)
+    )
+  end
+
+  def generate_changeset(tag, %Match{games: []} = match, [{player, seed}], tournament_id) do
+    Ecto.Multi.insert(
+      Ecto.Multi.new(),
+      {tag, :game, match.id},
+      %Game{}
+      |> Game.changeset(
+        Map.merge(
+          Game.take_seat(%Game{}, player, seed),
+          %{
+            tournament_id: tournament_id,
+            round_id: match.round_id,
+            match_id: match.id
+          }
+        )
+      )
+    )
+  end
+
+  def generate_changeset(tag, %Match{} = match, [{player, seed}], _) do
+    Ecto.Multi.update(
+      Ecto.Multi.new(),
+      {tag, :game, match.id},
+      match.games
+      |> hd()
+      |> then(fn game -> Game.changeset(game, Game.take_seat(game, player, seed)) end)
+    )
   end
 end

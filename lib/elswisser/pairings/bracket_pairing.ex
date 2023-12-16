@@ -62,8 +62,8 @@ defmodule Elswisser.Pairings.BracketPairing do
     |> Enum.chunk_every(2)
     |> Enum.with_index()
     |> Enum.map(fn {[l, r], idx} ->
-      {one, one_seed} = Match.winner(l)
-      {two, two_seed} = Match.winner(r)
+      {{one, one_seed}, _} = Match.result(l)
+      {{two, two_seed}, _} = Match.result(r)
 
       %__MODULE__{
         player_one: one,
@@ -109,11 +109,11 @@ defmodule Elswisser.Pairings.BracketPairing do
 
   def to_game_params(%__MODULE__{} = pairing, round_id) do
     %{
-      white_id: pairing.player_one.id,
-      white_rating: pairing.player_one.rating,
+      white_id: if(pairing.player_one, do: pairing.player_one.id),
+      white_rating: if(pairing.player_one, do: pairing.player_one.rating),
       white_seed: pairing.player_one_seed,
-      black_id: pairing.player_two.id,
-      black_rating: pairing.player_two.rating,
+      black_id: if(pairing.player_two, do: pairing.player_two.id),
+      black_rating: if(pairing.player_two, do: pairing.player_two.rating),
       black_seed: pairing.player_two_seed,
       tournament_id: pairing.tournament_id,
       round_id: round_id,

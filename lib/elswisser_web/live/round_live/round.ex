@@ -1,5 +1,7 @@
 defmodule ElswisserWeb.RoundLive.Round do
   require Elswisser.Tournaments.Tournament
+  alias Elswisser.Games.Game
+  alias Elswisser.Players.Player
   alias Elswisser.Tournaments.Tournament
   alias Elswisser.Pairings.Bye
   use ElswisserWeb, :live_view
@@ -31,7 +33,11 @@ defmodule ElswisserWeb.RoundLive.Round do
      |> assign(tournament_type: tournament_type)
      |> assign(
        games:
-         Enum.map(rnd.games, fn g -> Map.merge(g, %{valid_link: valid_link?(g.game_link)}) end)
+         rnd.games
+         |> Enum.filter(&Game.playable?/1)
+         |> Enum.map(fn g ->
+           Map.merge(g, %{valid_link: valid_link?(g.game_link)})
+         end)
      )
      |> assign(roster: roster)
      |> assign(display: :pairings)
@@ -85,10 +91,10 @@ defmodule ElswisserWeb.RoundLive.Round do
 
     <.table id="results" rows={@games}>
       <:col :let={game} label="White">
-        <.result_player win={game.result == 1} draw={game.result == 0} name={game.white.name} />
+        <.result_player win={game.result == 1} draw={game.result == 0} player={game.white} />
       </:col>
       <:col :let={game} label="Black">
-        <.result_player win={game.result == -1} draw={game.result == 0} name={game.black.name} />
+        <.result_player win={game.result == -1} draw={game.result == 0} player={game.black} />
       </:col>
       <:col :let={game} :if={@signed_in} label="Result">
         <.result_select
@@ -280,7 +286,7 @@ defmodule ElswisserWeb.RoundLive.Round do
 
   attr(:win, :boolean, default: false)
   attr(:draw, :boolean, default: false)
-  attr(:name, :string, required: true)
+  attr(:player, Player)
 
   def result_player(assigns) do
     ~H"""
@@ -288,7 +294,7 @@ defmodule ElswisserWeb.RoundLive.Round do
       <.icon :if={@win} name="hero-trophy" />
       <.icon :if={@draw} name="hero-scale" />
     </span>
-    <%= @name %>
+    <%= @player.name %>
     """
   end
 

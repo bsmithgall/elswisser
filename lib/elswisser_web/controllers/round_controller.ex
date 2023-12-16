@@ -85,7 +85,7 @@ defmodule ElswisserWeb.RoundController do
       conn
       |> put_flash(
         :info,
-        "Round successfully completed. Pairings players for round #{next_round.number}."
+        flash(conn.assigns[:tournament].type, next_round)
       )
       |> redirect(to: redirect_to(conn.assigns[:tournament].type, rnd, next_round))
     else
@@ -132,4 +132,9 @@ defmodule ElswisserWeb.RoundController do
     do: ~p"/tournaments/#{rnd.tournament_id}/rounds/#{next_round}/pairings"
 
   defp redirect_to(_, rnd, _), do: ~p"/tournaments/#{rnd.tournament_id}"
+
+  defp flash(:swiss, next_round),
+    do: "Round successfully completed. Pairings players for round #{next_round.number}."
+
+  defp flash(_, _), do: "Round successfully completed."
 end
