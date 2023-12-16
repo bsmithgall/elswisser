@@ -13,14 +13,14 @@ defmodule Elswisser.Pairings.Worker do
   end
 
   def direct_call(pid, pairings) do
-    GenServer.call(pid, {:do_pairings, pairings})
+    GenServer.call(pid, {:swiss, pairings})
   end
 
-  def pooled_call(pairings) do
+  def pooled_call(pairings, :swiss) do
     Task.async(fn ->
       :poolboy.transaction(
         :pairing_worker,
-        fn pid -> GenServer.call(pid, {:do_pairings, pairings}) end,
+        fn pid -> GenServer.call(pid, {:swiss, pairings}) end,
         @timeout
       )
     end)
@@ -38,7 +38,7 @@ defmodule Elswisser.Pairings.Worker do
   end
 
   @impl true
-  def handle_call({:do_pairings, pairings}, _from, pid) do
+  def handle_call({:swiss, pairings}, _from, pid) do
     result = :python.call(pid, :mwmatching, :maximum_weight_matching, [pairings])
     Logger.info("[#{__MODULE__}] Handled pairing request")
     {:reply, {:ok, result}, pid}

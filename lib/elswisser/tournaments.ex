@@ -5,6 +5,7 @@ defmodule Elswisser.Tournaments do
 
   import Ecto.Query, warn: false
   require Elswisser.Tournaments.Tournament
+  alias Elswisser.Pairings.DoubleElimination
   alias Elswisser.Tournaments.TournamentPlayer
   alias Elswisser.Matches.Match
   alias Elswisser.Matches
@@ -105,7 +106,7 @@ defmodule Elswisser.Tournaments do
   end
 
   def current_round(%Tournament{} = tournament) when not is_map_key(tournament, :rounds) do
-    %Round{number: 0}
+    %{number: 0}
   end
 
   @doc """
@@ -226,11 +227,7 @@ defmodule Elswisser.Tournaments do
     })
   end
 
-  def create_next_round(
-        %Tournament{type: type} = tournament,
-        0
-      )
-      when Tournament.is_knockout?(type) do
+  def create_next_round(%Tournament{type: :single_elimination} = tournament, 0) do
     {:ok, rnd} =
       Rounds.create_round(%{
         tournament_id: tournament.id,
@@ -248,10 +245,7 @@ defmodule Elswisser.Tournaments do
     {:ok, rnd}
   end
 
-  def create_next_round(
-        %Tournament{type: :single_elimination} = tournament,
-        current_round_number
-      ) do
+  def create_next_round(%Tournament{type: :single_elimination} = tournament, current_round_number) do
     {:ok, rnd} =
       Rounds.create_round(%{
         tournament_id: tournament.id,
@@ -269,6 +263,21 @@ defmodule Elswisser.Tournaments do
     # get all the matches and games from the just finished round
 
     {:ok, rnd}
+  end
+
+  def create_next_round(%Tournament{type: :double_elimination} = tournament, 0) do
+    {:ok, _} = DoubleElimination.create_all(tournament)
+
+    {:ok, %{tournament_id: tournament.id}}
+  end
+
+  # everything is aleady created here
+  def create_next_round(%Tournament{type: :double_elimination} = tournament, current_round_number) do
+    {:ok, _} =
+      Rounds.get_round_with_matches_and_players(tournament.id, current_round_number)
+      |> DoubleElimination.next_pairings()
+
+    {:ok, %{tournament_id: tournament.id}}
   end
 
   def empty_changeset(%Tournament{} = tournament, attrs \\ %{}) do

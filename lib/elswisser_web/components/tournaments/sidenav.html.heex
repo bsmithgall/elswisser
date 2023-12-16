@@ -50,7 +50,7 @@
           do: ~p"/tournaments/#{rnd.tournament_id}/rounds/#{rnd}/pairings",
           else: ~p"/tournaments/#{rnd.tournament_id}/rounds/#{rnd}"
       }
-      label={"Round #{rnd.number}"}
+      label={rnd.display_name}
       icon={icon_by_round_status(rnd)}
       icon_class={icon_class_by_round_status(rnd)}
       active={@active == "round-#{rnd.id}"}

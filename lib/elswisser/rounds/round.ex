@@ -6,10 +6,14 @@ defmodule Elswisser.Rounds.Round do
   alias Elswisser.Tournaments.Tournament
   alias Elswisser.Matches.Match
 
+  @statuses ~w[pairing playing complete]a
+  @types ~w[winner loser championship none]a
+
   schema "rounds" do
     field(:number, :integer)
-    field(:expected_games, :integer, virtual: true)
-    field(:status, Ecto.Enum, values: [:pairing, :playing, :complete])
+    field(:status, Ecto.Enum, values: @statuses)
+    field(:type, Ecto.Enum, values: @types, default: :none)
+    field(:display_name, :string)
 
     belongs_to(:tournament, Tournament)
     has_many(:matches, Match)
@@ -21,9 +25,18 @@ defmodule Elswisser.Rounds.Round do
   @doc false
   def changeset(round, attrs) do
     round
-    |> cast(attrs, [:number, :tournament_id, :status])
-    |> validate_required([:number, :tournament_id, :status])
+    |> cast(attrs, [:number, :tournament_id, :status, :type, :display_name])
+    |> add_display_name_if_missing()
+    |> validate_required([:number, :tournament_id, :status, :display_name])
   end
+
+  def add_display_name_if_missing(%Ecto.Changeset{changes: %{display_name: _}} = cs), do: cs
+
+  def add_display_name_if_missing(%Ecto.Changeset{data: %__MODULE__{display_name: nil}} = cs) do
+    cs |> put_change(:display_name, "Round #{get_field(cs, :number)}")
+  end
+
+  def add_display_name_if_missing(cs), do: cs
 
   def from() do
     from(r in Elswisser.Rounds.Round, as: :round)

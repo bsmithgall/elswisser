@@ -73,6 +73,15 @@ defmodule ElswisserWeb.ChessComponents do
   attr(:rating, :integer, default: nil)
   attr(:bye, :boolean, default: false)
 
+  def player_result(%{player: nil} = assigns) do
+    ~H"""
+    <div class="col-span-2 grid grid-cols-2">
+      <div class="inline-block"><.seed :if={@show_seed} /><.square color={@color} /></div>
+      <span class="justify-self-end">—</span>
+    </div>
+    """
+  end
+
   def player_result(assigns) do
     ~H"""
     <div class="flex">
@@ -125,6 +134,12 @@ defmodule ElswisserWeb.ChessComponents do
     </span>
     """
   end
+
+  attr(:color, :atom, values: [:white, :black])
+  attr(:winner, :boolean, default: false)
+
+  def square(%{color: :white} = assigns), do: white_square(assigns)
+  def square(%{color: :black} = assigns), do: black_square(assigns)
 
   attr(:winner, :boolean, default: false)
 

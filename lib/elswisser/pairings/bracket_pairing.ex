@@ -3,6 +3,7 @@ defmodule Elswisser.Pairings.BracketPairing do
 
   require Elswisser.Pairings.Bye
   alias Elswisser.Matches.Match
+  alias Elswisser.Games.Game
   alias Elswisser.Pairings.Seed
   alias Elswisser.Players.Player
   alias Elswisser.Pairings.Bye
@@ -61,8 +62,8 @@ defmodule Elswisser.Pairings.BracketPairing do
     |> Enum.chunk_every(2)
     |> Enum.with_index()
     |> Enum.map(fn {[l, r], idx} ->
-      {one, one_seed} = Match.winner(l)
-      {two, two_seed} = Match.winner(r)
+      {{one, one_seed}, _} = Match.result(l)
+      {{two, two_seed}, _} = Match.result(r)
 
       %__MODULE__{
         player_one: one,
@@ -83,13 +84,36 @@ defmodule Elswisser.Pairings.BracketPairing do
     next_power_of_two(length(n))
   end
 
-  def to_game_params(%__MODULE__{} = pairing, round_id) do
-    %{
+  def to_match_changeset(%__MODULE__{} = pairing, round_id, board \\ nil) do
+    %Match{}
+    |> Match.changeset(%{
+      display_order: display_order(board, pairing.display_order),
+      board: board(board, pairing.display_order),
+      round_id: round_id
+    })
+  end
+
+  def to_game_changeset(%__MODULE__{} = pairing, round_id) do
+    %Game{}
+    |> Game.changeset(%{
       white_id: pairing.player_one.id,
       white_rating: pairing.player_one.rating,
       white_seed: pairing.player_one_seed,
       black_id: pairing.player_two.id,
       black_rating: pairing.player_two.rating,
+      black_seed: pairing.player_two_seed,
+      tournament_id: pairing.tournament_id,
+      round_id: round_id
+    })
+  end
+
+  def to_game_params(%__MODULE__{} = pairing, round_id) do
+    %{
+      white_id: if(pairing.player_one, do: pairing.player_one.id),
+      white_rating: if(pairing.player_one, do: pairing.player_one.rating),
+      white_seed: pairing.player_one_seed,
+      black_id: if(pairing.player_two, do: pairing.player_two.id),
+      black_rating: if(pairing.player_two, do: pairing.player_two.rating),
       black_seed: pairing.player_two_seed,
       tournament_id: pairing.tournament_id,
       round_id: round_id,
@@ -122,5 +146,13 @@ defmodule Elswisser.Pairings.BracketPairing do
   defp find_seed(sorted, %Player{} = player) do
     idx = sorted |> Enum.find_index(&(&1 == player))
     idx + 1
+  end
+
+  defp board(board, display_order) do
+    if is_nil(board), do: display_order, else: board
+  end
+
+  defp display_order(board, display_order) do
+    if is_nil(display_order), do: board, else: display_order
   end
 end

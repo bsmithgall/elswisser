@@ -3,6 +3,14 @@ defmodule Elswisser.Matches do
   alias Elswisser.Repo
   alias Elswisser.Matches.Match
 
+  def get_by_id(ids) when is_list(ids) do
+    Match.from()
+    |> Match.where_id(ids)
+    |> Match.with_games()
+    |> Match.preload_games()
+    |> Repo.all()
+  end
+
   def create_match(attrs \\ %{}) do
     %Match{}
     |> Match.changeset(attrs)

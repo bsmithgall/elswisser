@@ -7,6 +7,7 @@ defmodule Elswisser.Games.Game do
   alias Elswisser.Pairings.Bye
   alias Elswisser.Games.PgnProvider
   alias Elswisser.Games.Game
+  alias Elswisser.Players.Player
 
   schema "games" do
     field(:game_link, :string)
@@ -36,6 +37,7 @@ defmodule Elswisser.Games.Game do
       :black_id,
       :black_rating,
       :black_rating_change,
+      :black_seed,
       :finished_at,
       :game_link,
       :match_id,
@@ -45,9 +47,10 @@ defmodule Elswisser.Games.Game do
       :tournament_id,
       :white_id,
       :white_rating,
-      :white_rating_change
+      :white_rating_change,
+      :white_seed
     ])
-    |> validate_required([:white_id, :black_id, :round_id, :tournament_id, :match_id])
+    |> validate_required([:round_id, :tournament_id, :match_id])
     |> validate_different_players()
     |> validate_game_link()
     |> unique_constraint(:unique_white_players, name: :games_white_id_round_id_unique_idx)
@@ -190,8 +193,49 @@ defmodule Elswisser.Games.Game do
     !(is_nil(game.result) and is_nil(game.finished_at))
   end
 
+  def take_seat(%Game{white_id: nil, black_id: nil}, %Player{} = player, player_seed) do
+    case Enum.random(0..1) do
+      0 ->
+        %{black_id: player.id, black_rating: player.rating, black_seed: player_seed}
+
+      1 ->
+        %{white_id: player.id, white_rating: player.rating, white_seed: player_seed}
+    end
+  end
+
+  def take_seat(%Game{black_id: nil, white_id: _}, %Player{} = player, player_seed) do
+    %{black_id: player.id, black_rating: player.rating, black_seed: player_seed}
+  end
+
+  def take_seat(%Game{white_id: nil, black_id: _}, %Player{} = player, player_seed) do
+    %{white_id: player.id, white_rating: player.rating, white_seed: player_seed}
+  end
+
+  def take_seat(
+        %Player{} = player_one,
+        player_one_seed,
+        %Player{} = player_two,
+        player_two_seed
+      ) do
+    %{
+      black_id: player_one.id,
+      black_rating: player_one.rating,
+      black_seed: player_one_seed,
+      white_id: player_two.id,
+      white_rating: player_two.rating,
+      white_seed: player_two_seed
+    }
+  end
+
+  def bye?(%Game{white: nil}), do: false
+  def bye?(%Game{black: nil}), do: false
+
   def bye?(%Game{} = game) do
     Bye.bye_player?(game.white) or Bye.bye_player?(game.black)
+  end
+
+  def playable?(%Game{} = game) do
+    not is_nil(game.white_id) and not is_nil(game.black_id)
   end
 
   def validate_game_link(changeset) do
@@ -213,9 +257,10 @@ defmodule Elswisser.Games.Game do
     white_id = get_field(changeset, :white_id)
     black_id = get_field(changeset, :black_id)
 
-    case white_id == black_id do
-      false -> changeset
-      true -> add_error(changeset, :white_id, "A player cannot play themselves!")
+    cond do
+      is_nil(white_id) or is_nil(black_id) -> changeset
+      white_id == black_id -> add_error(changeset, :white_id, "A player cannot play themselves!")
+      true -> changeset
     end
   end
 end

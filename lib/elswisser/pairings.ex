@@ -42,7 +42,7 @@ defmodule Elswisser.Pairings do
     scores
     |> partition()
     |> unique_possible_pairs(max_score)
-    |> Worker.pooled_call()
+    |> Worker.pooled_call(:swiss)
   end
 
   def partition(scores) when is_list(scores) do
