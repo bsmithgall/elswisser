@@ -12,7 +12,7 @@ defmodule ElswisserWeb.Brackets.DoubleElimination do
 
     ~H"""
     <.header class="mt-4">Winners Bracket</.header>
-    <div class="els__bracket flex text-sm text-zinc-700 overflow-x-auto">
+    <div class="my-4 flex text-sm text-zinc-700 overflow-x-auto h-full">
       <%= for rnd <- @winner do %>
         <.bracket_round round={rnd} />
       <% end %>
@@ -23,7 +23,7 @@ defmodule ElswisserWeb.Brackets.DoubleElimination do
     <hr />
 
     <.header class="mt-4">Losers Bracket</.header>
-    <div class="els__bracket flex text-sm text-zinc-700 overflow-x-auto">
+    <div class="my-4 flex text-sm text-zinc-700 overflow-x-auto h-full">
       <%= for rnd <- @loser do %>
         <.bracket_round round={rnd} />
       <% end %>
