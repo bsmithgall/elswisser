@@ -25,15 +25,15 @@ cascanding to work properly */
 @layer components {
   /* Add custom ::before and ::after classes to display bracket connectors */
 
-  .els__round:first-child .els__match::before {
+  .els__round:first-of-type .els__match::before {
     @apply hidden;
   }
 
-  .els__round:first-child .els__match-content::before {
+  .els__round:first-of-type .els__match-content::before {
     @apply hidden;
   }
 
-  .els__round:last-child .els__match::after {
+  .els__round:last-of-type .els__match::after {
     @apply hidden;
   }
 
@@ -46,14 +46,14 @@ cascanding to work properly */
     @apply border border-transparent border-l-zinc-400;
   }
 
-  .els__match:nth-child(odd)::after {
+  .els__match:nth-of-type(odd)::after {
     content: "";
     @apply absolute block top-1/2 h-1/2 rounded-tr-sm;
     @apply -right-[9px] w-[10px];
     @apply border border-transparent border-t-zinc-400 border-r-zinc-400;
   }
 
-  .els__match:nth-child(even)::after {
+  .els__match:nth-of-type(even)::after {
     content: "";
 
     @apply absolute block bottom-1/2 h-1/2 rounded-br-sm;

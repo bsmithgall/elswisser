@@ -1,15 +1,21 @@
 defmodule ElswisserWeb.Brackets.Shared do
   import ElswisserWeb.ChessComponents
+  import ElswisserWeb.CoreComponents
   use Phoenix.Component
+  use Phoenix.VerifiedRoutes, endpoint: ElswisserWeb.Endpoint, router: ElswisserWeb.Router
 
   alias Elswisser.Matches.Match
 
   attr(:round, Elswisser.Rounds.Round, default: nil)
+  attr(:round_number, :integer)
   attr(:match_count, :integer)
 
   def bracket_round(%{round: nil} = assigns) do
     ~H"""
     <div class="els__round flex flex-col grow">
+      <.section_title :if={@round_number} class="text-center">
+        Round <%= @round_number %>
+      </.section_title>
       <%= for _ <- 1..@match_count do %>
         <.match />
       <% end %>
@@ -23,6 +29,14 @@ defmodule ElswisserWeb.Brackets.Shared do
 
     ~H"""
     <div class="els__round flex flex-col grow">
+      <.section_title class="text-center">
+        <.link
+          href={~p"/tournaments/#{@round.tournament_id}/rounds/#{@round}"}
+          class="hover:underline"
+        >
+          <%= @round.display_name %>
+        </.link>
+      </.section_title>
       <%= for match <- @sorted do %>
         <.match match={match} />
       <% end %>
