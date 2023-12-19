@@ -2,6 +2,7 @@ defmodule ElswisserWeb.Router do
   use ElswisserWeb, :router
 
   import ElswisserWeb.Accounts.UserAuth
+  import ElswisserWeb.Plugs.SlackEnabled
 
   pipeline :browser do
     plug(:accepts, ["html"])
@@ -11,6 +12,7 @@ defmodule ElswisserWeb.Router do
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
     plug(:fetch_current_user)
+    plug(:slack_enabled)
   end
 
   ## "Admin" (login-only) routes

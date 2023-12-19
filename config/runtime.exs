@@ -1,5 +1,9 @@
 import Config
 
+if Config.config_env() == :dev do
+  DotenvParser.load_file(".env")
+end
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration
@@ -126,7 +130,31 @@ if config_env() == :prod do
     datasource_id: System.get_env("PROMEX_DATASOURCE_ID")
   }
 
-  config :elswisser,
-         Elswisser.PromEx,
-         Elswisser.PromEx.config(not is_nil(System.get_env("PROMEX_ENABLED")))
+  with enabled when enabled != :not_set <- System.get_env("PROMEX_ENABLED", :not_set) do
+    config :elswisser,
+           Elswisser.PromEx,
+           disabled: false,
+           manual_metrics_start_delay: :no_delay,
+           drop_metrics_groups: [],
+           grafana:
+             Elswisser.PromEx.grafana_config(!is_nil(System.get_env("PROMEX_GRAFANA_ENABLED"))),
+           metrics_server: [
+             port: String.to_integer(System.get_env("METRICS_SERVER_PORT") || "4021")
+           ]
+  else
+    _ ->
+      config :elswisser, Elswisser.PromEx, disabled: true
+  end
+end
+
+# Slack notifs
+with token when not is_nil(token) <- System.get_env("SLACK_TOKEN") do
+  config :elswisser, :slack, %{
+    enabled: true,
+    channel: System.get_env("SLACK_CHANNEL"),
+    token: System.get_env("SLACK_TOKEN")
+  }
+else
+  _ ->
+    config :elswisser, :slack, %{enabled: false}
 end

@@ -61,7 +61,8 @@ defmodule Elswisser.MixProject do
       {:poolboy, "~> 1.5.2"},
       {:timex, "~> 3.0"},
       {:prom_ex, "~> 1.8.0"},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:dotenv_parser, "~> 2.0", only: [:dev, :test]}
     ]
   end
 
