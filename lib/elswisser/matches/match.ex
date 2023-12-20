@@ -103,4 +103,47 @@ defmodule Elswisser.Matches.Match do
 
   def winner(%__MODULE__{} = match), do: result(match) |> elem(0)
   def loser(%__MODULE__{} = match), do: result(match) |> elem(1)
+
+  defmodule Mini do
+    @moduledoc """
+    Mini projection of fields needed for displaying match pairings and generating alerts
+    """
+    use Ecto.Schema
+    import Ecto.Query, warn: false
+
+    alias Elswisser.Players.Player
+
+    @primary_key false
+    embedded_schema do
+      field :id, :integer
+      field :round_id, :integer
+      field :round_display_name, :string
+      embeds_one :white, Players.Mini
+      embeds_one :black, Players.Mini
+    end
+
+    def select_into(query) do
+      from([..., match: m, round: r, game: g, white: w, black: b] in query,
+        select: %__MODULE__{
+          id: m.id,
+          round_id: r.id,
+          round_display_name: r.display_name,
+          white: %Player.Mini{
+            name: w.name,
+            rating: w.rating,
+            chesscom: w.chesscom,
+            lichess: w.lichess,
+            slack_id: w.slack_id
+          },
+          black: %Player.Mini{
+            name: b.name,
+            rating: b.rating,
+            chesscom: b.chesscom,
+            lichess: b.lichess,
+            slack_id: b.slack_id
+          }
+        }
+      )
+    end
+  end
 end

@@ -87,20 +87,6 @@ defmodule Elswisser.PromEx do
     ]
   end
 
-  def config(true) do
-    [
-      disabled: false,
-      manual_metrics_start_delay: :no_delay,
-      drop_metrics_groups: [],
-      grafana: Elswisser.PromEx.grafana_config(!is_nil(System.get_env("PROMEX_GRAFANA_ENABLED"))),
-      metrics_server: [
-        port: String.to_integer(System.get_env("METRICS_SERVER_PORT") || "4021")
-      ]
-    ]
-  end
-
-  def config(false), do: [disabled: true]
-
   @doc """
   Only to be accessed during application boot
   """

@@ -9,7 +9,7 @@
 
 <.condensed_list>
   <:item title="Rating"><%= @player.rating %></:item>
-  <:item title="Record"><%= @record.wins %>-<%= @record.draws %>-<%= @record.losses %></:item>
+  <:item title="Record"><%= @record.wins %>W-<%= @record.draws %>D-<%= @record.losses %>L</:item>
   <:item title="Chess.com username">
     <.icon :if={@player.chesscom} name="icon-chesscom" />
     <a
@@ -20,7 +20,7 @@
     >
       <%= @player.chesscom %>
     </a>
-    <span :if={is_nil(@player.chesscom)}>N/A</span>
+    <span :if={is_nil(@player.chesscom)}>-</span>
   </:item>
   <:item title="Lichess username">
     <.icon :if={@player.lichess} name="icon-lichess" />
@@ -32,7 +32,11 @@
     >
       <%= @player.lichess %>
     </a>
-    <span :if={is_nil(@player.lichess)}>N/A</span>
+    <span :if={is_nil(@player.lichess)}>-</span>
+  </:item>
+  <:item :if={@current_user} title="Slack User ID">
+    <pre :if={@player.slack_id}><%= @player.slack_id %></pre>
+    <pre :if={is_nil(@player.slack_id)}>-</pre>
   </:item>
 </.condensed_list>
 

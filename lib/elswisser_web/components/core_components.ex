@@ -149,6 +149,7 @@ defmodule ElswisserWeb.CoreComponents do
       <.flash_group flash={@flash} />
   """
   attr(:flash, :map, required: true, doc: "the map of flash messages")
+  attr(:include_disconnected, :boolean, default: true)
 
   attr(:fade_after, :integer,
     default: 2000,
@@ -160,6 +161,7 @@ defmodule ElswisserWeb.CoreComponents do
     <.flash kind={:info} title="Success!" flash={@flash} fade_after={@fade_after} />
     <.flash kind={:error} title="Error!" flash={@flash} fade_after={@fade_after} />
     <.flash
+      :if={@include_disconnected}
       id="disconnected"
       kind={:error}
       title="We can't find the internet"

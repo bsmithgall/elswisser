@@ -11,17 +11,23 @@ defmodule Elswisser.Matches do
     |> Repo.all()
   end
 
-  def get_active_matches(tournament_id) do
-    Match.from()
-    |> Match.where_tournament_id(tournament_id)
-    |> Match.with_games()
-    |> Match.with_round()
-    |> Game.where_both_players()
-    |> Game.where_unfinished()
-    |> Game.with_both_players()
-    |> Match.preload_games_and_players()
-    |> Match.preload_round()
-    |> Repo.all()
+  def get_active_matches(tournament_id, type \\ :full) do
+    query =
+      Match.from()
+      |> Match.where_tournament_id(tournament_id)
+      |> Match.with_games()
+      |> Match.with_round()
+      |> Game.where_both_players()
+      |> Game.where_unfinished()
+      |> Game.with_both_players()
+
+    query =
+      case type do
+        :mini -> Match.Mini.select_into(query)
+        :full -> Match.preload_games_and_players(query) |> Match.preload_round()
+      end
+
+    Repo.all(query)
   end
 
   def create_match(attrs \\ %{}) do

@@ -1,10 +1,8 @@
 defmodule ElswisserWeb.PairShare do
   import ElswisserWeb.CoreComponents
-  alias Elswisser.Games.Game
-  alias Elswisser.Players.Player
   use Phoenix.Component
 
-  attr(:game, Game, required: true)
+  attr(:game, :map, required: true)
 
   def share_card(assigns) do
     ~H"""
@@ -15,7 +13,7 @@ defmodule ElswisserWeb.PairShare do
     """
   end
 
-  attr(:player, Player, required: true)
+  attr(:player, :map, required: true)
   attr(:color, :atom, values: [:white, :black])
 
   def share_player_wrapper(%{color: :white} = assigns) do
@@ -46,7 +44,7 @@ defmodule ElswisserWeb.PairShare do
     """
   end
 
-  attr(:player, Player, required: true)
+  attr(:player, :map, required: true)
 
   def share_player(assigns) do
     ~H"""

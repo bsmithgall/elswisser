@@ -19,9 +19,8 @@ defmodule ElswisserWeb.Tournaments.GamesController do
 
   def current(conn, _params) do
     active_games =
-      Matches.get_active_matches(conn.assigns.tournament.id)
-      |> Enum.group_by(& &1.round, & &1.games)
-      |> Map.new(fn {k, v} -> {k, List.flatten(v)} end)
+      Matches.get_active_matches(conn.assigns.tournament.id, :mini)
+      |> Enum.group_by(& &1.round_display_name)
 
     conn
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})

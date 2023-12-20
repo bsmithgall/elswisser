@@ -1,4 +1,4 @@
-defmodule ElswisserWeb.GameLive.Pgn do
+defmodule ElswisserWeb.LiveComponents.Pgn do
   use ElswisserWeb, :live_view
 
   alias Elswisser.Games
@@ -15,29 +15,34 @@ defmodule ElswisserWeb.GameLive.Pgn do
   end
 
   @impl true
+  def render(%{pgn: nil} = assigns) do
+    ~H"""
+    <.flash title="PGN Update" flash={@flash} kind={:info} />
+    <.flash title="PGN Update" flash={@flash} kind={:error} />
+
+    <.button phx-click="generate-pgn" phx-value-game-link={@game_link} phx-value-game-id={@game_id}>
+      Generate PGN
+    </.button>
+    """
+  end
+
   def render(assigns) do
     ~H"""
     <.flash title="PGN Update" flash={@flash} kind={:info} />
     <.flash title="PGN Update" flash={@flash} kind={:error} />
 
-    <%= if is_nil(@pgn) do %>
-      <.button phx-click="generate-pgn" phx-value-game-link={@game_link} phx-value-game-id={@game_id}>
-        Generate PGN
-      </.button>
-    <% else %>
-      <div id="pgn-board-container" phx-hook="GameNavigatorHook" phx-value-pgn={@pgn}>
-        <span><%= @black_player %></span>
-        <div id="pgn-board" class="w:40 md:w-96"></div>
-        <span><%= @white_player %></span>
-      </div>
+    <div id="pgn-board-container" phx-hook="GameNavigatorHook" phx-value-pgn={@pgn}>
+      <span><%= @black_player %></span>
+      <div id="pgn-board" class="w:40 md:w-96"></div>
+      <span><%= @white_player %></span>
+    </div>
 
-      <div class="pt-2 text-center">
-        <.game_nav navigate="start" icon="hero-chevron-double-left" />
-        <.game_nav navigate="back" icon="hero-arrow-left" />
-        <.game_nav navigate="forward" icon="hero-arrow-right" />
-        <.game_nav navigate="end" icon="hero-chevron-double-right" />
-      </div>
-    <% end %>
+    <div class="pt-2 text-center">
+      <.game_nav navigate="start" icon="hero-chevron-double-left" />
+      <.game_nav navigate="back" icon="hero-arrow-left" />
+      <.game_nav navigate="forward" icon="hero-arrow-right" />
+      <.game_nav navigate="end" icon="hero-chevron-double-right" />
+    </div>
     """
   end
 

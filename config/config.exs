@@ -62,13 +62,15 @@ config :phoenix, :json_library, Jason
 # Use five python workers by default
 config :elswisser, pairing_pool_size: 5
 
-# Import environment specific config. This must remain at the bottom
-# of this file so it overrides the configuration defined above.
-import_config "#{config_env()}.exs"
-
 config :elswisser, Elswisser.PromEx,
   disabled: false,
   manual_metrics_start_delay: :no_delay,
   drop_metrics_groups: [],
   grafana: :disabled,
   metrics_server: :disabled
+
+config :elswisser, :slack, enabled: false
+
+# Import environment specific config. This must remain at the bottom
+# of this file so it overrides the configuration defined above.
+import_config "#{config_env()}.exs"
