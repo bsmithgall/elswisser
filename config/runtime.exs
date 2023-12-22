@@ -130,7 +130,7 @@ if config_env() == :prod do
     datasource_id: System.get_env("PROMEX_DATASOURCE_ID")
   }
 
-  with enabled when enabled != :not_set <- System.get_env("PROMEX_ENABLED", :not_set) do
+  with enabled when not is_nil(enabled) <- System.get_env("PROMEX_ENABLED") do
     config :elswisser,
            Elswisser.PromEx,
            disabled: false,
