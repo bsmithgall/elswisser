@@ -43,7 +43,6 @@
         :if={@signed_in && @display == :pairings}
         form={"round-#{@round.id}-finalize"}
         disabled={@round.status != :playing}
-        data-confirm="Are you sure? Unplayed games will be given draws."
         class="w-full md:w-auto"
       >
         Finalize Round

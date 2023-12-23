@@ -122,6 +122,10 @@ defmodule Elswisser.Games.Game do
     from([..., game: g, white: w, black: b] in query, preload: [white: w, black: b])
   end
 
+  def count(query) do
+    from(query, select: count())
+  end
+
   def select_white_id(query) do
     from([game: g] in query, select: g.white_id)
   end

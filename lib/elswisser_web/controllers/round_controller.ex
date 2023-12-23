@@ -78,7 +78,7 @@ defmodule ElswisserWeb.RoundController do
 
   def finalize(conn, %{"tournament_id" => tournament_id, "id" => id}) do
     # @TODO: wrap all of this in a transaction via Ecto.Multi
-    with {_count, nil} <- Rounds.draw_unfinished(id),
+    with {:ok, _} <- Rounds.ensure_games_finished(id),
          {:ok, _update} <- Rounds.update_ratings_after_round(id),
          {:ok, rnd} <- Rounds.set_complete(conn.assigns[:round]),
          {:ok, next_round} <- Tournaments.create_next_round(conn.assigns[:tournament], rnd.number) do

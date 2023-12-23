@@ -210,13 +210,15 @@ defmodule Elswisser.Rounds do
   Mark all games associated with this round that do not currently have a result
   as a draw.
   """
-  def draw_unfinished(id) do
-    query =
-      Game.from()
-      |> Game.where_round_id(id)
-      |> Game.where_unfinished()
-
-    Repo.update_all(query, set: [result: 0])
+  def ensure_games_finished(id) do
+    case Game.from()
+         |> Game.where_round_id(id)
+         |> Game.where_unfinished()
+         |> Game.count()
+         |> Repo.one() do
+      0 -> {:ok, 0}
+      n -> {:error, "#{n} game(s) not finished yet!"}
+    end
   end
 
   defp put_id(set, -1), do: set
