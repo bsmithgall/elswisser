@@ -3,9 +3,11 @@ import * as htmlToImage from "html-to-image";
 export const ShareCaptureHook = {
   mounted() {
     this.el.addEventListener("click", async (_evt) => {
-      await shareCapture("pair-share", () =>
-        this.pushEvent("flash-copy-success")
-      );
+      await shareCapture("pair-share", () => {
+        this.liveSocket.main.isDead
+          ? alert("Successfully copied to Clipboard!")
+          : this.pushEvent("flash-copy-success");
+      });
     });
   },
 };
