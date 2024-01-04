@@ -25,19 +25,8 @@ cascanding to work properly */
 @layer components {
   /* Add custom ::before and ::after classes to display bracket connectors */
 
-  .els__round:first-of-type .els__match::before {
-    @apply hidden;
-  }
-
-  .els__round:first-of-type .els__match-content::before {
-    @apply hidden;
-  }
-
-  .els__round:last-of-type .els__match::after {
-    @apply hidden;
-  }
-
-  .els__match::before {
+  /* Winner's bracket */
+  .els__round .els__match::before {
     content: "";
     height: 8px;
     margin-top: -5px;
@@ -46,14 +35,14 @@ cascanding to work properly */
     @apply border border-transparent border-l-zinc-400;
   }
 
-  .els__match:nth-of-type(odd)::after {
+  .els__round .els__match:nth-of-type(odd)::after {
     content: "";
     @apply absolute block top-1/2 h-1/2 rounded-tr-sm;
     @apply -right-[9px] w-[10px];
     @apply border border-transparent border-t-zinc-400 border-r-zinc-400;
   }
 
-  .els__match:nth-of-type(even)::after {
+  .els__round .els__match:nth-of-type(even)::after {
     content: "";
 
     @apply absolute block bottom-1/2 h-1/2 rounded-br-sm;
@@ -61,11 +50,74 @@ cascanding to work properly */
     @apply border border-transparent border-b-zinc-400 border-r-zinc-400;
   }
 
-  .els__match-content::before {
+  .els__round .els__match-content::before {
     content: "";
 
     @apply absolute block top-1/2;
     @apply -left-[9px] w-[9px];
     @apply border border-transparent border-b-zinc-400;
+  }
+
+  .els__round:first-of-type .els__match::before,
+  .els__round:first-of-type .els__match-content::before,
+  .els__round:last-of-type .els__match-content::after,
+  .els__round:last-of-type .els__match::after {
+    @apply hidden;
+  }
+
+  /* Loser's bracket */
+
+  .els__lower_round:first-of-type .els__match {
+    @apply pt-10 pb-0 -mb-2;
+  }
+
+  .els__lower_round:nth-of-type(even) .els__match {
+    @apply pt-0 -mt-6;
+  }
+
+  .els__lower_round:nth-of-type(2) .els__match {
+    @apply pt-4 mt-0;
+  }
+
+  .els__lower_round:nth-of-type(odd) .els__match::after {
+    content: "";
+
+    @apply absolute block bottom-1/2 h-[20px] rounded-br-sm;
+    @apply -right-[9px] w-[10px];
+    @apply border border-transparent border-b-zinc-400 border-r-zinc-400;
+  }
+
+  .els__lower_round:nth-of-type(1) .els__match::after {
+    content: "";
+
+    @apply bottom-[27.5%] h-[25px];
+  }
+
+  .els__lower_round:nth-of-type(even) .els__match:nth-of-type(odd)::after {
+    content: "";
+    @apply absolute block top-1/2 h-[60%] rounded-tr-sm;
+    @apply -right-[9px] w-[10px];
+    @apply border border-transparent border-t-zinc-400 border-r-zinc-400;
+  }
+
+  .els__lower_round:nth-of-type(even) .els__match:nth-of-type(even)::after {
+    content: "";
+
+    @apply absolute block bottom-1/2 h-1/2 rounded-br-sm;
+    @apply -right-[9px] w-[10px];
+    @apply border border-transparent border-b-zinc-400 border-r-zinc-400;
+  }
+
+  .els__lower_round .els__match-content::before {
+    content: "";
+
+    @apply absolute block top-1/2;
+    @apply -left-[9.25px] w-[9.25px];
+    @apply border border-transparent border-t-zinc-400 rounded-tl-sm;
+  }
+
+  .els__lower_round:last-of-type .els__match:nth-of-type(1)::after,
+  .els__lower_round:first-of-type .els__match-content::before {
+    @apply hidden;
   }
 }

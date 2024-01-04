@@ -76,9 +76,13 @@ defmodule ElswisserWeb.ChessComponents do
 
   def player_result(%{player: nil} = assigns) do
     ~H"""
-    <div class="col-span-2 grid grid-cols-2">
-      <div class="inline-block"><.seed :if={@show_seed} /><.square color={@color} /></div>
-      <span class="justify-self-end">—</span>
+    <div class="flex">
+      <div class="flex gap-4 grow">
+        <div>
+          <.seed :if={@show_seed} seed={@seed} /><.square color={@color} />
+        </div>
+      </div>
+      <div class="justify-self-end mr-1 font-mono">—</div>
     </div>
     """
   end
@@ -185,7 +189,7 @@ defmodule ElswisserWeb.ChessComponents do
 
   def score(%{bye: true} = assigns) do
     ~H"""
-    <span class="font-mono">-</span>
+    <span class="font-mono">—</span>
     """
   end
 
@@ -194,7 +198,7 @@ defmodule ElswisserWeb.ChessComponents do
     <span :if={@result == 1} class="font-mono">1</span>
     <span :if={@result == 0} class="font-mono">&half;</span>
     <span :if={@result == -1} class="font-mono">0</span>
-    <span :if={is_nil(@result)} class="font-mono">-</span>
+    <span :if={is_nil(@result)} class="font-mono">—</span>
     """
   end
 
@@ -203,7 +207,7 @@ defmodule ElswisserWeb.ChessComponents do
     <span :if={@result == 1} class="font-mono">0</span>
     <span :if={@result == 0} class="font-mono">&half;</span>
     <span :if={@result == -1} class="font-mono">1</span>
-    <span :if={is_nil(@result)} class="font-mono">-</span>
+    <span :if={is_nil(@result)} class="font-mono">—</span>
     """
   end
 

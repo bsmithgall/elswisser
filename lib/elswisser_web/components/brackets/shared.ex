@@ -9,10 +9,12 @@ defmodule ElswisserWeb.Brackets.Shared do
   attr(:round, Elswisser.Rounds.Round, default: nil)
   attr(:round_number, :integer)
   attr(:match_count, :integer)
+  attr(:class, :string, default: "els__round")
+  attr(:grow, :boolean, default: true)
 
   def bracket_round(%{round: nil} = assigns) do
     ~H"""
-    <div class="els__round flex flex-col grow">
+    <div class={[@class, "flex flex-col", @grow && "grow"]}>
       <.section_title :if={@round_number} class="text-center">
         Round <%= @round_number %>
       </.section_title>
@@ -28,7 +30,7 @@ defmodule ElswisserWeb.Brackets.Shared do
       assigns |> assign(:sorted, Enum.sort_by(assigns.round.matches, & &1.display_order))
 
     ~H"""
-    <div class="els__round flex flex-col grow">
+    <div class={[@class, "flex flex-col", @grow && "grow"]}>
       <.section_title class="text-center">
         <.link
           href={~p"/tournaments/#{@round.tournament_id}/rounds/#{@round}"}
