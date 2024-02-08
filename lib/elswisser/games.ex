@@ -1,5 +1,6 @@
 defmodule Elswisser.Games do
   import Ecto.Query, warn: false
+  alias Elswisser.Games.PgnTagParser
   alias Elswisser.Games.PgnProvider
   alias Elswisser.Repo
 
@@ -73,8 +74,12 @@ defmodule Elswisser.Games do
 
   def add_pgn(id, pgn, game_link) do
     case get_game(id) do
-      nil -> {:error, "Could not find game!"}
-      game -> update_game(game, %{pgn: pgn, game_link: game_link})
+      nil ->
+        {:error, "Could not find game!"}
+
+      game ->
+        {eco, opening_name} = PgnTagParser.parse_eco(pgn)
+        update_game(game, %{pgn: pgn, eco: eco, opening_name: opening_name, game_link: game_link})
     end
   end
 

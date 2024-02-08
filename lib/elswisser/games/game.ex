@@ -12,6 +12,8 @@ defmodule Elswisser.Games.Game do
   schema "games" do
     field(:game_link, :string)
     field(:pgn, :string)
+    field(:eco, :string)
+    field(:opening_name, :string)
     field(:result, :integer)
     field(:finished_at, :utc_datetime)
     field(:white_rating, :integer, default: 0)
@@ -42,6 +44,8 @@ defmodule Elswisser.Games.Game do
       :game_link,
       :match_id,
       :pgn,
+      :eco,
+      :opening_name,
       :result,
       :round_id,
       :tournament_id,

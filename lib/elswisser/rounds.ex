@@ -109,7 +109,14 @@ defmodule Elswisser.Rounds do
         Stats.combine(acc, stat)
       end)
 
-    {round_stats, tournament_stats}
+    opening_stats =
+      Game.from()
+      |> Game.where_tournament_id(tournament_id)
+      |> Game.where_finished()
+      |> Elswisser.Tournaments.Stats.top_three_openings(tournament_id)
+      |> Repo.all()
+
+    {round_stats, tournament_stats, opening_stats}
   end
 
   def update_ratings_after_round(id) do

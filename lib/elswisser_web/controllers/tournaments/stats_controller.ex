@@ -35,11 +35,17 @@ defmodule ElswisserWeb.Tournaments.StatsController do
   end
 
   def stats(conn, _) do
-    {round_stats, tourn_stats} = Rounds.get_stats_for_tournament(conn.assigns[:tournament_id])
+    {round_stats, tourn_stats, opening_stats} =
+      Rounds.get_stats_for_tournament(conn.assigns[:tournament_id])
 
     conn
     |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
-    |> render(:stats, stats: round_stats, tournament_stats: tourn_stats, active: "stats")
+    |> render(:stats,
+      stats: round_stats,
+      tournament_stats: tourn_stats,
+      opening_stats: opening_stats,
+      active: "stats"
+    )
   end
 
   defp calculate_scores(conn, _) do
