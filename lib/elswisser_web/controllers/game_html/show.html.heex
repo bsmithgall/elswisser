@@ -8,8 +8,11 @@
 </.header>
 
 <.list>
-  <:item title="Result">
+  <:item title="Result" full_width>
     <.game_result game={@game} />
+  </:item>
+  <:item :if={!is_nil(@game.opening_name)} title="Opening">
+    <%= @game.opening_name %> (<%= @game.eco %>)
   </:item>
   <:item :if={!is_nil(@game.pgn)} title="PGN">
     <%= live_render(@conn, ElswisserWeb.LiveComponents.Pgn,

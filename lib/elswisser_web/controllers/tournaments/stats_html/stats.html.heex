@@ -4,7 +4,7 @@
 
 <.table rows={@stats ++ [@tournament_stats]} id="stats" striped>
   <:col :let={stat} label="#">
-    <%= if is_nil(stat.round), do: "Σ", else: "Round #{stat.round.number}" %>
+    <%= if is_nil(stat.round), do: "Σ", else: "#{stat.round.display_name}" %>
   </:col>
   <:col :let={stat} label="White wins" center>
     <%= stat.white_wins %>
@@ -23,4 +23,13 @@
     <.percentage top={stat.upsets} bot={stat.total} />
   </:col>
   <:col :let={stat} label="Total" center><%= stat.total %></:col>
+</.table>
+
+<.header class="pt-8">
+  Top Openings
+</.header>
+
+<.table rows={@opening_stats} id="openings">
+  <:col :let={stat} label="Opening Name"><%= stat.opening_name %></:col>
+  <:col :let={stat} label="#"><%= stat.count %></:col>
 </.table>
