@@ -20,7 +20,7 @@ defmodule Elswisser.Tournaments.Stats do
         eco: g.eco,
         count: fragment("count(1) AS count")
       },
-      order_by: fragment("count"),
+      order_by: [desc: fragment("count")],
       limit: 3
     )
   end
