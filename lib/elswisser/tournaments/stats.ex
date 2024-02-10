@@ -7,6 +7,7 @@ defmodule Elswisser.Tournaments.Stats do
   @primary_key false
   embedded_schema do
     field :opening_name, :string
+    field :eco, :string
     field :count, :integer
   end
 
@@ -16,8 +17,10 @@ defmodule Elswisser.Tournaments.Stats do
       where: g.tournament_id == ^tournament_id and not is_nil(g.opening_name),
       select: %Stats{
         opening_name: g.opening_name,
-        count: count(1)
+        eco: g.eco,
+        count: fragment("count(1) AS count")
       },
+      order_by: fragment("count"),
       limit: 3
     )
   end
