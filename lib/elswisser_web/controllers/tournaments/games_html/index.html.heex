@@ -6,22 +6,43 @@
   <div class="mb-8">
     <.section_title>Round <%= rnd.number %></.section_title>
 
-    <.table
-      id={"round-#{rnd.number}"}
-      rows={rnd.games}
-      row_click={&JS.navigate(~p"/tournaments/#{@tournament}/games/#{&1.id}")}
-      striped
-      rounded_hover={false}
-    >
-      <:col :let={game}>
-        <.game_result game={game} class="ml-6 my-1" />
-      </:col>
-      <:col :let={game}>
-        <.has_game_link game_link={game.game_link} />
-      </:col>
-      <:col :let={game}>
-        <.has_pgn pgn={game.pgn} />
-      </:col>
-    </.table>
+    <table class="w-[40rem] sm:w-full table-fixed">
+      <thead class="text-sm leading-4 text-zinc-500">
+        <tr>
+          <th class="w-2/5"></th>
+          <th></th>
+          <th class="w-16"></th>
+          <th class="w-16"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-zinc-100  border-zinc-200 text-sm leading-6 text-zinc-700">
+        <tr :for={game <- rnd.games} class="even:bg-zinc-100 hover:bg-zinc-50">
+          <td
+            phx-click={JS.navigate(~p"/tournaments/#{@tournament}/games/#{game.id}")}
+            class="hover:cursor-pointer"
+          >
+            <.game_result game={game} class="ml-6 my-1" />
+          </td>
+          <td
+            phx-click={JS.navigate(~p"/tournaments/#{@tournament}/games/#{game.id}")}
+            class="pl-8 hover:cursor-pointer"
+          >
+            <%= game.opening_name %>
+          </td>
+          <td
+            phx-click={JS.navigate(~p"/tournaments/#{@tournament}/games/#{game.id}")}
+            class="hover:cursor-pointer"
+          >
+            <.has_game_link game_link={game.game_link} />
+          </td>
+          <td
+            phx-click={JS.navigate(~p"/tournaments/#{@tournament}/games/#{game.id}")}
+            class="hover:cursor-pointer"
+          >
+            <.has_pgn pgn={game.pgn} />
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 <% end %>

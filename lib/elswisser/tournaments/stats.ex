@@ -11,7 +11,9 @@ defmodule Elswisser.Tournaments.Stats do
     field :count, :integer
   end
 
-  def top_three_openings(query, tournament_id) do
+  def top_openings(query, tournament_id), do: top_openings(query, tournament_id, 5)
+
+  def top_openings(query, tournament_id, limit) do
     from([game: g] in query,
       group_by: g.opening_name,
       where: g.tournament_id == ^tournament_id and not is_nil(g.opening_name),
@@ -21,7 +23,7 @@ defmodule Elswisser.Tournaments.Stats do
         count: fragment("count(1) AS count")
       },
       order_by: [desc: fragment("count")],
-      limit: 3
+      limit: ^limit
     )
   end
 end

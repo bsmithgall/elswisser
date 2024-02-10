@@ -113,7 +113,7 @@ defmodule Elswisser.Rounds do
       Game.from()
       |> Game.where_tournament_id(tournament_id)
       |> Game.where_finished()
-      |> Elswisser.Tournaments.Stats.top_three_openings(tournament_id)
+      |> Elswisser.Tournaments.Stats.top_openings(tournament_id)
       |> Repo.all()
 
     {round_stats, tournament_stats, opening_stats}

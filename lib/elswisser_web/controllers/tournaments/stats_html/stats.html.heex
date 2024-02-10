@@ -25,16 +25,18 @@
   <:col :let={stat} label="Total" center><%= stat.total %></:col>
 </.table>
 
-<.header class="pt-8">
-  Top Openings
-</.header>
+<div class="mb-8">
+  <.header class="pt-8">
+    Top Openings
+  </.header>
 
-<.table rows={@opening_stats} id="openings">
-  <:col :let={stat} label="Opening Name"><%= stat.opening_name %></:col>
-  <:col :let={stat} label="ECO">
-    <a class="underline" href={"https://www.365chess.com/eco/#{stat.eco}"} target="_blank">
-      <%= stat.eco %>
-    </a>
-  </:col>
-  <:col :let={stat} label="#"><%= stat.count %></:col>
-</.table>
+  <.table rows={@opening_stats} id="openings">
+    <:col :let={stat} label="Opening Name"><%= stat.opening_name %></:col>
+    <:col :let={stat} label="ECO">
+      <a class="underline" href={"https://www.365chess.com/eco/#{stat.eco}"} target="_blank">
+        <%= stat.eco %>
+      </a>
+    </:col>
+    <:col :let={stat} label="#"><%= stat.count %></:col>
+  </.table>
+</div>
