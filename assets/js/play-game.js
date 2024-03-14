@@ -5,18 +5,34 @@ let game;
 
 export const PlayGameHook = {
   mounted() {
-    game = new Game(this, this.el.getAttribute("phx-value-color"));
+    let playerType = "watcher";
+    if (
+      this.el.getAttribute("phx-value-sessionid") ==
+      this.el.getAttribute("phx-value-white")
+    )
+      playerType = "white";
+    if (
+      this.el.getAttribute("phx-value-sessionid") ==
+      this.el.getAttribute("phx-value-black")
+    )
+      playerType = "black";
+
+    game = new Game(this, {
+      fen: this.el.getAttribute("phx-value-fen"),
+      playerType,
+    });
 
     this.handleEvent("move-done", (data) => game.makeMove(data.move));
   },
 };
 
 class Game {
-  constructor(phx, color) {
+  constructor(phx, { fen, playerType }) {
     this.phx = phx;
+    this.playerType = playerType;
     this.chessboard = Chessboard2("board", {
-      orientation: color,
-      position: "start",
+      orientation: playerType === "black" ? "black" : "white",
+      position: fen ?? "start",
       draggable: true,
       onDragStart: this.onDragStart.bind(this),
       onDrop: this.onDrop.bind(this),
@@ -25,10 +41,7 @@ class Game {
   }
 
   onDragStart(evt) {
-    if (this.game.isGameOver()) return false;
-
-    if (this.game.turn === "w" && !/^w/.test(evt.piece)) return false;
-    if (this.game.turn === "b" && !/^b/.test(evt.piece)) return false;
+    if (!this.canMove(evt.piece)) return false;
 
     this.game
       .moves({ square: evt.square, verbose: true })
@@ -62,5 +75,27 @@ class Game {
   makeMove(move) {
     this.game.move(move);
     this.updateBoard();
+  }
+
+  canMove(piece) {
+    // can't move if the game is over
+    if (this.game.isGameOver()) return false;
+    if (this.playerType === "watcher") return false;
+
+    // can't move if if you don't have the white pieces on white's turn
+    if (
+      this.game.turn() === "w" &&
+      (!/^w/.test(piece) || this.playerType !== "white")
+    )
+      return false;
+
+    // can't move if you don't have the black pieces on black's turn
+    if (
+      this.game.turn() === "b" &&
+      (!/^b/.test(piece) || this.playerType !== "black")
+    )
+      return false;
+
+    return true;
   }
 }

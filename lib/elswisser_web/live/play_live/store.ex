@@ -13,11 +13,11 @@ defmodule ElswisserWeb.PlayLive.Store do
 
   # public api
   def join_game(game_id, player_id, :white) do
-    GenServer.cast(__MODULE__, {:player, {game_id, player_id, :white}})
+    GenServer.call(__MODULE__, {:player, {game_id, player_id, :white}})
   end
 
   def join_game(game_id, player_id, :black) do
-    GenServer.cast(__MODULE__, {:player, {game_id, player_id, :black}})
+    GenServer.call(__MODULE__, {:player, {game_id, player_id, :black}})
   end
 
   def update_game_position(game_id, fen, move) do
@@ -47,18 +47,26 @@ defmodule ElswisserWeb.PlayLive.Store do
   end
 
   @impl true
-  def handle_cast({:player, {game_id, player_id, :white}}, state) do
-    {:noreply,
-     Map.update(state, game_id, %Game{white: player_id}, fn existing ->
-       if is_nil(existing.white), do: Map.merge(existing, %{white: player_id}), else: existing
-     end)}
+  def handle_call({:player, {game_id, player_id, :white}}, _from, state) do
+    updated =
+      Map.update(state, game_id, %Game{white: player_id}, fn existing ->
+        if is_nil(existing.white) and player_id != existing.black,
+          do: Map.merge(existing, %{white: player_id, id: game_id}),
+          else: existing
+      end)
+
+    {:reply, Map.get(updated, game_id), updated}
   end
 
   @impl true
-  def handle_cast({:player, {game_id, player_id, :black}}, state) do
-    {:noreply,
-     Map.update(state, game_id, %Game{black: player_id}, fn existing ->
-       if is_nil(existing.black), do: Map.merge(existing, %{black: player_id}), else: existing
-     end)}
+  def handle_call({:player, {game_id, player_id, :black}}, _from, state) do
+    updated =
+      Map.update(state, game_id, %Game{black: player_id}, fn existing ->
+        if is_nil(existing.black) and player_id != existing.white,
+          do: Map.merge(existing, %{black: player_id, id: game_id}),
+          else: existing
+      end)
+
+    {:reply, Map.get(updated, game_id), updated}
   end
 end

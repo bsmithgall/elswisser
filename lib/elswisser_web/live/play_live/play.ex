@@ -15,8 +15,21 @@ defmodule ElswisserWeb.PlayLive.Play do
 
   def render(%{id: _} = assigns) do
     ~H"""
-    <div id="board-container" phx-hook="PlayGameHook" phx-value-color={@live_action}>
+    <div class="mb-4"><%= inspect(assigns.game) %></div>
+    <div class="mb-4"><%= @session_id %></div>
+
+    <div
+      id="board-container"
+      phx-hook="PlayGameHook"
+      phx-value-color={@live_action}
+      phx-value-white={@game.white}
+      phx-value-black={@game.black}
+      phx-value-sessionid={@session_id}
+      phx-value-fen={@game.fen}
+    >
+      <span><%= @game.black %></span>
       <div id="board" class="w:40 md:w-96"></div>
+      <span><%= @game.white %></span>
     </div>
     """
   end
@@ -24,13 +37,13 @@ defmodule ElswisserWeb.PlayLive.Play do
   def render(_), do: ""
 
   def mount(%{"id" => id} = params, session, socket) do
-    Store.join_game(id, session["live_socket_id"], socket.assigns.live_action)
-
+    game = Store.join_game(id, session["live_socket_id"], socket.assigns.live_action)
     ElswisserWeb.Endpoint.subscribe(id)
 
     {:ok,
      socket
      |> assign(:id, id)
+     |> assign(:game, game)
      |> assign(:black, params["black"])
      |> assign(:session_id, session["live_socket_id"])}
   end
