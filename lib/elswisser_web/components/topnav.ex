@@ -26,6 +26,7 @@ defmodule ElswisserWeb.Topnav do
           </button>
         </div>
         <div class="hidden md:flex md:items-center md:gap-4 font-semibold leading-6 text-zinc-900">
+          <a href={~p"/game"} class="hover:text-zinc-500">Play</a>
           <a href={~p"/tournaments"} class="hover:text-zinc-500">
             Tournaments
           </a>
@@ -71,6 +72,7 @@ defmodule ElswisserWeb.Topnav do
           </div>
           <div>
             <ul>
+              <.hamburger_nav_link href={~p"/game"} label="Play" />
               <.hamburger_nav_link href={~p"/tournaments"} label="Tournaments" />
               <.hamburger_nav_link href={~p"/players"} label="Players" />
               <.hamburger_nav_link

@@ -63,6 +63,12 @@ defmodule ElswisserWeb.Router do
     end
 
     resources("/players", PlayerController, only: [:index, :show])
+
+    live_session :default do
+      live "/game", PlayLive.Play
+      live "/game/:id", PlayLive.Play, :white
+      live "/game/:id/black", PlayLive.Play, :black
+    end
   end
 
   ## Authentication routes
