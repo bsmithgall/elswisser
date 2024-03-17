@@ -20,8 +20,8 @@ defmodule ElswisserWeb.PlayLive.Store do
     GenServer.call(__MODULE__, {:player, {game_id, player_id, :black}})
   end
 
-  def update_game_position(game_id, fen, move) do
-    GenServer.call(__MODULE__, {:move, {game_id, fen, move}})
+  def update_game_position(game_id, fen, pgn, move) do
+    GenServer.call(__MODULE__, {:move, {game_id, fen, pgn, move}})
   end
 
   def get_game_sync(game_id) do
@@ -35,13 +35,13 @@ defmodule ElswisserWeb.PlayLive.Store do
   end
 
   @impl true
-  def handle_call({:move, {game_id, fen, move}}, _from, state) do
+  def handle_call({:move, {game_id, fen, pgn, move}}, _from, state) do
     state =
       Map.update!(state, game_id, fn existing ->
-        Map.merge(existing, %{fen: fen})
+        Map.merge(existing, %{fen: fen, pgn: pgn})
       end)
 
-    ElswisserWeb.Endpoint.broadcast(game_id, "move", {fen, move})
+    ElswisserWeb.Endpoint.broadcast(game_id, "move", {fen, pgn, move})
 
     {:reply, :ok, state}
   end

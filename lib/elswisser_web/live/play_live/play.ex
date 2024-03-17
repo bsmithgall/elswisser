@@ -11,7 +11,6 @@ defmodule ElswisserWeb.PlayLive.Play do
   alias ElswisserWeb.PlayLive.Store
 
   @id_length 8
-  @active %{}
 
   def render(%{id: _} = assigns) do
     ~H"""
@@ -26,6 +25,7 @@ defmodule ElswisserWeb.PlayLive.Play do
       phx-value-black={@game.black}
       phx-value-sessionid={@session_id}
       phx-value-fen={@game.fen}
+      phx-value-pgn={@game.pgn}
     >
       <span><%= @game.black %></span>
       <div id="board" class="w:40 md:w-96"></div>
@@ -52,21 +52,21 @@ defmodule ElswisserWeb.PlayLive.Play do
     {:ok, redirect(socket, to: "/game/#{generate_game_id()}")}
   end
 
-  def handle_event("move", %{"fen" => fen, "move" => move}, socket) do
-    Store.update_game_position(socket.assigns.id, fen, move)
-    send(self(), {"move", {fen, move}})
+  def handle_event("move", %{"fen" => fen, "pgn" => pgn, "move" => move}, socket) do
+    Store.update_game_position(socket.assigns.id, fen, pgn, move)
+    send(self(), {"move", {fen, pgn, move}})
     {:noreply, socket}
   end
 
-  def handle_info({"move", {fen, move}}, socket) do
-    {:noreply, socket |> push_event("move-done", %{fen: fen, move: move})}
+  def handle_info({"move", {fen, pgn, move}}, socket) do
+    {:noreply, socket |> push_event("move-done", %{fen: fen, pgn: pgn, move: move})}
   end
 
   def handle_info(
-        %Phoenix.Socket.Broadcast{topic: _, event: "move", payload: {fen, move}},
+        %Phoenix.Socket.Broadcast{topic: _, event: "move", payload: {fen, pgn, move}},
         socket
       ) do
-    {:noreply, socket |> push_event("move-done", %{fen: fen, move: move})}
+    {:noreply, socket |> push_event("move-done", %{fen: fen, pgn: pgn, move: move})}
   end
 
   defp generate_game_id,

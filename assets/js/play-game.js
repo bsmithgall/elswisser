@@ -19,16 +19,18 @@ export const PlayGameHook = {
 
     game = new Game(this, {
       fen: this.el.getAttribute("phx-value-fen"),
+      pgn: this.el.getAttribute("phx-value-pgn"),
       playerType,
     });
 
-    this.handleEvent("move-done", (data) => game.makeMove(data.move));
+    this.handleEvent("move-done", (data) => game.makeMove(data.pgn));
   },
 };
 
 class Game {
-  constructor(phx, { fen, playerType }) {
+  constructor(phx, { fen, pgn, playerType }) {
     this.phx = phx;
+    this.pgn = pgn;
     this.playerType = playerType;
     this.chessboard = Chessboard2("board", {
       orientation: playerType === "black" ? "black" : "white",
@@ -37,11 +39,11 @@ class Game {
       onDragStart: this.onDragStart.bind(this),
       onDrop: this.onDrop.bind(this),
     });
-    this.game = new Chess();
+    this.game = new Chess(fen);
   }
 
   onDragStart(evt) {
-    if (!this.canMove(evt.piece)) return false;
+    if (!this._canMove(evt.piece)) return false;
 
     this.game
       .moves({ square: evt.square, verbose: true })
@@ -58,9 +60,10 @@ class Game {
 
       this.game.move(move);
       const fen = this.game.fen();
+      const pgn = this.game.pgn();
       this.updateBoard();
 
-      this.phx.pushEvent("move", { fen, move });
+      this.phx.pushEvent("move", { fen, pgn, move });
     } catch (e) {
       this.chessboard.clearCircles();
       return "snapback";
@@ -72,12 +75,12 @@ class Game {
     this.chessboard.fen(this.game.fen());
   }
 
-  makeMove(move) {
-    this.game.move(move);
+  makeMove(pgn) {
+    this.game.loadPgn(pgn);
     this.updateBoard();
   }
 
-  canMove(piece) {
+  _canMove(piece) {
     // can't move if the game is over
     if (this.game.isGameOver()) return false;
     if (this.playerType === "watcher") return false;
