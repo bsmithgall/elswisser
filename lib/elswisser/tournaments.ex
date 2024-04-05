@@ -5,6 +5,7 @@ defmodule Elswisser.Tournaments do
 
   import Ecto.Query, warn: false
   require Elswisser.Tournaments.Tournament
+  alias Elswisser.Pairings.RoundRobin
   alias Elswisser.Pairings.DoubleElimination
   alias Elswisser.Tournaments.TournamentPlayer
   alias Elswisser.Matches.Match
@@ -280,6 +281,16 @@ defmodule Elswisser.Tournaments do
     {:ok, %{tournament_id: tournament.id}}
   end
 
+  def create_next_round(%Tournament{type: :round_robin} = tournament, 0) do
+    {:ok, _} = RoundRobin.create_all(tournament)
+
+    {:ok, %{tournament_id: tournament.id}}
+  end
+
+  def create_next_round(%Tournament{type: :round_robin} = tournament, current_round_number) do
+    Rounds.get_next_round(tournament.id, current_round_number) |> Rounds.set_playing()
+  end
+
   def empty_changeset(%Tournament{} = tournament, attrs \\ %{}) do
     tournament
     |> Tournament.changeset(attrs)
@@ -327,6 +338,10 @@ defmodule Elswisser.Tournaments do
     lb = wb + (wb |> Math.log(2) |> ceil())
 
     wb + lb + 1
+  end
+
+  def calculate_length(players, :round_robin) when is_list(players) do
+    if rem(length(players), 2) == 0, do: length(players) - 1, else: length(players)
   end
 
   def calculate_length(_, _), do: 0

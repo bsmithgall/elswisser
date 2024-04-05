@@ -9,7 +9,7 @@ defmodule Elswisser.Tournaments.Tournament do
 
   alias __MODULE__
 
-  @types ~w[swiss single_elimination double_elimination]a
+  @types ~w[swiss single_elimination double_elimination round_robin]a
   @knockouts ~w[single_elimination double_elimination]a
 
   schema "tournaments" do

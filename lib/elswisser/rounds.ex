@@ -38,6 +38,13 @@ defmodule Elswisser.Rounds do
     Round.from() |> Round.where_id(id) |> Repo.one()
   end
 
+  def get_next_round(tournament_id, current_round_number) do
+    Round.from()
+    |> Round.where_tournament_id(tournament_id)
+    |> Round.where_round_number(current_round_number + 1)
+    |> Repo.one()
+  end
+
   def get_round_with_games(id) do
     Round.from()
     |> Round.where_id(id)
@@ -192,6 +199,10 @@ defmodule Elswisser.Rounds do
 
   def set_pairing(%Round{} = round) do
     round |> Round.changeset(%{status: :pairing}) |> Repo.update()
+  end
+
+  def set_playing(%Round{} = round) do
+    round |> Round.changeset(%{status: :playing}) |> Repo.update()
   end
 
   def set_playing(id) when is_integer(id) do

@@ -12,14 +12,14 @@
     active={@active == "roster"}
   />
   <.navlink
-    :if={@tournament.type == :swiss}
+    :if={@tournament.type in ~w[swiss round_robin]a}
     label="Scores"
     href={~p"/tournaments/#{@tournament}/scores"}
     icon="hero-list-bullet-mini"
     active={@active == "scores"}
   />
   <.navlink
-    :if={@tournament.type == :swiss}
+    :if={@tournament.type in ~w[swiss round_robin]a}
     label="Crosstable"
     href={~p"/tournaments/#{@tournament}/crosstable"}
     icon="hero-table-cells-mini"
@@ -44,7 +44,6 @@
     active={@active == "current-games"}
   />
 </div>
-<hr />
 <hr />
 <div>
   <h2 class="mt-2 text-sm leading-6 text-zinc-600 pl-1 pb-1">
