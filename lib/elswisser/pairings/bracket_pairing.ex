@@ -116,8 +116,7 @@ defmodule Elswisser.Pairings.BracketPairing do
       black_rating: if(pairing.player_two, do: pairing.player_two.rating),
       black_seed: pairing.player_two_seed,
       tournament_id: pairing.tournament_id,
-      round_id: round_id,
-      display_order: pairing.display_order
+      round_id: round_id
     }
   end
 

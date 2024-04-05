@@ -54,6 +54,10 @@ defmodule Elswisser.Rounds.Round do
     from([round: r] in query, where: r.number == ^number)
   end
 
+  def where_status(query, status) when status in @statuses do
+    from([round: r] in query, where: r.status == ^status)
+  end
+
   def with_matches(query) do
     from([round: r] in query, left_join: m in assoc(r, :matches), as: :match)
   end

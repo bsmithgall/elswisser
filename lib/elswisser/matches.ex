@@ -2,6 +2,7 @@ defmodule Elswisser.Matches do
   alias Elswisser.Games.Game
   alias Elswisser.Repo
   alias Elswisser.Matches.Match
+  alias Elswisser.Rounds.Round
 
   def get_by_id(ids) when is_list(ids) do
     Match.from()
@@ -17,6 +18,7 @@ defmodule Elswisser.Matches do
       |> Match.where_tournament_id(tournament_id)
       |> Match.with_games()
       |> Match.with_round()
+      |> Round.where_status(:playing)
       |> Game.where_both_players()
       |> Game.where_unfinished()
       |> Game.with_both_players()
