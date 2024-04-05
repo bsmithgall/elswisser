@@ -210,10 +210,9 @@ defmodule Elswisser.Tournaments do
     create_next_round(tournament, String.to_integer(current_round_number))
   end
 
-  def create_next_round(%Tournament{} = tournament, current_round_number)
-      when current_round_number > tournament.length do
-    :finished
-  end
+  def create_next_round(%Tournament{length: len}, current_round_number)
+      when current_round_number >= len,
+      do: :finished
 
   @doc """
   Attempt to create the next round for a tournament. If the next round number is
