@@ -3,6 +3,26 @@ defmodule Elchesser.MovesTest do
 
   alias Elchesser.Moves
 
+  describe "generate_move/2 no piece" do
+    test "empty board" do
+      moves =
+        Elchesser.Fen.parse("8/8/8/8/8/8/8/8 w KQkq - 0 1")
+        |> Moves.generate_move({?a, 1})
+
+      assert moves == []
+    end
+
+    test "full board" do
+      moves =
+        Elchesser.Fen.parse(
+          "ppppppppp/PPPPPPPP/pppppppp/PPPPPPPP/pppppppp/PPP1PPPPP/pppppppp/PPPPPPPP w KQkq - 0 1"
+        )
+        |> Moves.generate_move({?c, 3})
+
+      assert moves == []
+    end
+  end
+
   describe "generate_move/2 rook" do
     test "only rook on board" do
       #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
@@ -245,6 +265,98 @@ defmodule Elchesser.MovesTest do
         {{?c, 6}, false},
         {{?b, 7}, true}
       ])
+    end
+  end
+
+  describe "generate_moves/2 knight" do
+    test "only knight on the board" do
+      #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
+      # 8 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 7 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 6 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 5 │   │   │   │ ♞ │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 4 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 3 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 2 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 1 │   │   │   │   │   │   │   │   │
+      #   └───┴───┴───┴───┴───┴───┴───┴───┘
+      #     a   b   c   d   e   f   g   h
+      moves =
+        Elchesser.Fen.parse("8/8/8/3n4/8/8/8/8 w KQkq - 0 1")
+        |> Moves.generate_move({?d, 5})
+
+      assert_list_eq_any_order(moves, [
+        {{?c, 7}, false},
+        {{?c, 3}, false},
+        {{?b, 6}, false},
+        {{?b, 4}, false},
+        {{?e, 7}, false},
+        {{?e, 3}, false},
+        {{?f, 6}, false},
+        {{?f, 4}, false}
+      ])
+    end
+
+    test "knight on the edge of the board" do
+      #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
+      # 8 │ ♘ │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 7 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 6 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 5 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 4 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 3 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 2 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 1 │   │   │   │   │   │   │   │   │
+      #   └───┴───┴───┴───┴───┴───┴───┴───┘
+      #     a   b   c   d   e   f   g   h
+      moves =
+        Elchesser.Fen.parse("N7/8/8/8/8/8/8/8 w KQkq - 0 1")
+        |> Moves.generate_move({?a, 8})
+
+      assert_list_eq_any_order(moves, [
+        {{?c, 7}, false},
+        {{?b, 6}, false}
+      ])
+    end
+
+    test "with interposing pieces" do
+      #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
+      # 8 │ ♘ │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 7 │   │ ♗ │ ♗ │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 6 │ ♟ │ ♟ │ ♟ │ ♟ │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 5 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 4 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 3 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 2 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 1 │   │   │   │   │   │   │   │   │
+      #   └───┴───┴───┴───┴───┴───┴───┴───┘
+      #     a   b   c   d   e   f   g   h
+      moves =
+        Elchesser.Fen.parse("N7/1BB5/pppp4/8/8/8/8/8 w KQkq - 0 1")
+        |> Moves.generate_move({?a, 8})
+
+      assert_list_eq_any_order(moves, [{{?b, 6}, true}])
     end
   end
 

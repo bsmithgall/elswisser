@@ -35,11 +35,24 @@ defmodule Elchesser.Moves do
     |> List.flatten()
   end
 
+  defp square_moves(%Square{piece: p} = square, %Game{} = game) when p == :n or p == :N do
+    Enum.reduce(square.sees.knight, [], fn {file, rank}, acc ->
+      s = Map.get(game.board, {file, rank})
+
+      case Piece.friendly?(square.piece, s.piece) do
+        true -> acc
+        false -> [{{s.file, s.rank}, true} | acc]
+        nil -> [{{s.file, s.rank}, false} | acc]
+      end
+    end)
+    |> Enum.reverse()
+  end
+
   defp square_moves(_, _), do: []
 
   @spec move_range(%Square{}, %Game{}, Square.Sees.t()) :: [{%Square{}, boolean()}]
   defp move_range(%Square{} = square, %Game{} = game, direction) do
-    square.sees[direction]
+    get_in(square.sees, [Access.key!(direction)])
     |> Enum.reduce_while([], fn {file, rank}, acc ->
       s = Map.get(game.board, {file, rank})
 

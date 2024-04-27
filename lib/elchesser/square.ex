@@ -5,14 +5,13 @@ defmodule Elchesser.Square do
   defstruct file: nil,
             rank: nil,
             piece: nil,
-            knight_moves: [],
             sees: %Sees{}
 
   @type t :: %Square{}
 
   @spec from(number(), number(), String.t() | nil) :: t()
   def from(file, rank, piece) do
-    sees = %{
+    sees = %Sees{
       up: up(file, rank),
       down: down(file, rank),
       left: left(file, rank),
@@ -20,16 +19,15 @@ defmodule Elchesser.Square do
       up_right: up_right(file, rank),
       up_left: up_left(file, rank),
       down_right: down_right(file, rank),
-      down_left: down_left(file, rank)
+      down_left: down_left(file, rank),
+      knight: knight_moves(file, rank)
     }
 
     %Square{
       file: file,
       rank: rank,
       piece: piece,
-      sees:
-        Map.merge(sees, %{all: Map.values(sees) |> List.flatten() |> Enum.into(MapSet.new())}),
-      knight_moves: knight_moves(file, rank)
+      sees: Map.merge(sees, %{all: Map.values(sees) |> List.flatten() |> Enum.into(MapSet.new())})
     }
   end
 
@@ -93,5 +91,9 @@ defmodule Elchesser.Square do
     |> Enum.reverse()
   end
 
-  defp knight_moves(_file, _rank), do: []
+  defp knight_moves(file, rank) do
+    [{2, 1}, {-2, 1}, {2, -1}, {-2, -1}, {1, 2}, {-1, 2}, {1, -2}, {-1, -2}]
+    |> Enum.map(fn {f, r} -> {file + f, rank + r} end)
+    |> Enum.filter(fn {f, r} -> f >= ?a and f <= ?h and r >= 0 and r <= 7 end)
+  end
 end
