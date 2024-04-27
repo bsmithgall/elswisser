@@ -10,7 +10,7 @@ defmodule Elchesser.Square do
 
   @type t :: %Square{}
 
-  @spec from(number(), number(), Elchesser.Piece.t() | nil) :: t()
+  @spec from(number(), number(), String.t() | nil) :: t()
   def from(file, rank, piece) do
     sees = %{
       up: up(file, rank),
@@ -33,9 +33,16 @@ defmodule Elchesser.Square do
     }
   end
 
+  def piece_display(%Square{} = square), do: Elchesser.Piece.display(square.piece)
+
   defp up(file, rank), do: for(r <- Elchesser.ranks(), r > rank, do: {file, r})
-  defp down(file, rank), do: for(r <- Elchesser.ranks(), r < rank, do: {file, r})
-  defp left(file, rank), do: for(f <- Elchesser.files(), f < file, do: {f, rank})
+
+  defp down(file, rank),
+    do: for(r <- Elchesser.ranks() |> Enum.reverse(), r < rank, do: {file, r})
+
+  defp left(file, rank),
+    do: for(f <- Elchesser.files() |> Enum.reverse(), f < file, do: {f, rank})
+
   defp right(file, rank), do: for(f <- Elchesser.files(), f > file, do: {f, rank})
 
   defp up_right(file, rank) do

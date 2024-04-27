@@ -4,7 +4,7 @@ defimpl Inspect, for: Elchesser.Game do
   @spec inspect(Elchesser.Game.t(), Inspect.Opts.t()) :: Inspect.Algebra.t()
   def inspect(%Elchesser.Game{} = game, _opts) do
     for rank <- Elchesser.ranks(), file <- Elchesser.files() do
-      Map.get(game.board, {file, rank}) |> Elchesser.Piece.display() |> then(&"│ #{&1} ")
+      Map.get(game.board, {file, rank}) |> Elchesser.Square.piece_display() |> then(&"│ #{&1} ")
     end
     |> Enum.chunk_every(8)
     |> Enum.reverse()

@@ -3,56 +3,252 @@ defmodule Elchesser.MovesTest do
 
   alias Elchesser.Moves
 
-  describe "generate_moves/3 rook" do
+  describe "generate_move/2 rook" do
     test "only rook on board" do
-      game = Elchesser.Fen.parse("8/8/8/8/4R3/8/8/8 w KQkq - 0 1")
+      #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
+      # 8 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 7 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 6 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 5 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 4 │   │   │   │   │ ♖ │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 3 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 2 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 1 │   │   │   │   │   │   │   │   │
+      #   └───┴───┴───┴───┴───┴───┴───┴───┘
+      #     a   b   c   d   e   f   g   h
+      moves =
+        Elchesser.Fen.parse("8/8/8/8/4R3/8/8/8 w KQkq - 0 1")
+        |> Moves.generate_move({?e, 4})
 
-      moves = Moves.generate_moves(game)
-
-      assert Map.get(moves, {?a, 1}) == [
-               {?a, 4},
-               {?b, 4},
-               {?c, 4},
-               {?d, 4},
-               {?f, 4},
-               {?g, 4},
-               {?h, 4},
-               {?e, 1},
-               {?e, 2},
-               {?e, 3},
-               {?e, 5},
-               {?e, 6},
-               {?e, 7},
-               {?e, 8}
-             ]
+      assert_list_eq_any_order(moves, [
+        {{?f, 4}, false},
+        {{?g, 4}, false},
+        {{?h, 4}, false},
+        {{?a, 4}, false},
+        {{?b, 4}, false},
+        {{?c, 4}, false},
+        {{?d, 4}, false},
+        {{?e, 1}, false},
+        {{?e, 2}, false},
+        {{?e, 3}, false},
+        {{?e, 5}, false},
+        {{?e, 6}, false},
+        {{?e, 7}, false},
+        {{?e, 8}, false}
+      ])
     end
 
-    test "with friendly pieces" do
-    end
+    test "with interposing pieces" do
+      #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
+      # 8 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 7 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 6 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 5 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 4 │   │   │   │   │ ♗ │   │ ♜ │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 3 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 2 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 1 │   │   │   │   │   │   │ ♞ │   │
+      #   └───┴───┴───┴───┴───┴───┴───┴───┘
+      #     a   b   c   d   e   f   g   h
+      moves =
+        Elchesser.Fen.parse("8/8/8/8/4B1r1/8/8/6n1 w KQkq - 0 1")
+        |> Moves.generate_move({?g, 4})
 
-    test "with enemy pieces" do
+      assert_list_eq_any_order(moves, [
+        {{?h, 4}, false},
+        {{?e, 4}, true},
+        {{?f, 4}, false},
+        {{?g, 8}, false},
+        {{?g, 7}, false},
+        {{?g, 6}, false},
+        {{?g, 5}, false},
+        {{?g, 3}, false},
+        {{?g, 2}, false}
+      ])
     end
   end
 
-  describe "generate_moves/3 bishop" do
+  describe "generate_moves/2 bishop" do
     test "only bishop on board" do
+      #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
+      # 8 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 7 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 6 │   │   │   │   │   │ ♗ │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 5 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 4 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 3 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 2 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 1 │   │   │   │   │   │   │   │   │
+      #   └───┴───┴───┴───┴───┴───┴───┴───┘
+      #     a   b   c   d   e   f   g   h
+
+      moves =
+        Elchesser.Fen.parse("8/8/5B2/8/8/8/8/8 w KQkq - 0 1")
+        |> Moves.generate_move({?f, 6})
+
+      assert_list_eq_any_order(moves, [
+        {{?g, 5}, false},
+        {{?h, 4}, false},
+        {{?e, 5}, false},
+        {{?d, 4}, false},
+        {{?c, 3}, false},
+        {{?b, 2}, false},
+        {{?a, 1}, false},
+        {{?e, 7}, false},
+        {{?d, 8}, false},
+        {{?g, 7}, false},
+        {{?h, 8}, false}
+      ])
     end
 
-    test "with friendly pieces" do
-    end
+    test "with interposing pieces" do
+      #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
+      # 8 │   │   │   │   │   │   │   │ ♖ │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 7 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 6 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 5 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 4 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 3 │ ♞ │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 2 │   │ ♝ │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 1 │   │   │   │   │   │   │   │   │
+      #   └───┴───┴───┴───┴───┴───┴───┴───┘
+      #     a   b   c   d   e   f   g   h
+      moves =
+        Elchesser.Fen.parse("8/6R1/8/8/8/n7/1b6/8 w KQkq - 0 1")
+        |> Moves.generate_move({?b, 2})
 
-    test "with enemy pieces" do
+      assert_list_eq_any_order(moves, [
+        {{?c, 1}, false},
+        {{?a, 1}, false},
+        {{?c, 3}, false},
+        {{?d, 4}, false},
+        {{?e, 5}, false},
+        {{?f, 6}, false},
+        {{?g, 7}, true}
+      ])
     end
   end
 
-  describe "generate_moves/3 queen" do
+  describe "generate_moves/2 queen" do
     test "only queen on board" do
+      #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
+      # 8 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 7 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 6 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 5 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 4 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 3 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 2 │   │   │   │   │   │   │ ♕ │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 1 │   │   │   │   │   │   │   │   │
+      #   └───┴───┴───┴───┴───┴───┴───┴───┘
+      #     a   b   c   d   e   f   g   h
+      moves =
+        Elchesser.Fen.parse("8/8/8/8/8/8/6Q1/8 w KQkq - 0 1")
+        |> Moves.generate_move({?g, 2})
+
+      assert_list_eq_any_order(moves, [
+        {{?h, 1}, false},
+        {{?f, 1}, false},
+        {{?f, 3}, false},
+        {{?e, 4}, false},
+        {{?d, 5}, false},
+        {{?c, 6}, false},
+        {{?b, 7}, false},
+        {{?a, 8}, false},
+        {{?h, 3}, false},
+        {{?h, 2}, false},
+        {{?a, 2}, false},
+        {{?b, 2}, false},
+        {{?c, 2}, false},
+        {{?d, 2}, false},
+        {{?e, 2}, false},
+        {{?f, 2}, false},
+        {{?g, 1}, false},
+        {{?g, 3}, false},
+        {{?g, 4}, false},
+        {{?g, 5}, false},
+        {{?g, 6}, false},
+        {{?g, 7}, false},
+        {{?g, 8}, false}
+      ])
     end
 
-    test "with friendly pieces" do
-    end
+    test "with interposing pieces" do
+      #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
+      # 8 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 7 │   │ ♕ │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 6 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 5 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 4 │   │   │   │   │   │   │ ♖ │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 3 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 2 │   │   │   │   │   │ ♝ │ ♛ │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 1 │   │   │   │   │   │   │   │   │
+      #   └───┴───┴───┴───┴───┴───┴───┴───┘
+      #     a   b   c   d   e   f   g   h
+      moves =
+        Elchesser.Fen.parse("8/1Q6/8/8/6R1/8/5bq1/8 w KQkq - 0 1")
+        |> Moves.generate_move({?g, 2})
 
-    test "with enemy pieces" do
+      assert_list_eq_any_order(moves, [
+        {{?h, 2}, false},
+        {{?h, 3}, false},
+        {{?h, 1}, false},
+        {{?g, 1}, false},
+        {{?f, 1}, false},
+        {{?g, 3}, false},
+        {{?g, 4}, true},
+        {{?f, 3}, false},
+        {{?e, 4}, false},
+        {{?d, 5}, false},
+        {{?c, 6}, false},
+        {{?b, 7}, true}
+      ])
     end
+  end
+
+  def assert_list_eq_any_order(left, right) when is_list(left) and is_list(right) do
+    assert Enum.sort(left) == Enum.sort(right)
   end
 end

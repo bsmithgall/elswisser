@@ -1,5 +1,12 @@
 defmodule Elchesser.Piece do
+  @white MapSet.new([:P, :N, :B, :R, :Q, :K])
+  @black MapSet.new([:p, :n, :b, :r, :q, :k])
+
   @type t :: :p | :n | :b | :r | :q | :k | :P | :N | :B | :R | :Q | :K
+
+  @spec friendly?(t(), t() | nil) :: boolean() | nil
+  def friendly?(_, nil), do: nil
+  def friendly?(l, r), do: (white?(l) and white?(r)) or (black?(l) && black?(r))
 
   @spec from_string(String.t()) :: t()
   def from_string("p"), do: :p
@@ -29,4 +36,7 @@ defmodule Elchesser.Piece do
   def display(:r), do: "♜"
   def display(:q), do: "♛"
   def display(:k), do: "♚"
+
+  defp white?(p), do: MapSet.member?(@white, p)
+  defp black?(p), do: MapSet.member?(@black, p)
 end

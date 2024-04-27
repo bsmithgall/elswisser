@@ -1,6 +1,7 @@
 defmodule Elchesser.Fen do
-  alias Elchesser.Piece
-  @start "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+  alias Elchesser.{Piece, Square}
+
+  # @start "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
   @spec parse(String.t()) :: Elchesser.Game.t()
   def parse(fen) do
@@ -26,11 +27,14 @@ defmodule Elchesser.Fen do
               {file + n,
                Map.merge(
                  rankMap,
-                 file..(file + n) |> Enum.map(fn f -> {{f, rank}, nil} end) |> Enum.into(%{})
+                 file..(file + n)
+                 |> Enum.map(fn f -> {{f, rank}, Square.from(f, rank, nil)} end)
+                 |> Enum.into(%{})
                )}
 
             :error ->
-              {file + 1, Map.put(rankMap, {file, rank}, Piece.from_string(c))}
+              {file + 1,
+               Map.put(rankMap, {file, rank}, Square.from(file, rank, Piece.from_string(c)))}
           end
         end)
         |> then(&elem(&1, 1))
