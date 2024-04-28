@@ -17,7 +17,7 @@ defmodule Elchesser.Moves do
 
   defp square_moves(%Square{piece: p} = square, %Game{} = game) when p == :r or p == :R do
     for d <- [:up, :down, :left, :right], reduce: [] do
-      acc -> [move_range(square, game, get_in(square.sees, [Access.key!(d)])) | acc]
+      acc -> [move_range(square, game, d) | acc]
     end
     |> List.flatten()
   end
@@ -26,7 +26,7 @@ defmodule Elchesser.Moves do
 
   defp square_moves(%Square{piece: p} = square, %Game{} = game) when p == :b or p == :B do
     for d <- [:up_right, :up_left, :down_left, :down_right], reduce: [] do
-      acc -> [move_range(square, game, get_in(square.sees, [Access.key!(d)])) | acc]
+      acc -> [move_range(square, game, d) | acc]
     end
     |> List.flatten()
   end
@@ -36,7 +36,7 @@ defmodule Elchesser.Moves do
   defp square_moves(%Square{piece: p} = square, %Game{} = game) when p == :q or p == :Q do
     for d <- [:up, :down, :left, :right, :up_right, :up_left, :down_left, :down_right],
         reduce: [] do
-      acc -> [move_range(square, game, get_in(square.sees, [Access.key!(d)])) | acc]
+      acc -> [move_range(square, game, d) | acc]
     end
     |> List.flatten()
   end
@@ -58,7 +58,6 @@ defmodule Elchesser.Moves do
 
   ## white pawns
 
-  # @TODO: en-passant
   defp square_moves(%Square{piece: :P, file: file, rank: rank}, %Game{} = game) do
     # cannot capture forward
     forward =
@@ -70,10 +69,10 @@ defmodule Elchesser.Moves do
 
     captures =
       [{{file + 1, rank + 1}, true}, {{file - 1, rank + 1}, true}]
+      |> Enum.filter(fn {s, _} -> Square.valid?(s) end)
       |> Enum.filter(fn {s, _} ->
-        c = Map.get(game.board, s)
-
-        not is_nil(c) and not is_nil(c.piece) and not Piece.friendly?(:P, c.piece)
+        Map.get(game.board, s)
+        |> then(&(Piece.enemy?(:P, &1.piece) || en_passant?(&1, game)))
       end)
 
     Enum.concat(forward, captures)
@@ -94,23 +93,22 @@ defmodule Elchesser.Moves do
 
     captures =
       [{{file + 1, rank - 1}, true}, {{file - 1, rank - 1}, true}]
+      |> Enum.filter(fn {s, _} -> Square.valid?(s) end)
       |> Enum.filter(fn {s, _} ->
-        c = Map.get(game.board, s)
-
-        not is_nil(c) and not is_nil(c.piece) and not Piece.friendly?(:p, c.piece)
+        Map.get(game.board, s)
+        |> then(&(Piece.enemy?(:p, &1.piece) || en_passant?(&1, game)))
       end)
 
     Enum.concat(forward, captures)
   end
 
-  ## kings
+  ## empty squares
 
   defp square_moves(_, _), do: []
 
-  @spec move_range(%Square{}, %Game{}, [{number(), number()}]) :: [{%Square{}, boolean()}]
-  defp move_range(%Square{} = square, %Game{} = game, range) do
-    range
-    # get_in(square.sees, [Access.key!(direction)])
+  @spec move_range(%Square{}, %Game{}, Square.Sees.t()) :: [{%Square{}, boolean()}]
+  defp move_range(%Square{} = square, %Game{} = game, direction) do
+    get_in(square.sees, [Access.key!(direction)])
     |> Enum.reduce_while([], fn {file, rank}, acc ->
       s = Map.get(game.board, {file, rank})
 
@@ -121,5 +119,9 @@ defmodule Elchesser.Moves do
       end
     end)
     |> Enum.reverse()
+  end
+
+  defp en_passant?(%Square{} = square, %Game{} = game) do
+    Square.empty?(square) && Square.eq?(square, game.en_passant)
   end
 end

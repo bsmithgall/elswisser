@@ -5,10 +5,11 @@ defmodule Elchesser.Fen do
 
   @spec parse(String.t()) :: Elchesser.Game.t()
   def parse(fen) do
-    [board, _color, _castling, _en_passant, _half_clock, _full_moves] = String.split(fen, " ")
+    [board, _color, _castling, en_passant, _half_clock, _full_moves] = String.split(fen, " ")
 
     %Elchesser.Game{
-      board: parse_board(board)
+      board: parse_board(board),
+      en_passant: parse_en_passant(en_passant)
     }
   end
 
@@ -41,4 +42,9 @@ defmodule Elchesser.Fen do
       )
     end)
   end
+
+  defp parse_en_passant("-"), do: nil
+
+  defp parse_en_passant(<<file, rank::8>>),
+    do: Square.from(file, rank - 48, nil)
 end

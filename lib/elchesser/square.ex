@@ -1,4 +1,5 @@
 defmodule Elchesser.Square do
+  alias Elchesser.Piece
   alias __MODULE__
   alias Elchesser.Square.Sees
 
@@ -9,7 +10,7 @@ defmodule Elchesser.Square do
 
   @type t :: %Square{}
 
-  @spec from(number(), number(), String.t() | nil) :: t()
+  @spec from(number(), number(), Piece.t() | nil) :: t()
   def from(file, rank, piece) do
     sees = %Sees{
       up: up(file, rank),
@@ -30,6 +31,15 @@ defmodule Elchesser.Square do
       sees: Map.merge(sees, %{all: Map.values(sees) |> List.flatten() |> Enum.into(MapSet.new())})
     }
   end
+
+  def valid?({file, rank}), do: file in Elchesser.files() && rank in Elchesser.ranks()
+
+  def empty?(%Square{piece: nil}), do: true
+  def empty?(%Square{}), do: false
+
+  def eq?(%Square{} = l, %Square{} = r), do: l == r
+  def eq?(%Square{} = l, {file, rank}), do: l.file == file && l.rank == rank
+  def eq?(%Square{}, nil), do: false
 
   def piece_display(%Square{} = square), do: Elchesser.Piece.display(square.piece)
 

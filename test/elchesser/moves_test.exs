@@ -25,29 +25,9 @@ defmodule Elchesser.MovesTest do
 
   describe "generate_move/2 rook" do
     test "only rook on board" do
-      #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
-      # 8 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 7 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 6 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 5 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 4 │   │   │   │   │ ♖ │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 3 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 2 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 1 │   │   │   │   │   │   │   │   │
-      #   └───┴───┴───┴───┴───┴───┴───┴───┘
-      #     a   b   c   d   e   f   g   h
-      moves =
-        Elchesser.Fen.parse("8/8/8/8/4R3/8/8/8 w KQkq - 0 1")
-        |> Moves.generate_move({?e, 4})
-
-      assert_list_eq_any_order(moves, [
+      Elchesser.Fen.parse("8/8/8/8/4R3/8/8/8 w KQkq - 0 1")
+      |> Moves.generate_move({?e, 4})
+      |> assert_list_eq_any_order([
         {{?f, 4}, false},
         {{?g, 4}, false},
         {{?h, 4}, false},
@@ -84,11 +64,9 @@ defmodule Elchesser.MovesTest do
       # 1 │   │   │   │   │   │   │ ♞ │   │
       #   └───┴───┴───┴───┴───┴───┴───┴───┘
       #     a   b   c   d   e   f   g   h
-      moves =
-        Elchesser.Fen.parse("8/8/8/8/4B1r1/8/8/6n1 w KQkq - 0 1")
-        |> Moves.generate_move({?g, 4})
-
-      assert_list_eq_any_order(moves, [
+      Elchesser.Fen.parse("8/8/8/8/4B1r1/8/8/6n1 w KQkq - 0 1")
+      |> Moves.generate_move({?g, 4})
+      |> assert_list_eq_any_order([
         {{?h, 4}, false},
         {{?e, 4}, true},
         {{?f, 4}, false},
@@ -104,30 +82,9 @@ defmodule Elchesser.MovesTest do
 
   describe "generate_move/2 bishop" do
     test "only bishop on board" do
-      #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
-      # 8 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 7 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 6 │   │   │   │   │   │ ♗ │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 5 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 4 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 3 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 2 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 1 │   │   │   │   │   │   │   │   │
-      #   └───┴───┴───┴───┴───┴───┴───┴───┘
-      #     a   b   c   d   e   f   g   h
-
-      moves =
-        Elchesser.Fen.parse("8/8/5B2/8/8/8/8/8 w KQkq - 0 1")
-        |> Moves.generate_move({?f, 6})
-
-      assert_list_eq_any_order(moves, [
+      Elchesser.Fen.parse("8/8/5B2/8/8/8/8/8 w KQkq - 0 1")
+      |> Moves.generate_move({?f, 6})
+      |> assert_list_eq_any_order([
         {{?g, 5}, false},
         {{?h, 4}, false},
         {{?e, 5}, false},
@@ -161,11 +118,9 @@ defmodule Elchesser.MovesTest do
       # 1 │   │   │   │   │   │   │   │   │
       #   └───┴───┴───┴───┴───┴───┴───┴───┘
       #     a   b   c   d   e   f   g   h
-      moves =
-        Elchesser.Fen.parse("8/6R1/8/8/8/n7/1b6/8 w KQkq - 0 1")
-        |> Moves.generate_move({?b, 2})
-
-      assert_list_eq_any_order(moves, [
+      Elchesser.Fen.parse("8/6R1/8/8/8/n7/1b6/8 w KQkq - 0 1")
+      |> Moves.generate_move({?b, 2})
+      |> assert_list_eq_any_order([
         {{?c, 1}, false},
         {{?a, 1}, false},
         {{?c, 3}, false},
@@ -179,29 +134,9 @@ defmodule Elchesser.MovesTest do
 
   describe "generate_move/2 queen" do
     test "only queen on board" do
-      #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
-      # 8 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 7 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 6 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 5 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 4 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 3 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 2 │   │   │   │   │   │   │ ♕ │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 1 │   │   │   │   │   │   │   │   │
-      #   └───┴───┴───┴───┴───┴───┴───┴───┘
-      #     a   b   c   d   e   f   g   h
-      moves =
-        Elchesser.Fen.parse("8/8/8/8/8/8/6Q1/8 w KQkq - 0 1")
-        |> Moves.generate_move({?g, 2})
-
-      assert_list_eq_any_order(moves, [
+      Elchesser.Fen.parse("8/8/8/8/8/8/6Q1/8 w KQkq - 0 1")
+      |> Moves.generate_move({?g, 2})
+      |> assert_list_eq_any_order([
         {{?h, 1}, false},
         {{?f, 1}, false},
         {{?f, 3}, false},
@@ -247,11 +182,9 @@ defmodule Elchesser.MovesTest do
       # 1 │   │   │   │   │   │   │   │   │
       #   └───┴───┴───┴───┴───┴───┴───┴───┘
       #     a   b   c   d   e   f   g   h
-      moves =
-        Elchesser.Fen.parse("8/1Q6/8/8/6R1/8/5bq1/8 w KQkq - 0 1")
-        |> Moves.generate_move({?g, 2})
-
-      assert_list_eq_any_order(moves, [
+      Elchesser.Fen.parse("8/1Q6/8/8/6R1/8/5bq1/8 w KQkq - 0 1")
+      |> Moves.generate_move({?g, 2})
+      |> assert_list_eq_any_order([
         {{?h, 2}, false},
         {{?h, 3}, false},
         {{?h, 1}, false},
@@ -270,29 +203,9 @@ defmodule Elchesser.MovesTest do
 
   describe "generate_move/2 knight" do
     test "only knight on the board" do
-      #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
-      # 8 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 7 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 6 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 5 │   │   │   │ ♞ │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 4 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 3 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 2 │   │   │   │   │   │   │   │   │
-      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
-      # 1 │   │   │   │   │   │   │   │   │
-      #   └───┴───┴───┴───┴───┴───┴───┴───┘
-      #     a   b   c   d   e   f   g   h
-      moves =
-        Elchesser.Fen.parse("8/8/8/3n4/8/8/8/8 w KQkq - 0 1")
-        |> Moves.generate_move({?d, 5})
-
-      assert_list_eq_any_order(moves, [
+      Elchesser.Fen.parse("8/8/8/3n4/8/8/8/8 w KQkq - 0 1")
+      |> Moves.generate_move({?d, 5})
+      |> assert_list_eq_any_order([
         {{?c, 7}, false},
         {{?c, 3}, false},
         {{?b, 6}, false},
@@ -323,11 +236,9 @@ defmodule Elchesser.MovesTest do
       # 1 │   │   │   │   │   │   │   │   │
       #   └───┴───┴───┴───┴───┴───┴───┴───┘
       #     a   b   c   d   e   f   g   h
-      moves =
-        Elchesser.Fen.parse("N7/8/8/8/8/8/8/8 w KQkq - 0 1")
-        |> Moves.generate_move({?a, 8})
-
-      assert_list_eq_any_order(moves, [
+      Elchesser.Fen.parse("N7/8/8/8/8/8/8/8 w KQkq - 0 1")
+      |> Moves.generate_move({?a, 8})
+      |> assert_list_eq_any_order([
         {{?c, 7}, false},
         {{?b, 6}, false}
       ])
@@ -352,72 +263,73 @@ defmodule Elchesser.MovesTest do
       # 1 │   │   │   │   │   │   │   │   │
       #   └───┴───┴───┴───┴───┴───┴───┴───┘
       #     a   b   c   d   e   f   g   h
-      moves =
-        Elchesser.Fen.parse("N7/1BB5/pppp4/8/8/8/8/8 w KQkq - 0 1")
-        |> Moves.generate_move({?a, 8})
-
-      assert_list_eq_any_order(moves, [{{?b, 6}, true}])
+      Elchesser.Fen.parse("N7/1BB5/pppp4/8/8/8/8/8 w KQkq - 0 1")
+      |> Moves.generate_move({?a, 8})
+      |> assert_list_eq_any_order([{{?b, 6}, true}])
     end
   end
 
   describe "generate_move/2 pawn (w)" do
     test "second rank only pawn" do
-      moves =
-        Elchesser.Fen.parse("8/8/8/8/8/8/4P3/8 w KQkq - 0 1") |> Moves.generate_move({?e, 2})
-
-      assert_list_eq_any_order(moves, [{{?e, 3}, false}, {{?e, 4}, false}])
+      Elchesser.Fen.parse("8/8/8/8/8/8/4P3/8 w KQkq - 0 1")
+      |> Moves.generate_move({?e, 2})
+      |> assert_list_eq_any_order([{{?e, 3}, false}, {{?e, 4}, false}])
     end
 
     test "third rank only pawn" do
-      moves =
-        Elchesser.Fen.parse("8/8/8/8/8/P7/8/8 w KQkq - 0 1") |> Moves.generate_move({?a, 3})
-
-      assert_list_eq_any_order(moves, [{{?a, 4}, false}])
+      Elchesser.Fen.parse("8/8/8/8/8/P7/8/8 w KQkq - 0 1")
+      |> Moves.generate_move({?a, 3})
+      |> assert_list_eq_any_order([{{?a, 4}, false}])
     end
 
     test "second rank with captures" do
-      moves =
-        Elchesser.Fen.parse("8/8/8/8/8/5p2/4P3/8 w KQkq - 0 1") |> Moves.generate_move({?e, 2})
-
-      assert_list_eq_any_order(moves, [{{?e, 3}, false}, {{?e, 4}, false}, {{?f, 3}, true}])
+      Elchesser.Fen.parse("8/8/8/8/8/5p2/4P3/8 w KQkq - 0 1")
+      |> Moves.generate_move({?e, 2})
+      |> assert_list_eq_any_order([{{?e, 3}, false}, {{?e, 4}, false}, {{?f, 3}, true}])
     end
 
     test "third rank with captures" do
-      moves =
-        Elchesser.Fen.parse("8/8/8/8/pp5p/P7/8/8 w KQkq - 0 1") |> Moves.generate_move({?a, 3})
+      Elchesser.Fen.parse("8/8/8/8/pp5p/P7/8/8 w KQkq - 0 1")
+      |> Moves.generate_move({?a, 3})
+      |> assert_list_eq_any_order([{{?b, 4}, true}])
+    end
 
-      assert_list_eq_any_order(moves, [{{?b, 4}, true}])
+    test "en-passant" do
+      Elchesser.Fen.parse("rnbqkbnr/ppp1p1pp/8/3pPp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 2")
+      |> Moves.generate_move({?e, 5})
+      |> assert_list_eq_any_order([{{?e, 6}, false}, {{?f, 6}, true}])
     end
   end
 
   describe "generate_move/2 pawn (b)" do
     test "seventh rank only pawn" do
-      moves =
-        Elchesser.Fen.parse("8/4p3/8/8/8/8/8/8 w KQkq - 0 1") |> Moves.generate_move({?e, 7})
-
-      assert_list_eq_any_order(moves, [{{?e, 6}, false}, {{?e, 5}, false}])
+      Elchesser.Fen.parse("8/4p3/8/8/8/8/8/8 w KQkq - 0 1")
+      |> Moves.generate_move({?e, 7})
+      |> assert_list_eq_any_order([{{?e, 6}, false}, {{?e, 5}, false}])
     end
 
     test "sixth rank only pawn" do
-      moves =
-        Elchesser.Fen.parse("8/8/7p/8/8/8/8/8 w KQkq - 0 1") |> Moves.generate_move({?h, 6})
-
-      assert_list_eq_any_order(moves, [{{?h, 5}, false}])
+      Elchesser.Fen.parse("8/8/7p/8/8/8/8/8 w KQkq - 0 1")
+      |> Moves.generate_move({?h, 6})
+      |> assert_list_eq_any_order([{{?h, 5}, false}])
     end
 
     test "seventh rank with captures" do
-      moves =
-        Elchesser.Fen.parse("8/4p3/5P2/8/8/8/8/8 w KQkq - 0 1") |> Moves.generate_move({?e, 7})
-
-      assert_list_eq_any_order(moves, [{{?e, 6}, false}, {{?e, 5}, false}, {{?f, 6}, true}])
+      Elchesser.Fen.parse("8/4p3/5P2/8/8/8/8/8 w KQkq - 0 1")
+      |> Moves.generate_move({?e, 7})
+      |> assert_list_eq_any_order([{{?e, 6}, false}, {{?e, 5}, false}, {{?f, 6}, true}])
     end
 
     test "sixth rank with captures" do
-      moves =
-        Elchesser.Fen.parse("8/8/7p/PPPPPPPP/8/8/8/8 w KQkq - 0 1")
-        |> Moves.generate_move({?h, 6})
+      Elchesser.Fen.parse("8/8/7p/PPPPPPPP/8/8/8/8 w KQkq - 0 1")
+      |> Moves.generate_move({?h, 6})
+      |> assert_list_eq_any_order([{{?g, 5}, true}])
+    end
 
-      assert_list_eq_any_order(moves, [{{?g, 5}, true}])
+    test "en-passant" do
+      Elchesser.Fen.parse("rnbqkbnr/pppp1ppp/8/8/3PpP2/8/PPP1P1PP/RNBQKBNR w KQkq d3 0 2")
+      |> Moves.generate_move({?e, 4})
+      |> assert_list_eq_any_order([{{?e, 3}, false}, {{?d, 3}, true}])
     end
   end
 

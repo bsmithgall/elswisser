@@ -4,9 +4,13 @@ defmodule Elchesser.Piece do
 
   @type t :: :p | :n | :b | :r | :q | :k | :P | :N | :B | :R | :Q | :K
 
-  @spec friendly?(t(), t() | nil) :: boolean() | nil
+  @spec friendly?(t() | nil, t() | nil) :: boolean() | nil
+  def friendly?(nil, _), do: nil
   def friendly?(_, nil), do: nil
-  def friendly?(l, r), do: (white?(l) and white?(r)) or (black?(l) && black?(r))
+  def friendly?(l, r), do: (white?(l) and white?(r)) or (black?(l) and black?(r))
+
+  @spec enemy?(t() | nil, t() | nil) :: boolean()
+  def enemy?(l, r), do: (white?(l) and black?(r)) or (black?(l) and white?(r))
 
   @spec from_string(String.t()) :: t()
   def from_string("p"), do: :p
