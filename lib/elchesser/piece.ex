@@ -26,7 +26,7 @@ defmodule Elchesser.Piece do
   def from_string("Q"), do: :Q
   def from_string("K"), do: :K
 
-  @spec display(Elchesser.piece() | nil) :: String.t()
+  @spec display(t() | nil) :: String.t()
   def display(nil), do: " "
   def display(:P), do: "♙"
   def display(:N), do: "♘"
