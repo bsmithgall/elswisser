@@ -1,8 +1,12 @@
 defmodule Elchesser.Piece do
+  alias Elchesser.{Square, Game, Move}
+  @type t :: :p | :n | :b | :r | :q | :k | :P | :N | :B | :R | :Q | :K
+
+  @callback moves(Square.t(), Game.t()) :: [Move.t()]
+  @callback attacks(Square.t(), Game.t()) :: [Move.t()]
+
   @white MapSet.new([:P, :N, :B, :R, :Q, :K])
   @black MapSet.new([:p, :n, :b, :r, :q, :k])
-
-  @type t :: :p | :n | :b | :r | :q | :k | :P | :N | :B | :R | :Q | :K
 
   @spec friendly?(t() | nil, t() | nil) :: boolean() | nil
   def friendly?(nil, _), do: nil
@@ -40,6 +44,13 @@ defmodule Elchesser.Piece do
   def display(:r), do: "♜"
   def display(:q), do: "♛"
   def display(:k), do: "♚"
+
+  def module(:r), do: Elchesser.Piece.Rook
+  def module(:R), do: Elchesser.Piece.Rook
+  def module(:b), do: Elchesser.Piece.Bishop
+  def module(:B), do: Elchesser.Piece.Bishop
+  def module(:q), do: Elchesser.Piece.Queen
+  def module(:Q), do: Elchesser.Piece.Queen
 
   defp white?(p), do: MapSet.member?(@white, p)
   defp black?(p), do: MapSet.member?(@black, p)

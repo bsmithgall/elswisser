@@ -19,4 +19,6 @@ defmodule Elchesser.Game do
 
     %Game{board: board}
   end
+
+  def get_square(%Game{board: board}, {file, rank}), do: Map.get(board, {file, rank})
 end

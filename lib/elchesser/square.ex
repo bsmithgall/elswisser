@@ -10,6 +10,9 @@ defmodule Elchesser.Square do
 
   @type t :: %Square{}
 
+  def from({file, rank}), do: from(file, rank, nil)
+  def from(file, rank), do: from(file, rank, nil)
+
   @spec from(number(), number(), Piece.t() | nil) :: t()
   def from(file, rank, piece) do
     sees = %Sees{
