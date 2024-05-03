@@ -12,14 +12,14 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?c, 6})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        Move.from({?b, 7}),
-        Move.from({?c, 7}),
-        Move.from({?d, 7}),
-        Move.from({?b, 6}),
-        Move.from({?d, 6}),
-        Move.from({?b, 5}),
-        Move.from({?c, 5}),
-        Move.from({?d, 5})
+        Move.from(square, {?b, 7}),
+        Move.from(square, {?c, 7}),
+        Move.from(square, {?d, 7}),
+        Move.from(square, {?b, 6}),
+        Move.from(square, {?d, 6}),
+        Move.from(square, {?b, 5}),
+        Move.from(square, {?c, 5}),
+        Move.from(square, {?d, 5})
       ])
     end
 
@@ -28,9 +28,9 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?a, 8})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        Move.from({?b, 8}),
-        Move.from({?b, 7}),
-        Move.from({?a, 7})
+        Move.from(square, {?b, 8}),
+        Move.from(square, {?b, 7}),
+        Move.from(square, {?a, 7})
       ])
     end
 
@@ -46,12 +46,12 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 1})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 1},
-        %Move{file: ?d, rank: 2},
-        %Move{file: ?e, rank: 2},
-        %Move{file: ?f, rank: 2},
-        %Move{file: ?f, rank: 1},
-        %Move{file: ?g, rank: 1, castle: true}
+        Move.from(square, {?d, 1}),
+        Move.from(square, {?d, 2}),
+        Move.from(square, {?e, 2}),
+        Move.from(square, {?f, 2}),
+        Move.from(square, {?f, 1}),
+        Move.from(square, {?g, 1}, castle: true)
       ])
     end
 
@@ -60,11 +60,11 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 1})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 1},
-        %Move{file: ?d, rank: 2},
-        %Move{file: ?e, rank: 2},
-        %Move{file: ?f, rank: 2},
-        %Move{file: ?f, rank: 1}
+        Move.from(square, {?d, 1}),
+        Move.from(square, {?d, 2}),
+        Move.from(square, {?e, 2}),
+        Move.from(square, {?f, 2}),
+        Move.from(square, {?f, 1})
       ])
     end
 
@@ -73,10 +73,10 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 1})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 1},
-        %Move{file: ?d, rank: 2},
-        %Move{file: ?e, rank: 2},
-        %Move{file: ?f, rank: 2}
+        Move.from(square, {?d, 1}),
+        Move.from(square, {?d, 2}),
+        Move.from(square, {?e, 2}),
+        Move.from(square, {?f, 2})
       ])
     end
 
@@ -85,10 +85,10 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 1})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 1},
-        %Move{file: ?e, rank: 2},
-        %Move{file: ?f, rank: 2},
-        %Move{file: ?f, rank: 1, capture: true}
+        Move.from(square, {?d, 1}),
+        Move.from(square, {?e, 2}),
+        Move.from(square, {?f, 2}),
+        Move.from(square, {?f, 1}, capture: true)
       ])
     end
 
@@ -97,8 +97,8 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 1})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 1},
-        %Move{file: ?f, rank: 1}
+        Move.from(square, {?d, 1}),
+        Move.from(square, {?f, 1})
       ])
     end
 
@@ -107,9 +107,9 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 1})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 1},
-        %Move{file: ?d, rank: 2},
-        %Move{file: ?e, rank: 2}
+        Move.from(square, {?d, 1}),
+        Move.from(square, {?d, 2}),
+        Move.from(square, {?e, 2})
       ])
     end
 
@@ -118,12 +118,12 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 1})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 1},
-        %Move{file: ?d, rank: 2},
-        %Move{file: ?e, rank: 2},
-        %Move{file: ?f, rank: 2},
-        %Move{file: ?f, rank: 1},
-        %Move{file: ?g, rank: 1, castle: true}
+        Move.from(square, {?d, 1}),
+        Move.from(square, {?d, 2}),
+        Move.from(square, {?e, 2}),
+        Move.from(square, {?f, 2}),
+        Move.from(square, {?f, 1}),
+        Move.from(square, {?g, 1}, castle: true)
       ])
     end
 
@@ -132,12 +132,12 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 1})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 1},
-        %Move{file: ?d, rank: 2},
-        %Move{file: ?e, rank: 2},
-        %Move{file: ?f, rank: 2},
-        %Move{file: ?f, rank: 1},
-        %Move{file: ?c, rank: 1, castle: true}
+        Move.from(square, {?d, 1}),
+        Move.from(square, {?d, 2}),
+        Move.from(square, {?e, 2}),
+        Move.from(square, {?f, 2}),
+        Move.from(square, {?f, 1}),
+        Move.from(square, {?c, 1}, castle: true)
       ])
     end
 
@@ -146,13 +146,13 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 1})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 1},
-        %Move{file: ?d, rank: 2},
-        %Move{file: ?e, rank: 2},
-        %Move{file: ?f, rank: 2},
-        %Move{file: ?f, rank: 1},
-        %Move{file: ?g, rank: 1, castle: true},
-        %Move{file: ?c, rank: 1, castle: true}
+        Move.from(square, {?d, 1}),
+        Move.from(square, {?d, 2}),
+        Move.from(square, {?e, 2}),
+        Move.from(square, {?f, 2}),
+        Move.from(square, {?f, 1}),
+        Move.from(square, {?g, 1}, castle: true),
+        Move.from(square, {?c, 1}, castle: true)
       ])
     end
 
@@ -161,12 +161,12 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 1})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 1},
-        %Move{file: ?d, rank: 2},
-        %Move{file: ?e, rank: 2},
-        %Move{file: ?f, rank: 2},
-        %Move{file: ?f, rank: 1},
-        %Move{file: ?c, rank: 1, castle: true}
+        Move.from(square, {?d, 1}),
+        Move.from(square, {?d, 2}),
+        Move.from(square, {?e, 2}),
+        Move.from(square, {?f, 2}),
+        Move.from(square, {?f, 1}),
+        Move.from(square, {?c, 1}, castle: true)
       ])
     end
   end
@@ -177,14 +177,14 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?c, 6})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        Move.from({?b, 7}),
-        Move.from({?c, 7}),
-        Move.from({?d, 7}),
-        Move.from({?b, 6}),
-        Move.from({?d, 6}),
-        Move.from({?b, 5}),
-        Move.from({?c, 5}),
-        Move.from({?d, 5})
+        Move.from(square, {?b, 7}),
+        Move.from(square, {?c, 7}),
+        Move.from(square, {?d, 7}),
+        Move.from(square, {?b, 6}),
+        Move.from(square, {?d, 6}),
+        Move.from(square, {?b, 5}),
+        Move.from(square, {?c, 5}),
+        Move.from(square, {?d, 5})
       ])
     end
 
@@ -193,9 +193,9 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?a, 8})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        Move.from({?b, 8}),
-        Move.from({?b, 7}),
-        Move.from({?a, 7})
+        Move.from(square, {?b, 8}),
+        Move.from(square, {?b, 7}),
+        Move.from(square, {?a, 7})
       ])
     end
 
@@ -211,12 +211,12 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 8})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 8},
-        %Move{file: ?d, rank: 7},
-        %Move{file: ?e, rank: 7},
-        %Move{file: ?f, rank: 7},
-        %Move{file: ?f, rank: 8},
-        %Move{file: ?g, rank: 8, castle: true}
+        Move.from(square, {?d, 8}),
+        Move.from(square, {?d, 7}),
+        Move.from(square, {?e, 7}),
+        Move.from(square, {?f, 7}),
+        Move.from(square, {?f, 8}),
+        Move.from(square, {?g, 8}, castle: true)
       ])
     end
 
@@ -225,11 +225,11 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 8})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 8},
-        %Move{file: ?d, rank: 7},
-        %Move{file: ?e, rank: 7},
-        %Move{file: ?f, rank: 7},
-        %Move{file: ?f, rank: 8}
+        Move.from(square, {?d, 8}),
+        Move.from(square, {?d, 7}),
+        Move.from(square, {?e, 7}),
+        Move.from(square, {?f, 7}),
+        Move.from(square, {?f, 8})
       ])
     end
 
@@ -238,10 +238,10 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 8})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 8},
-        %Move{file: ?d, rank: 7},
-        %Move{file: ?e, rank: 7},
-        %Move{file: ?f, rank: 7}
+        Move.from(square, {?d, 8}),
+        Move.from(square, {?d, 7}),
+        Move.from(square, {?e, 7}),
+        Move.from(square, {?f, 7})
       ])
     end
 
@@ -250,10 +250,10 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 8})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 8},
-        %Move{file: ?e, rank: 7},
-        %Move{file: ?f, rank: 7},
-        %Move{file: ?f, rank: 8, capture: true}
+        Move.from(square, {?d, 8}),
+        Move.from(square, {?e, 7}),
+        Move.from(square, {?f, 7}),
+        Move.from(square, {?f, 8}, capture: true)
       ])
     end
 
@@ -262,8 +262,8 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 8})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 8},
-        %Move{file: ?f, rank: 8}
+        Move.from(square, {?d, 8}),
+        Move.from(square, {?f, 8})
       ])
     end
 
@@ -272,9 +272,9 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 8})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 8},
-        %Move{file: ?d, rank: 7},
-        %Move{file: ?e, rank: 7}
+        Move.from(square, {?d, 8}),
+        Move.from(square, {?d, 7}),
+        Move.from(square, {?e, 7})
       ])
     end
 
@@ -283,12 +283,12 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 8})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 8},
-        %Move{file: ?d, rank: 7},
-        %Move{file: ?e, rank: 7},
-        %Move{file: ?f, rank: 7},
-        %Move{file: ?f, rank: 8},
-        %Move{file: ?g, rank: 8, castle: true}
+        Move.from(square, {?d, 8}),
+        Move.from(square, {?d, 7}),
+        Move.from(square, {?e, 7}),
+        Move.from(square, {?f, 7}),
+        Move.from(square, {?f, 8}),
+        Move.from(square, {?g, 8}, castle: true)
       ])
     end
 
@@ -297,12 +297,12 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 8})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 8},
-        %Move{file: ?d, rank: 7},
-        %Move{file: ?e, rank: 7},
-        %Move{file: ?f, rank: 7},
-        %Move{file: ?f, rank: 8},
-        %Move{file: ?c, rank: 8, castle: true}
+        Move.from(square, {?d, 8}),
+        Move.from(square, {?d, 7}),
+        Move.from(square, {?e, 7}),
+        Move.from(square, {?f, 7}),
+        Move.from(square, {?f, 8}),
+        Move.from(square, {?c, 8}, castle: true)
       ])
     end
 
@@ -311,13 +311,13 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 8})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 8},
-        %Move{file: ?d, rank: 7},
-        %Move{file: ?e, rank: 7},
-        %Move{file: ?f, rank: 7},
-        %Move{file: ?f, rank: 8},
-        %Move{file: ?g, rank: 8, castle: true},
-        %Move{file: ?c, rank: 8, castle: true}
+        Move.from(square, {?d, 8}),
+        Move.from(square, {?d, 7}),
+        Move.from(square, {?e, 7}),
+        Move.from(square, {?f, 7}),
+        Move.from(square, {?f, 8}),
+        Move.from(square, {?g, 8}, castle: true),
+        Move.from(square, {?c, 8}, castle: true)
       ])
     end
 
@@ -326,12 +326,12 @@ defmodule Elchesser.Piece.KingTest do
       square = Game.get_square(game, {?e, 8})
 
       assert_list_eq_any_order(King.moves(square, game), [
-        %Move{file: ?d, rank: 8},
-        %Move{file: ?d, rank: 7},
-        %Move{file: ?e, rank: 7},
-        %Move{file: ?f, rank: 7},
-        %Move{file: ?f, rank: 8},
-        %Move{file: ?c, rank: 8, castle: true}
+        Move.from(square, {?d, 8}),
+        Move.from(square, {?d, 7}),
+        Move.from(square, {?e, 7}),
+        Move.from(square, {?f, 7}),
+        Move.from(square, {?f, 8}),
+        Move.from(square, {?c, 8}, castle: true)
       ])
     end
   end

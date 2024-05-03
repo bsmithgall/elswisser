@@ -66,4 +66,19 @@ defmodule Elchesser.Piece do
   def white?(p), do: MapSet.member?(@white, p)
   @spec black?(t()) :: boolean()
   def black?(p), do: MapSet.member?(@black, p)
+
+  @spec move_range(%Square{}, %Game{}, Square.Sees.t()) :: [t()]
+  def move_range(%Square{} = square, %Game{} = game, direction) do
+    get_in(square.sees, [Access.key!(direction)])
+    |> Enum.reduce_while([], fn {file, rank}, acc ->
+      s = Map.get(game.board, {file, rank})
+
+      case friendly?(square.piece, s.piece) do
+        true -> {:halt, acc}
+        false -> {:halt, [Move.from(square, {s.file, s.rank}, capture: true) | acc]}
+        nil -> {:cont, [Move.from(square, {s.file, s.rank}) | acc]}
+      end
+    end)
+    |> Enum.reverse()
+  end
 end

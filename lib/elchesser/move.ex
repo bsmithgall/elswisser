@@ -1,25 +1,24 @@
 defmodule Elchesser.Move do
-  defstruct file: ?a, rank: 1, capture: false, promotion: false, castle: false
+  defstruct from: {},
+            to: {},
+            capture: false,
+            promotion: false,
+            castle: false
+
+  alias __MODULE__
+  alias Elchesser.Square
 
   @type t :: %__MODULE__{}
 
-  alias Elchesser.{Game, Square, Piece}
-  alias __MODULE__
+  def from({file, rank}), do: %Move{to: {file, rank}}
 
-  def from({file, rank}), do: %Move{file: file, rank: rank}
+  @spec from(Elchesser.Square.t(), {number(), number()}) :: t()
+  def from(%Square{} = from, to, opts \\ []) do
+    {_, opts} = Keyword.validate(opts, capture: false, promotion: false, castle: false)
 
-  @spec move_range(%Square{}, %Game{}, Square.Sees.t()) :: [t()]
-  def move_range(%Square{} = square, %Game{} = game, direction) do
-    get_in(square.sees, [Access.key!(direction)])
-    |> Enum.reduce_while([], fn {file, rank}, acc ->
-      s = Map.get(game.board, {file, rank})
-
-      case Piece.friendly?(square.piece, s.piece) do
-        true -> {:halt, acc}
-        false -> {:halt, [%Move{file: s.file, rank: s.rank, capture: true} | acc]}
-        nil -> {:cont, [%Move{file: s.file, rank: s.rank} | acc]}
-      end
-    end)
-    |> Enum.reverse()
+    Map.merge(
+      %Move{from: {from.file, from.rank}, to: to},
+      opts |> Enum.into(%{})
+    )
   end
 end

@@ -10,8 +10,8 @@ defmodule Elchesser.Piece.Knight do
 
       case Piece.friendly?(square.piece, s.piece) do
         true -> acc
-        false -> [%Move{file: s.file, rank: s.rank, capture: true} | acc]
-        nil -> [%Move{file: s.file, rank: s.rank} | acc]
+        false -> [Move.from(square, {s.file, s.rank}, capture: true) | acc]
+        nil -> [Move.from(square, {s.file, s.rank}) | acc]
       end
     end)
   end

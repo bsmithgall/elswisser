@@ -13,29 +13,29 @@ defmodule Elchesser.Piece.QueenTest do
     assert Queen.moves(square, game) == Queen.attacks(square, game)
 
     assert_list_eq_any_order(Queen.moves(square, game), [
-      %Move{file: ?h, rank: 1},
-      %Move{file: ?f, rank: 1},
-      %Move{file: ?f, rank: 3},
-      %Move{file: ?e, rank: 4},
-      %Move{file: ?d, rank: 5},
-      %Move{file: ?c, rank: 6},
-      %Move{file: ?b, rank: 7},
-      %Move{file: ?a, rank: 8},
-      %Move{file: ?h, rank: 3},
-      %Move{file: ?h, rank: 2},
-      %Move{file: ?a, rank: 2},
-      %Move{file: ?b, rank: 2},
-      %Move{file: ?c, rank: 2},
-      %Move{file: ?d, rank: 2},
-      %Move{file: ?e, rank: 2},
-      %Move{file: ?f, rank: 2},
-      %Move{file: ?g, rank: 1},
-      %Move{file: ?g, rank: 3},
-      %Move{file: ?g, rank: 4},
-      %Move{file: ?g, rank: 5},
-      %Move{file: ?g, rank: 6},
-      %Move{file: ?g, rank: 7},
-      %Move{file: ?g, rank: 8}
+      Move.from(square, {?h, 1}),
+      Move.from(square, {?f, 1}),
+      Move.from(square, {?f, 3}),
+      Move.from(square, {?e, 4}),
+      Move.from(square, {?d, 5}),
+      Move.from(square, {?c, 6}),
+      Move.from(square, {?b, 7}),
+      Move.from(square, {?a, 8}),
+      Move.from(square, {?h, 3}),
+      Move.from(square, {?h, 2}),
+      Move.from(square, {?a, 2}),
+      Move.from(square, {?b, 2}),
+      Move.from(square, {?c, 2}),
+      Move.from(square, {?d, 2}),
+      Move.from(square, {?e, 2}),
+      Move.from(square, {?f, 2}),
+      Move.from(square, {?g, 1}),
+      Move.from(square, {?g, 3}),
+      Move.from(square, {?g, 4}),
+      Move.from(square, {?g, 5}),
+      Move.from(square, {?g, 6}),
+      Move.from(square, {?g, 7}),
+      Move.from(square, {?g, 8})
     ])
   end
 
@@ -64,18 +64,18 @@ defmodule Elchesser.Piece.QueenTest do
     assert Queen.moves(square, game) == Queen.attacks(square, game)
 
     assert_list_eq_any_order(Queen.moves(square, game), [
-      %Move{file: ?h, rank: 2},
-      %Move{file: ?h, rank: 3},
-      %Move{file: ?h, rank: 1},
-      %Move{file: ?g, rank: 1},
-      %Move{file: ?f, rank: 1},
-      %Move{file: ?g, rank: 3},
-      %Move{file: ?g, rank: 4, capture: true},
-      %Move{file: ?f, rank: 3},
-      %Move{file: ?e, rank: 4},
-      %Move{file: ?d, rank: 5},
-      %Move{file: ?c, rank: 6},
-      %Move{file: ?b, rank: 7, capture: true}
+      Move.from(square, {?h, 2}),
+      Move.from(square, {?h, 3}),
+      Move.from(square, {?h, 1}),
+      Move.from(square, {?g, 1}),
+      Move.from(square, {?f, 1}),
+      Move.from(square, {?g, 3}),
+      Move.from(square, {?g, 4}, capture: true),
+      Move.from(square, {?f, 3}),
+      Move.from(square, {?e, 4}),
+      Move.from(square, {?d, 5}),
+      Move.from(square, {?c, 6}),
+      Move.from(square, {?b, 7}, capture: true)
     ])
   end
 end

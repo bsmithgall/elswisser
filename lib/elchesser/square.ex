@@ -11,7 +11,7 @@ defmodule Elchesser.Square do
   @type t :: %Square{}
 
   def from({file, rank}), do: from(file, rank, nil)
-  def from(%Move{file: file, rank: rank}), do: from(file, rank, nil)
+  def from(%Move{to: {file, rank}}), do: from(file, rank, nil)
   def from(file, rank), do: from(file, rank, nil)
 
   @spec from(number(), number(), Piece.t() | nil) :: t()
@@ -55,6 +55,8 @@ defmodule Elchesser.Square do
   end
 
   def piece_display(%Square{} = square), do: Elchesser.Piece.display(square.piece)
+
+  def rf(%Square{file: file, rank: rank}), do: {file, rank}
 
   defp up(file, rank), do: for(r <- Elchesser.ranks(), r > rank, do: {file, r})
 

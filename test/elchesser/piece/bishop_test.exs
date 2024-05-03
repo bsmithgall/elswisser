@@ -14,17 +14,17 @@ defmodule Elchesser.Piece.BishopTest do
 
     Bishop.moves(square, game)
     |> assert_list_eq_any_order([
-      %Move{file: ?g, rank: 5},
-      %Move{file: ?h, rank: 4},
-      %Move{file: ?e, rank: 5},
-      %Move{file: ?d, rank: 4},
-      %Move{file: ?c, rank: 3},
-      %Move{file: ?b, rank: 2},
-      %Move{file: ?a, rank: 1},
-      %Move{file: ?e, rank: 7},
-      %Move{file: ?d, rank: 8},
-      %Move{file: ?g, rank: 7},
-      %Move{file: ?h, rank: 8}
+      Move.from(square, {?g, 5}),
+      Move.from(square, {?h, 4}),
+      Move.from(square, {?e, 5}),
+      Move.from(square, {?d, 4}),
+      Move.from(square, {?c, 3}),
+      Move.from(square, {?b, 2}),
+      Move.from(square, {?a, 1}),
+      Move.from(square, {?e, 7}),
+      Move.from(square, {?d, 8}),
+      Move.from(square, {?g, 7}),
+      Move.from(square, {?h, 8})
     ])
   end
 
@@ -54,13 +54,13 @@ defmodule Elchesser.Piece.BishopTest do
 
     Bishop.moves(square, game)
     |> assert_list_eq_any_order([
-      %Move{file: ?c, rank: 1},
-      %Move{file: ?a, rank: 1},
-      %Move{file: ?c, rank: 3},
-      %Move{file: ?d, rank: 4},
-      %Move{file: ?e, rank: 5},
-      %Move{file: ?f, rank: 6},
-      %Move{file: ?g, rank: 7, capture: true}
+      Move.from(square, {?c, 1}),
+      Move.from(square, {?a, 1}),
+      Move.from(square, {?c, 3}),
+      Move.from(square, {?d, 4}),
+      Move.from(square, {?e, 5}),
+      Move.from(square, {?f, 6}),
+      Move.from(square, {?g, 7}, capture: true)
     ])
   end
 end

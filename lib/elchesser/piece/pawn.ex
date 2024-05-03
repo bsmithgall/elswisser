@@ -20,13 +20,13 @@ defmodule Elchesser.Piece.Pawn do
     do: moves(square, game, [{file, rank - 1}], false)
 
   @impl true
-  def attacks(%Square{} = square, _), do: attacks(square) |> Enum.map(&Move.from/1)
+  def attacks(%Square{} = square, _), do: attacks(square) |> Enum.map(&Move.from(square, &1))
 
   defp moves(square, game, candidates, promotion) do
     m =
       candidates
       |> Enum.filter(fn candidate -> Game.get_square(game, candidate) |> Square.empty?() end)
-      |> Enum.map(fn {file, rank} -> %Move{file: file, rank: rank, promotion: promotion} end)
+      |> Enum.map(fn {file, rank} -> Move.from(square, {file, rank}, promotion: promotion) end)
 
     a =
       attacks(square)
@@ -35,7 +35,7 @@ defmodule Elchesser.Piece.Pawn do
         |> then(&(Piece.enemy?(square.piece, &1.piece) || en_passant?(&1, game)))
       end)
       |> Enum.map(fn {file, rank} ->
-        %Move{file: file, rank: rank, capture: true, promotion: promotion}
+        Move.from(square, {file, rank}, capture: true, promotion: promotion)
       end)
 
     Enum.concat(m, a)

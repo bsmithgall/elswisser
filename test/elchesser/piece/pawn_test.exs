@@ -12,13 +12,13 @@ defmodule Elchesser.Piece.PawnTest do
       square = Game.get_square(game, {?e, 2})
 
       assert_list_eq_any_order(Pawn.moves(square, game), [
-        %Move{file: ?e, rank: 3},
-        %Move{file: ?e, rank: 4}
+        Move.from(square, {?e, 3}),
+        Move.from(square, {?e, 4})
       ])
 
       assert_list_eq_any_order(Pawn.attacks(square, game), [
-        Move.from({?d, 3}),
-        Move.from({?f, 3})
+        Move.from(square, {?d, 3}),
+        Move.from(square, {?f, 3})
       ])
     end
 
@@ -26,10 +26,12 @@ defmodule Elchesser.Piece.PawnTest do
       game = Elchesser.Fen.parse("8/8/8/8/8/P7/8/8 w KQkq - 0 1")
       square = Game.get_square(game, {?a, 3})
 
-      assert_list_eq_any_order(Pawn.moves(square, game), [%Move{file: ?a, rank: 4}])
+      assert_list_eq_any_order(Pawn.moves(square, game), [
+        Move.from(square, {?a, 4})
+      ])
 
       assert_list_eq_any_order(Pawn.attacks(square, game), [
-        Move.from({?b, 4})
+        Move.from(square, {?b, 4})
       ])
     end
 
@@ -38,9 +40,9 @@ defmodule Elchesser.Piece.PawnTest do
       square = Game.get_square(game, {?e, 2})
 
       assert_list_eq_any_order(Pawn.moves(square, game), [
-        %Move{file: ?e, rank: 3},
-        %Move{file: ?e, rank: 4},
-        %Move{file: ?f, rank: 3, capture: true}
+        Move.from(square, {?e, 3}),
+        Move.from(square, {?e, 4}),
+        Move.from(square, {?f, 3}, capture: true)
       ])
     end
 
@@ -48,7 +50,9 @@ defmodule Elchesser.Piece.PawnTest do
       game = Elchesser.Fen.parse("8/8/8/8/pp5p/P7/8/8 w KQkq - 0 1")
       square = Game.get_square(game, {?a, 3})
 
-      assert Pawn.moves(square, game) == [%Move{file: ?b, rank: 4, capture: true}]
+      assert Pawn.moves(square, game) == [
+               Move.from(square, {?b, 4}, capture: true)
+             ]
     end
 
     test "en-passant" do
@@ -56,8 +60,8 @@ defmodule Elchesser.Piece.PawnTest do
       square = Game.get_square(game, {?e, 5})
 
       assert_list_eq_any_order(Pawn.moves(square, game), [
-        %Move{file: ?e, rank: 6},
-        %Move{file: ?f, rank: 6, capture: true}
+        Move.from(square, {?e, 6}),
+        Move.from(square, {?f, 6}, capture: true)
       ])
     end
   end
@@ -68,8 +72,8 @@ defmodule Elchesser.Piece.PawnTest do
       square = Game.get_square(game, {?e, 7})
 
       assert_list_eq_any_order(Pawn.moves(square, game), [
-        %Move{file: ?e, rank: 6},
-        %Move{file: ?e, rank: 5}
+        Move.from(square, {?e, 6}),
+        Move.from(square, {?e, 5})
       ])
     end
 
@@ -77,7 +81,9 @@ defmodule Elchesser.Piece.PawnTest do
       game = Elchesser.Fen.parse("8/8/7p/8/8/8/8/8 w KQkq - 0 1")
       square = Game.get_square(game, {?h, 6})
 
-      assert_list_eq_any_order(Pawn.moves(square, game), [%Move{file: ?h, rank: 5}])
+      assert_list_eq_any_order(Pawn.moves(square, game), [
+        Move.from(square, {?h, 5})
+      ])
     end
 
     test "seventh rank with captures" do
@@ -85,9 +91,9 @@ defmodule Elchesser.Piece.PawnTest do
       square = Game.get_square(game, {?e, 7})
 
       assert_list_eq_any_order(Pawn.moves(square, game), [
-        %Move{file: ?e, rank: 6},
-        %Move{file: ?e, rank: 5},
-        %Move{file: ?f, rank: 6, capture: true}
+        Move.from(square, {?e, 6}),
+        Move.from(square, {?e, 5}),
+        Move.from(square, {?f, 6}, capture: true)
       ])
     end
 
@@ -96,7 +102,7 @@ defmodule Elchesser.Piece.PawnTest do
       square = Game.get_square(game, {?h, 6})
 
       assert_list_eq_any_order(Pawn.moves(square, game), [
-        %Move{file: ?g, rank: 5, capture: true}
+        Move.from(square, {?g, 5}, capture: true)
       ])
     end
 
@@ -105,8 +111,8 @@ defmodule Elchesser.Piece.PawnTest do
       square = Game.get_square(game, {?e, 4})
 
       assert_list_eq_any_order(Pawn.moves(square, game), [
-        %Move{file: ?e, rank: 3},
-        %Move{file: ?d, rank: 3, capture: true}
+        Move.from(square, {?e, 3}),
+        Move.from(square, {?d, 3}, capture: true)
       ])
     end
   end

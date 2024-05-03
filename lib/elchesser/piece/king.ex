@@ -6,24 +6,26 @@ defmodule Elchesser.Piece.King do
   @impl true
   def moves(%Square{piece: :K} = square, game) do
     black_attacks = Board.black_attacks(game)
+    as_fr = black_attacks |> Enum.map(& &1.to) |> Enum.into(MapSet.new())
 
     all =
       attacks(square, game)
       |> Enum.concat(maybe_castle_kingside(square, game, black_attacks))
       |> Enum.concat(maybe_castle_queenside(square, game, black_attacks))
 
-    all -- black_attacks
+    all |> Enum.reject(fn move -> MapSet.member?(as_fr, move.to) end)
   end
 
   def moves(%Square{piece: :k} = square, game) do
     white_attacks = Board.white_attacks(game)
+    as_fr = white_attacks |> Enum.map(& &1.to) |> Enum.into(MapSet.new())
 
     all =
       attacks(square, game)
       |> Enum.concat(maybe_castle_kingside(square, game, white_attacks))
       |> Enum.concat(maybe_castle_queenside(square, game, white_attacks))
 
-    all -- white_attacks
+    all |> Enum.reject(fn move -> MapSet.member?(as_fr, move.to) end)
   end
 
   @impl true
@@ -34,8 +36,8 @@ defmodule Elchesser.Piece.King do
 
       case Piece.friendly?(square.piece, s.piece) do
         true -> acc
-        false -> [%Move{file: s.file, rank: s.rank, capture: true} | acc]
-        nil -> [Move.from({s.file, s.rank}) | acc]
+        false -> [Move.from(square, {s.file, s.rank}, capture: true) | acc]
+        nil -> [Move.from(square, {s.file, s.rank}) | acc]
       end
     end)
   end
@@ -49,19 +51,19 @@ defmodule Elchesser.Piece.King do
        when not is_map_key(c.map, piece),
        do: []
 
-  defp maybe_castle_kingside(%Square{piece: :K}, %Game{} = game, attacks) do
+  defp maybe_castle_kingside(%Square{piece: :K} = square, %Game{} = game, attacks) do
     through_squares = [{?f, 1}, {?g, 1}] |> Enum.map(&Game.get_square(game, &1))
 
     if can_castle?(through_squares, attacks),
-      do: [%Move{file: ?g, rank: 1, castle: true}],
+      do: [Move.from(square, {?g, 1}, castle: true)],
       else: []
   end
 
-  defp maybe_castle_kingside(%Square{piece: :k}, %Game{} = game, attacks) do
+  defp maybe_castle_kingside(%Square{piece: :k} = square, %Game{} = game, attacks) do
     through_squares = [{?f, 8}, {?g, 8}] |> Enum.map(&Game.get_square(game, &1))
 
     if can_castle?(through_squares, attacks),
-      do: [%Move{file: ?g, rank: 8, castle: true}],
+      do: [Move.from(square, {?g, 8}, castle: true)],
       else: []
   end
 
@@ -73,21 +75,21 @@ defmodule Elchesser.Piece.King do
        when not is_map_key(c.map, :q),
        do: []
 
-  defp maybe_castle_queenside(%Square{piece: :K}, %Game{} = game, attacks) do
+  defp maybe_castle_queenside(%Square{piece: :K} = square, %Game{} = game, attacks) do
     empty_squares = [{?d, 1}, {?c, 1}, {?b, 1}] |> Enum.map(&Game.get_square(game, &1))
     attack_squares = [{?d, 1}, {?c, 1}] |> Enum.map(&Game.get_square(game, &1))
 
     if can_castle?(empty_squares, attack_squares, attacks),
-      do: [%Move{file: ?c, rank: 1, castle: true}],
+      do: [Move.from(square, {?c, 1}, castle: true)],
       else: []
   end
 
-  defp maybe_castle_queenside(%Square{piece: :k}, %Game{} = game, attacks) do
+  defp maybe_castle_queenside(%Square{piece: :k} = square, %Game{} = game, attacks) do
     empty_squares = [{?d, 8}, {?c, 8}, {?b, 8}] |> Enum.map(&Game.get_square(game, &1))
     attack_squares = [{?d, 8}, {?c, 8}] |> Enum.map(&Game.get_square(game, &1))
 
     if can_castle?(empty_squares, attack_squares, attacks),
-      do: [%Move{file: ?c, rank: 8, castle: true}],
+      do: [Move.from(square, {?c, 8}, castle: true)],
       else: []
   end
 

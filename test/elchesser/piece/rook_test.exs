@@ -14,20 +14,20 @@ defmodule Elchesser.Piece.RookTest do
 
     Rook.moves(square, game)
     |> assert_list_eq_any_order([
-      %Move{file: ?f, rank: 4},
-      %Move{file: ?g, rank: 4},
-      %Move{file: ?h, rank: 4},
-      %Move{file: ?a, rank: 4},
-      %Move{file: ?b, rank: 4},
-      %Move{file: ?c, rank: 4},
-      %Move{file: ?d, rank: 4},
-      %Move{file: ?e, rank: 1},
-      %Move{file: ?e, rank: 2},
-      %Move{file: ?e, rank: 3},
-      %Move{file: ?e, rank: 5},
-      %Move{file: ?e, rank: 6},
-      %Move{file: ?e, rank: 7},
-      %Move{file: ?e, rank: 8}
+      Move.from(square, {?f, 4}),
+      Move.from(square, {?g, 4}),
+      Move.from(square, {?h, 4}),
+      Move.from(square, {?a, 4}),
+      Move.from(square, {?b, 4}),
+      Move.from(square, {?c, 4}),
+      Move.from(square, {?d, 4}),
+      Move.from(square, {?e, 1}),
+      Move.from(square, {?e, 2}),
+      Move.from(square, {?e, 3}),
+      Move.from(square, {?e, 5}),
+      Move.from(square, {?e, 6}),
+      Move.from(square, {?e, 7}),
+      Move.from(square, {?e, 8})
     ])
   end
 
@@ -57,15 +57,15 @@ defmodule Elchesser.Piece.RookTest do
 
     Rook.moves(square, game)
     |> assert_list_eq_any_order([
-      %Move{file: ?h, rank: 4},
-      %Move{file: ?e, rank: 4, capture: true},
-      %Move{file: ?f, rank: 4},
-      %Move{file: ?g, rank: 8},
-      %Move{file: ?g, rank: 7},
-      %Move{file: ?g, rank: 6},
-      %Move{file: ?g, rank: 5},
-      %Move{file: ?g, rank: 3},
-      %Move{file: ?g, rank: 2}
+      Move.from(square, {?h, 4}),
+      Move.from(square, {?e, 4}, capture: true),
+      Move.from(square, {?f, 4}),
+      Move.from(square, {?g, 8}),
+      Move.from(square, {?g, 7}),
+      Move.from(square, {?g, 6}),
+      Move.from(square, {?g, 5}),
+      Move.from(square, {?g, 3}),
+      Move.from(square, {?g, 2})
     ])
   end
 end
