@@ -1,7 +1,7 @@
 defmodule Elchesser.Game do
   defstruct board: %{},
             active: :w,
-            castling: [:K, :Q, :k, :q],
+            castling: MapSet.new([:K, :Q, :k, :q]),
             en_passant: nil,
             half_clock: 0,
             full_moves: 1

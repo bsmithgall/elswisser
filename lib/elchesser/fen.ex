@@ -5,10 +5,12 @@ defmodule Elchesser.Fen do
 
   @spec parse(String.t()) :: Elchesser.Game.t()
   def parse(fen) do
-    [board, _color, _castling, en_passant, _half_clock, _full_moves] = String.split(fen, " ")
+    [board, color, castling, en_passant, _half_clock, _full_moves] = String.split(fen, " ")
 
     %Elchesser.Game{
       board: parse_board(board),
+      active: parse_color(color),
+      castling: parse_castling(castling),
       en_passant: parse_en_passant(en_passant)
     }
   end
@@ -18,7 +20,7 @@ defmodule Elchesser.Fen do
     |> String.split("/")
     |> Enum.reverse()
     |> Enum.with_index(1)
-    |> Enum.reduce(Elchesser.Game.empty(), fn {fileStr, rank}, acc ->
+    |> Enum.reduce(Elchesser.Game.empty().board, fn {fileStr, rank}, acc ->
       Map.merge(
         acc,
         String.graphemes(fileStr)
@@ -41,6 +43,19 @@ defmodule Elchesser.Fen do
         |> then(&elem(&1, 1))
       )
     end)
+  end
+
+  defp parse_color("w"), do: :w
+  defp parse_color("b"), do: :b
+
+  defp parse_castling("-"), do: MapSet.new()
+
+  defp parse_castling(castling_str) do
+    castling_str
+    |> String.graphemes()
+    |> Enum.map(&String.to_atom/1)
+    |> Enum.filter(&(&1 in [:K, :k, :Q, :q]))
+    |> Enum.into(MapSet.new())
   end
 
   defp parse_en_passant("-"), do: nil

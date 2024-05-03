@@ -2,6 +2,9 @@ defmodule Elchesser.Piece do
   alias Elchesser.{Square, Game, Move}
   @type t :: :p | :n | :b | :r | :q | :k | :P | :N | :B | :R | :Q | :K
 
+  @doc """
+  Generates psuedo-legal moves for a given piece type.
+  """
   @callback moves(Square.t(), Game.t()) :: [Move.t()]
   @callback attacks(Square.t(), Game.t()) :: [Move.t()]
 
@@ -45,13 +48,22 @@ defmodule Elchesser.Piece do
   def display(:q), do: "♛"
   def display(:k), do: "♚"
 
+  @spec module(t()) :: module()
   def module(:r), do: Elchesser.Piece.Rook
   def module(:R), do: Elchesser.Piece.Rook
   def module(:b), do: Elchesser.Piece.Bishop
   def module(:B), do: Elchesser.Piece.Bishop
   def module(:q), do: Elchesser.Piece.Queen
   def module(:Q), do: Elchesser.Piece.Queen
+  def module(:n), do: Elchesser.Piece.Knight
+  def module(:N), do: Elchesser.Piece.Knight
+  def module(:p), do: Elchesser.Piece.Pawn
+  def module(:P), do: Elchesser.Piece.Pawn
+  def module(:k), do: Elchesser.Piece.King
+  def module(:K), do: Elchesser.Piece.King
 
-  defp white?(p), do: MapSet.member?(@white, p)
-  defp black?(p), do: MapSet.member?(@black, p)
+  @spec white?(t()) :: boolean()
+  def white?(p), do: MapSet.member?(@white, p)
+  @spec black?(t()) :: boolean()
+  def black?(p), do: MapSet.member?(@black, p)
 end
