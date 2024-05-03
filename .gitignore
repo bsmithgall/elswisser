@@ -51,3 +51,4 @@ __pycache__
 
 # ignore scratchpad
 /priv/scratch
+.vscode
