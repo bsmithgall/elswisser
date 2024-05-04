@@ -231,6 +231,7 @@ defmodule Elswisser.Rounds do
   def ensure_games_finished(id) do
     case Game.from()
          |> Game.where_round_id(id)
+         |> Game.where_not_bye()
          |> Game.where_unfinished()
          |> Game.count()
          |> Repo.one() do

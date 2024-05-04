@@ -291,6 +291,8 @@ defmodule ElswisserWeb.RoundLive.Pairing do
     find_player(socket, String.to_integer(id))
   end
 
+  defp find_player(_, -1), do: Bye.bye_player()
+
   defp find_player(socket, id) when is_number(id) do
     Enum.find(socket.assigns[:roster], &(&1.id == id))
   end

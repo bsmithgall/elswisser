@@ -39,6 +39,7 @@ defmodule Elswisser.Games do
     |> Game.where_player_id(player_id)
     |> Game.where_finished()
     |> Game.with_both_players()
+    |> Game.where_not_bye()
     |> Game.preload_players()
     |> Game.most_recent_first()
     |> Repo.all()

@@ -92,6 +92,15 @@ defmodule Elswisser.Games.Game do
     from([..., game: g] in query, where: g.white_id == ^player_id or g.black_id == ^player_id)
   end
 
+  def where_not_bye(query) do
+    id = Bye.bye_player_id()
+
+    from(
+      [..., game: g] in query,
+      where: g.white_id != ^id and g.black_id != ^id
+    )
+  end
+
   def where_unfinished(query) do
     from([..., game: g] in query, where: is_nil(g.result))
   end
