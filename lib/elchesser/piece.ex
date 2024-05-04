@@ -64,6 +64,7 @@ defmodule Elchesser.Piece do
 
   @spec white?(t()) :: boolean()
   def white?(p), do: MapSet.member?(@white, p)
+
   @spec black?(t()) :: boolean()
   def black?(p), do: MapSet.member?(@black, p)
 

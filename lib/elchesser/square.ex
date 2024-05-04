@@ -1,10 +1,11 @@
 defmodule Elchesser.Square do
-  alias Elchesser.{Piece, Game, Move}
+  alias Elchesser.{Piece, Game, Move, Board, Game}
   alias __MODULE__
   alias Elchesser.Square.Sees
 
   defstruct file: nil,
             rank: nil,
+            loc: {},
             piece: nil,
             sees: %Sees{}
 
@@ -31,6 +32,7 @@ defmodule Elchesser.Square do
     %Square{
       file: file,
       rank: rank,
+      loc: {file, rank},
       piece: piece,
       sees: Map.merge(sees, %{all: Map.values(sees) |> List.flatten() |> Enum.into(MapSet.new())})
     }
@@ -47,6 +49,24 @@ defmodule Elchesser.Square do
 
   def white?(%Square{piece: piece}), do: Piece.white?(piece)
   def black?(%Square{piece: piece}), do: Piece.black?(piece)
+
+  def color(%Square{} = square) do
+    cond do
+      white?(square) -> :w
+      black?(square) -> :b
+      true -> nil
+    end
+  end
+
+  def legal_moves(%Square{piece: nil}, _), do: []
+
+  def legal_moves(%Square{piece: piece} = square, %Game{} = game) do
+    Piece.module(piece).moves(square, game)
+    |> Enum.reject(fn %Move{} = move ->
+      {:ok, {_, _, g}} = Board.move(game, move)
+      Game.Check.check?(g, color(square))
+    end)
+  end
 
   def attacks(%Square{piece: nil}, _), do: []
 
