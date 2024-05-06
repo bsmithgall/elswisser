@@ -40,10 +40,12 @@ defmodule Elchesser.Square do
 
   def valid?({file, rank}), do: file in Elchesser.files() && rank in Elchesser.ranks()
 
+  @spec empty?(Elchesser.Square.t()) :: boolean()
   def empty?(%Square{piece: nil}), do: true
   def empty?(%Square{}), do: false
 
-  def eq?(%Square{} = l, %Square{} = r), do: l == r
+  @spec eq?(Elchesser.Square.t(), nil | {number(), number()} | Elchesser.Square.t()) :: boolean()
+  def eq?(%Square{} = l, %Square{} = r), do: {l.file, l.rank} == {r.file, r.rank}
   def eq?(%Square{} = l, {file, rank}), do: l.file == file && l.rank == rank
   def eq?(%Square{}, nil), do: false
 
@@ -58,6 +60,7 @@ defmodule Elchesser.Square do
     end
   end
 
+  @spec legal_moves(Square.t(), Game.t()) :: [Move.t()]
   def legal_moves(%Square{piece: nil}, _), do: []
 
   def legal_moves(%Square{piece: piece} = square, %Game{} = game) do
@@ -66,6 +69,11 @@ defmodule Elchesser.Square do
       {:ok, {_, _, g}} = Board.move(game, move)
       Game.Check.check?(g, color(square))
     end)
+  end
+
+  @spec legal_locs(Square.t(), Game.t()) :: [{number(), number()}]
+  def legal_locs(%Square{} = square, %Game{} = game) do
+    legal_moves(square, game) |> Enum.map(& &1.to)
   end
 
   def attacks(%Square{piece: nil}, _), do: []
