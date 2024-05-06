@@ -1,10 +1,11 @@
 defmodule Elchesser.Square do
-  alias Elchesser.{Piece, Game, Move}
+  alias Elchesser.{Piece, Game, Move, Board, Game}
   alias __MODULE__
   alias Elchesser.Square.Sees
 
   defstruct file: nil,
             rank: nil,
+            loc: {},
             piece: nil,
             sees: %Sees{}
 
@@ -31,6 +32,7 @@ defmodule Elchesser.Square do
     %Square{
       file: file,
       rank: rank,
+      loc: {file, rank},
       piece: piece,
       sees: Map.merge(sees, %{all: Map.values(sees) |> List.flatten() |> Enum.into(MapSet.new())})
     }
@@ -38,15 +40,41 @@ defmodule Elchesser.Square do
 
   def valid?({file, rank}), do: file in Elchesser.files() && rank in Elchesser.ranks()
 
+  @spec empty?(Elchesser.Square.t()) :: boolean()
   def empty?(%Square{piece: nil}), do: true
   def empty?(%Square{}), do: false
 
-  def eq?(%Square{} = l, %Square{} = r), do: l == r
+  @spec eq?(Elchesser.Square.t(), nil | {number(), number()} | Elchesser.Square.t()) :: boolean()
+  def eq?(%Square{} = l, %Square{} = r), do: {l.file, l.rank} == {r.file, r.rank}
   def eq?(%Square{} = l, {file, rank}), do: l.file == file && l.rank == rank
   def eq?(%Square{}, nil), do: false
 
   def white?(%Square{piece: piece}), do: Piece.white?(piece)
   def black?(%Square{piece: piece}), do: Piece.black?(piece)
+
+  def color(%Square{} = square) do
+    cond do
+      white?(square) -> :w
+      black?(square) -> :b
+      true -> nil
+    end
+  end
+
+  @spec legal_moves(Square.t(), Game.t()) :: [Move.t()]
+  def legal_moves(%Square{piece: nil}, _), do: []
+
+  def legal_moves(%Square{piece: piece} = square, %Game{} = game) do
+    Piece.module(piece).moves(square, game)
+    |> Enum.reject(fn %Move{} = move ->
+      {:ok, {_, _, g}} = Board.move(game, move)
+      Game.Check.check?(g, color(square))
+    end)
+  end
+
+  @spec legal_locs(Square.t(), Game.t()) :: [{number(), number()}]
+  def legal_locs(%Square{} = square, %Game{} = game) do
+    legal_moves(square, game) |> Enum.map(& &1.to)
+  end
 
   def attacks(%Square{piece: nil}, _), do: []
 

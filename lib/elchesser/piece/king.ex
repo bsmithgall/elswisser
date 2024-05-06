@@ -6,7 +6,7 @@ defmodule Elchesser.Piece.King do
   @impl true
   def moves(%Square{piece: :K} = square, game) do
     black_attacks = Board.black_attacks(game)
-    as_fr = black_attacks |> Enum.map(& &1.to) |> Enum.into(MapSet.new())
+    as_fr = black_attacks |> Enum.into(MapSet.new())
 
     all =
       attacks(square, game)
@@ -18,7 +18,7 @@ defmodule Elchesser.Piece.King do
 
   def moves(%Square{piece: :k} = square, game) do
     white_attacks = Board.white_attacks(game)
-    as_fr = white_attacks |> Enum.map(& &1.to) |> Enum.into(MapSet.new())
+    as_fr = white_attacks |> Enum.into(MapSet.new())
 
     all =
       attacks(square, game)
