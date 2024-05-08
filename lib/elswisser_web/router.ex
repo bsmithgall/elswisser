@@ -1,4 +1,5 @@
 defmodule ElswisserWeb.Router do
+  alias ElswisserWeb.PageController
   use ElswisserWeb, :router
 
   import ElswisserWeb.Accounts.UserAuth
@@ -45,7 +46,7 @@ defmodule ElswisserWeb.Router do
   scope "/", ElswisserWeb do
     pipe_through(:browser)
 
-    get("/", PageController, :home)
+    live "/board-test", Elchesser.Live
 
     resources "/tournaments", Tournaments.TournamentController, only: [:index, :show] do
       resources("/rounds", RoundController, only: [:show])

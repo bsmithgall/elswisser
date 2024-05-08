@@ -62,6 +62,8 @@ defmodule Elchesser.Game do
     end
   end
 
+  def move(_, nil), do: {:error, :invalid_move}
+
   @spec move!(Game.t(), Move.t()) :: Game.t()
   def move!(%Game{} = game, %Move{} = move) do
     {:ok, game} = move(game, move)

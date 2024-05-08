@@ -36,4 +36,9 @@ defmodule Elchesser.Move do
       opts |> Enum.into(%{})
     )
   end
+
+  def opts(%Move{} = move),
+    do: [capture: move.capture, promotion: move.promotion, castle: move.castle]
+
+  def opts(nil), do: []
 end
