@@ -43,7 +43,7 @@ defmodule Elchesser.Game do
   def get_square(%Game{board: board}, {file, rank}), do: Map.get(board, {file, rank})
   def get_square(%Game{board: board}, %Square{loc: loc}), do: Map.get(board, loc)
 
-  @spec move(Game.t(), Move.t()) :: {:ok, Game.t()} | {:error, :atom}
+  @spec move(Game.t(), Move.t()) :: {:error, atom()} | {:ok, Game.t()}
   def move(%Game{} = game, %Move{} = move) do
     with :ok <- ensure_valid_move(game, move),
          {:ok, {piece, capture, game}} <- Board.move(game, move) do
@@ -62,7 +62,7 @@ defmodule Elchesser.Game do
     end
   end
 
-  def move(_, nil), do: {:error, :invalid_move}
+  def move(_, nil), do: {:error, :no_move_provided}
 
   @spec move!(Game.t(), Move.t()) :: Game.t()
   def move!(%Game{} = game, %Move{} = move) do
@@ -150,7 +150,4 @@ defmodule Elchesser.Game do
     do: %Game{game | full_moves: full_moves + 1}
 
   defp set_full_move_count(game), do: game
-
-  # defp inactive(%Game{active: :w}), do: :b
-  # defp inactive(%Game{active: :b}), do: :w
 end

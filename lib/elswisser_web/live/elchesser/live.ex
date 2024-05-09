@@ -21,35 +21,40 @@ defmodule ElswisserWeb.Elchesser.Live do
 
   def handle_event("square-click", %{"file" => f, "rank" => r, "type" => "start"}, socket) do
     loc = {String.to_integer(f), String.to_integer(r)}
-
-    socket =
-      socket
-      |> assign(
-        move_map:
-          Elchesser.Square.legal_moves(loc, socket.assigns.game)
-          |> Enum.reduce(%{}, fn move, acc -> Map.put(acc, move.to, move) end)
-      )
-      |> assign(start: loc)
-      |> assign(next_click: "stop")
-
-    {:noreply, socket}
+    {:noreply, assign_start_move(socket, loc)}
   end
 
   def handle_event("square-click", %{"file" => f, "rank" => r, "type" => "stop"}, socket) do
     loc = {String.to_integer(f), String.to_integer(r)}
 
     socket =
-      case Elchesser.Game.move(
-             socket.assigns.game,
-             Map.get(socket.assigns.move_map, loc)
-           ) do
-        {:ok, game} -> assign(socket, game: game)
-        {:error, _} -> socket
+      case Elchesser.Game.move(socket.assigns.game, Map.get(socket.assigns.move_map, loc)) do
+        {:ok, game} ->
+          socket |> assign(game: game) |> assign_stop_move()
+
+        {:error, err} when err in [:invalid_to_color, :invalid_from_color, :no_move_provided] ->
+          assign_start_move(socket, loc)
+
+        {:error, _} ->
+          assign_stop_move(socket)
       end
-      |> assign(move_map: %{})
-      |> assign(start: nil)
-      |> assign(next_click: "start")
 
     {:noreply, socket}
+  end
+
+  defp assign_start_move(socket, loc) do
+    socket
+    |> assign(move_map: get_move_map(loc, socket))
+    |> assign(start: loc)
+    |> assign(next_click: "stop")
+  end
+
+  defp assign_stop_move(socket) do
+    socket |> assign(move_map: %{}) |> assign(start: nil) |> assign(next_click: "start")
+  end
+
+  defp get_move_map(loc, socket) do
+    Elchesser.Square.legal_moves(loc, socket.assigns.game)
+    |> Enum.reduce(%{}, fn move, acc -> Map.put(acc, move.to, move) end)
   end
 end

@@ -1,8 +1,7 @@
 defmodule ElchesserWeb.Square do
   use Phoenix.Component
 
-  alias Elchesser.Move
-  alias Elchesser.{Square, Piece, Move}
+  alias Elchesser.{Square, Piece}
 
   defguardp is_white(file, rank) when rem(file + rank, 2) == 0
 
