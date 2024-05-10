@@ -5,7 +5,7 @@ defmodule ElswisserWeb.Elchesser.Live do
 
   def render(assigns) do
     ~H"""
-    <.game game={@game} move_map={@move_map} next_click={@next_click} />
+    <.game game={@game} move_map={@move_map} next_click={@next_click} active={@active} />
     """
   end
 
@@ -15,6 +15,7 @@ defmodule ElswisserWeb.Elchesser.Live do
       |> assign(game: Elchesser.Game.new())
       |> assign(move_map: %{})
       |> assign(next_click: "start")
+      |> assign(active: nil)
 
     {:ok, socket}
   end
@@ -47,14 +48,27 @@ defmodule ElswisserWeb.Elchesser.Live do
     |> assign(move_map: get_move_map(loc, socket))
     |> assign(start: loc)
     |> assign(next_click: "stop")
+    |> assign(active: get_active(loc, socket))
   end
 
   defp assign_stop_move(socket) do
-    socket |> assign(move_map: %{}) |> assign(start: nil) |> assign(next_click: "start")
+    socket
+    |> assign(move_map: %{})
+    |> assign(start: nil)
+    |> assign(next_click: "start")
+    |> assign(active: nil)
   end
 
   defp get_move_map(loc, socket) do
     Elchesser.Square.legal_moves(loc, socket.assigns.game)
     |> Enum.reduce(%{}, fn move, acc -> Map.put(acc, move.to, move) end)
+  end
+
+  defp get_active(loc, socket) do
+    square = Elchesser.Game.get_square(socket.assigns.game, loc)
+
+    if Elchesser.Piece.color_match?(square.piece, socket.assigns.game.active),
+      do: square,
+      else: nil
   end
 end
