@@ -68,6 +68,10 @@ defmodule Elchesser.Piece do
   @spec black?(t()) :: boolean()
   def black?(p), do: MapSet.member?(@black, p)
 
+  @spec color_match?(t(), :w | :b) :: boolean()
+  def color_match?(p, :w), do: white?(p)
+  def color_match?(p, :b), do: black?(p)
+
   @spec move_range(%Square{}, %Game{}, Square.Sees.t()) :: [t()]
   def move_range(%Square{} = square, %Game{} = game, direction) do
     get_in(square.sees, [Access.key!(direction)])

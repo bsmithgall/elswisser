@@ -129,5 +129,36 @@ module.exports = {
         { values }
       );
     }),
+    plugin(function ({ matchComponents, theme }) {
+      let piecesDir = path.join(__dirname, "./pieces");
+      let values = {};
+
+      let colors = ["white", "black"];
+
+      colors.forEach((color) => {
+        fs.readdirSync(path.join(piecesDir, color)).map((file) => {
+          let name = `${color}-${path.basename(file, ".svg")}`;
+          values[name] = { name, fullPath: path.join(piecesDir, color, file) };
+        });
+      });
+
+      matchComponents(
+        {
+          piece: ({ fullPath }) => {
+            let content = fs
+              .readFileSync(fullPath)
+              .toString()
+              .replace(/\r?\n|\r/g, "");
+
+            return {
+              "background-image": `url('data:image/svg+xml;base64,${Buffer.from(
+                content
+              ).toString("base64")}')`,
+            };
+          },
+        },
+        { values }
+      );
+    }),
   ],
 };

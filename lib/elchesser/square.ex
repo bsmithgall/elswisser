@@ -60,19 +60,24 @@ defmodule Elchesser.Square do
     end
   end
 
-  @spec legal_moves(Square.t(), Game.t()) :: [Move.t()]
+  @spec legal_moves(Square.t() | {number(), number()}, Game.t()) :: [Move.t()]
   def legal_moves(%Square{piece: nil}, _), do: []
 
   def legal_moves(%Square{piece: piece} = square, %Game{} = game) do
-    Piece.module(piece).moves(square, game)
-    |> Enum.reject(fn %Move{} = move ->
-      {:ok, {_, _, g}} = Board.move(game, move)
-      Game.Check.check?(g, color(square))
-    end)
+    if Piece.color_match?(piece, game.active),
+      do:
+        Piece.module(piece).moves(square, game)
+        |> Enum.reject(fn %Move{} = move ->
+          {:ok, {_, _, g}} = Board.move(game, move)
+          Game.Check.check?(g, color(square))
+        end),
+      else: []
   end
 
-  @spec legal_locs(Square.t(), Game.t()) :: [{number(), number()}]
-  def legal_locs(%Square{} = square, %Game{} = game) do
+  def legal_moves(loc, %Game{} = game), do: Game.get_square(game, loc) |> legal_moves(game)
+
+  @spec legal_locs(Square.t() | {number(), number()}, Game.t()) :: [{number(), number()}]
+  def legal_locs(square, %Game{} = game) do
     legal_moves(square, game) |> Enum.map(& &1.to)
   end
 
