@@ -33,6 +33,18 @@ defmodule Elchesser.Piece do
   def from_string("Q"), do: :Q
   def from_string("K"), do: :K
 
+  @spec to_string(t()) :: String.t()
+  def to_string(:n), do: "N"
+  def to_string(:N), do: "N"
+  def to_string(:b), do: "B"
+  def to_string(:B), do: "B"
+  def to_string(:r), do: "R"
+  def to_string(:R), do: "R"
+  def to_string(:q), do: "Q"
+  def to_string(:Q), do: "Q"
+  def to_string(:k), do: "K"
+  def to_string(:K), do: "K"
+
   @spec display(t() | nil) :: String.t()
   def display(nil), do: " "
   def display(:P), do: "♙"

@@ -1,7 +1,7 @@
 defmodule ElchesserWeb.Game do
   use Phoenix.Component
 
-  import ElchesserWeb.Square
+  import ElchesserWeb.{Square, Move}
 
   alias Elchesser.Game
 
@@ -13,8 +13,12 @@ defmodule ElchesserWeb.Game do
 
   def game(assigns) do
     ~H"""
-    <div class="relative m-auto left-0 right-0">
-      <div class="absolute left-1/2 -translate-x-1/2 border border-2 border-zinc-700">
+    <div
+      phx-hook="ElchesserHook"
+      id="ec-game"
+      class="relative m-auto left-0 right-0 flex justify-center gap-x-4 max-h-[388px]"
+    >
+      <div class="border border-2 border-zinc-700">
         <%= for rank <- Elchesser.ranks() |> Enum.reverse() do %>
           <div class="flex">
             <%= for file <- Elchesser.files() do %>
@@ -27,6 +31,15 @@ defmodule ElchesserWeb.Game do
             <% end %>
           </div>
         <% end %>
+      </div>
+      <div class="border border-zinc-700 w-48 rounded-sm overflow-y-scroll">
+        <table id="ec-moves" class="table-fixed w-full text-sm font-mono my-2">
+          <tbody>
+            <%= for {moves, idx} <- @game.moves |> Enum.chunk_every(2) |> Enum.with_index(1) |> dbg() do %>
+              <.move halves={moves} number={idx} />
+            <% end %>
+          </tbody>
+        </table>
       </div>
     </div>
     """

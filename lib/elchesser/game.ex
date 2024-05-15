@@ -1,4 +1,9 @@
 defmodule Elchesser.Game do
+  alias Elchesser.{Square, Move, Board, Piece}
+  alias __MODULE__
+
+  @starting_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
   defstruct board: %{},
             active: :w,
             check: false,
@@ -8,11 +13,6 @@ defmodule Elchesser.Game do
             full_moves: 1,
             moves: [],
             captures: []
-
-  alias Elchesser.{Square, Move, Board, Piece}
-  alias __MODULE__
-
-  @starting_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
   @type t :: %Game{
           board: %{{number(), number()} => Square.t()},
@@ -49,10 +49,10 @@ defmodule Elchesser.Game do
          {:ok, {piece, capture, game}} <- Board.move(game, move) do
       game =
         game
-        |> add_move(move)
-        |> add_capture(capture)
         |> flip_color()
         |> set_in_check()
+        |> add_move(move, piece)
+        |> add_capture(capture)
         |> set_castling_rights(move, piece)
         |> set_en_passant(move, piece)
         |> set_half_move_count(capture, piece)
@@ -81,8 +81,15 @@ defmodule Elchesser.Game do
     end
   end
 
-  defp add_move(%Game{moves: moves} = game, %Move{} = move),
-    do: %Game{game | moves: [move | moves]}
+  defp add_move(%Game{moves: moves} = game, %Move{} = move, piece) do
+    move =
+      cond do
+        game.check == true -> Move.with_san(move, piece, :check)
+        true -> Move.with_san(move, piece)
+      end
+
+    %Game{game | moves: Enum.concat(moves, [move])}
+  end
 
   defp add_capture(%Game{captures: captures} = game, piece),
     do: %Game{game | captures: [piece | captures]}
