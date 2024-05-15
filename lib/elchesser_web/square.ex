@@ -24,7 +24,7 @@ defmodule ElchesserWeb.Square do
     >
       <span class={[
         "font-mono w-full h-full inline-block text-3xl text-center align-middle cursor-pointer",
-        @active && "bg-boardwhite-darker/40"
+        @active && "bg-purple-200/60"
       ]}>
         <.square_contents highlight={@highlight} piece={@square.piece} />
       </span>
@@ -37,13 +37,22 @@ defmodule ElchesserWeb.Square do
 
   defp square_contents(%{piece: nil, highlight: true} = assigns) do
     ~H"""
-    <span class="w-[40px] h-[40px] mt-[4px] inline-block rounded-full border-2 border-zinc-600" />
+    <span class="w-[45px] h-[45px] mt-[1.5px] inline-block rounded-full border-2 border-zinc-600" />
     """
   end
 
-  defp square_contents(%{piece: piece} = assigns) when not is_nil(piece) do
+  defp square_contents(%{piece: piece, highlight: true} = assigns) when not is_nil(piece) do
     ~H"""
-    <.piece piece={@piece} class="w-[48px] h-[48px]" />
+    <div class="relative">
+      <span class="absolute w-[45px] h-[45px] mt-[1.5px] inline-block rounded-full border-2 border-zinc-600" />
+      <.piece piece={@piece} class="w-[45px] h-[45px] mt-[1.5px]" />
+    </div>
+    """
+  end
+
+  defp square_contents(%{piece: piece, highlight: false} = assigns) when not is_nil(piece) do
+    ~H"""
+    <.piece piece={@piece} class="w-[45px] h-[45px] mt-[1.5px]" />
     """
   end
 
