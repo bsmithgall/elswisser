@@ -3,6 +3,8 @@ defmodule ElchesserWeb.Square do
 
   alias Elchesser.Square
 
+  import ElchesserWeb.Piece
+
   defguardp is_white(file, rank) when rem(file + rank, 2) != 0
 
   attr(:square, Square)
@@ -41,7 +43,7 @@ defmodule ElchesserWeb.Square do
 
   defp square_contents(%{piece: piece} = assigns) when not is_nil(piece) do
     ~H"""
-    <span class={[piece_name(@piece), "w-[45px] h-[45px] mt-[1.5px] inline-block"]} />
+    <.piece piece={@piece} class="w-[48px] h-[48px]" />
     """
   end
 
@@ -49,22 +51,4 @@ defmodule ElchesserWeb.Square do
 
   defp background(%Square{file: file, rank: rank}) when is_white(file, rank), do: "bg-boardwhite"
   defp background(%Square{}), do: "bg-boardblack"
-
-  defp piece_name(piece) do
-    case piece do
-      :P -> "piece-white-pawn"
-      :N -> "piece-white-knight"
-      :B -> "piece-white-bishop"
-      :R -> "piece-white-rook"
-      :Q -> "piece-white-queen"
-      :K -> "piece-white-king"
-      :p -> "piece-black-pawn"
-      :n -> "piece-black-knight"
-      :b -> "piece-black-bishop"
-      :r -> "piece-black-rook"
-      :q -> "piece-black-queen"
-      :k -> "piece-black-king"
-      nil -> ""
-    end
-  end
 end

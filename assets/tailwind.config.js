@@ -154,6 +154,10 @@ module.exports = {
               "background-image": `url('data:image/svg+xml;base64,${Buffer.from(
                 content
               ).toString("base64")}')`,
+              display: "inline-block",
+              width: theme("spacing.5"),
+              height: theme("spacing.5"),
+              "background-size": "contain",
             };
           },
         },

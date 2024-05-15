@@ -70,6 +70,22 @@ defmodule Elchesser.Game do
     game
   end
 
+  def captures(%Game{} = game, :w) do
+    game.captures
+    |> Enum.filter(fn p ->
+      s = Atom.to_string(p)
+      s == String.upcase(s)
+    end)
+  end
+
+  def captures(%Game{} = game, :b) do
+    game.captures
+    |> Enum.filter(fn p ->
+      s = Atom.to_string(p)
+      s != String.upcase(s)
+    end)
+  end
+
   defp ensure_valid_move(%Game{} = game, %Move{} = move) do
     with from <- Game.get_square(game, move.from),
          to <- Game.get_square(game, move.to),
@@ -91,8 +107,13 @@ defmodule Elchesser.Game do
     %Game{game | moves: Enum.concat(moves, [move])}
   end
 
-  defp add_capture(%Game{captures: captures} = game, piece),
-    do: %Game{game | captures: [piece | captures]}
+  @spec add_capture(Game.t(), Piece.t() | nil) :: Game.t()
+  defp add_capture(game, nil), do: game
+
+  defp add_capture(%Game{captures: captures} = game, piece) do
+    captures = [piece | captures] |> Enum.sort_by(&Piece.int/1)
+    %Game{game | captures: captures}
+  end
 
   defp flip_color(%Game{active: :w} = game), do: %Game{game | active: :b}
   defp flip_color(%Game{active: :b} = game), do: %Game{game | active: :w}
@@ -136,10 +157,6 @@ defmodule Elchesser.Game do
 
   defp set_en_passant(%Game{} = game, _, _), do: %Game{game | en_passant: nil}
 
-  @spec or_(boolean(), atom()) :: :ok | {:error, atom()}
-  defp or_(true, _), do: :ok
-  defp or_(false, reason), do: {:error, reason}
-
   @spec set_half_move_count(Game.t(), Piece.t(), Piece.t()) :: Game.t()
   defp set_half_move_count(game, _, piece) when piece in [:P, :p] do
     %Game{game | half_moves: 0}
@@ -157,4 +174,8 @@ defmodule Elchesser.Game do
     do: %Game{game | full_moves: full_moves + 1}
 
   defp set_full_move_count(game), do: game
+
+  @spec or_(boolean(), atom()) :: :ok | {:error, atom()}
+  defp or_(true, _), do: :ok
+  defp or_(false, reason), do: {:error, reason}
 end

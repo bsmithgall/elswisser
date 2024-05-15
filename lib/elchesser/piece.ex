@@ -74,6 +74,24 @@ defmodule Elchesser.Piece do
   def module(:k), do: Elchesser.Piece.King
   def module(:K), do: Elchesser.Piece.King
 
+  @spec int(t()) :: integer()
+  @doc """
+  Convert a piece to an integer so that lists of pieces can be sorted reliably
+  (e.g. for displaying captures.)
+  """
+  def int(:P), do: 1
+  def int(:N), do: 2
+  def int(:B), do: 3
+  def int(:R), do: 4
+  def int(:Q), do: 5
+  def int(:K), do: 6
+  def int(:p), do: 10
+  def int(:n), do: 11
+  def int(:b), do: 12
+  def int(:r), do: 13
+  def int(:q), do: 14
+  def int(:k), do: 15
+
   @spec white?(t()) :: boolean()
   def white?(p), do: MapSet.member?(@white, p)
 
