@@ -3,6 +3,8 @@ defmodule ElchesserWeb.Square do
 
   alias Elchesser.Square
 
+  import ElchesserWeb.Piece
+
   defguardp is_white(file, rank) when rem(file + rank, 2) != 0
 
   attr(:square, Square)
@@ -22,7 +24,7 @@ defmodule ElchesserWeb.Square do
     >
       <span class={[
         "font-mono w-full h-full inline-block text-3xl text-center align-middle cursor-pointer",
-        @active && "bg-boardwhite-darker/40"
+        @active && "bg-purple-200/60"
       ]}>
         <.square_contents highlight={@highlight} piece={@square.piece} />
       </span>
@@ -35,13 +37,22 @@ defmodule ElchesserWeb.Square do
 
   defp square_contents(%{piece: nil, highlight: true} = assigns) do
     ~H"""
-    <span class="w-[40px] h-[40px] mt-[4px] inline-block rounded-full border-2 border-zinc-600" />
+    <span class="w-[45px] h-[45px] mt-[1.5px] inline-block rounded-full border-2 border-zinc-600" />
     """
   end
 
-  defp square_contents(%{piece: piece} = assigns) when not is_nil(piece) do
+  defp square_contents(%{piece: piece, highlight: true} = assigns) when not is_nil(piece) do
     ~H"""
-    <span class={[piece_name(@piece), "w-[45px] h-[45px] mt-[1.5px] inline-block"]} />
+    <div class="relative">
+      <span class="absolute w-[45px] h-[45px] mt-[1.5px] inline-block rounded-full border-2 border-zinc-600" />
+      <.piece piece={@piece} class="w-[45px] h-[45px] mt-[1.5px]" />
+    </div>
+    """
+  end
+
+  defp square_contents(%{piece: piece, highlight: false} = assigns) when not is_nil(piece) do
+    ~H"""
+    <.piece piece={@piece} class="w-[45px] h-[45px] mt-[1.5px]" />
     """
   end
 
@@ -49,22 +60,4 @@ defmodule ElchesserWeb.Square do
 
   defp background(%Square{file: file, rank: rank}) when is_white(file, rank), do: "bg-boardwhite"
   defp background(%Square{}), do: "bg-boardblack"
-
-  defp piece_name(piece) do
-    case piece do
-      :P -> "piece-white-pawn"
-      :N -> "piece-white-knight"
-      :B -> "piece-white-bishop"
-      :R -> "piece-white-rook"
-      :Q -> "piece-white-queen"
-      :K -> "piece-white-king"
-      :p -> "piece-black-pawn"
-      :n -> "piece-black-knight"
-      :b -> "piece-black-bishop"
-      :r -> "piece-black-rook"
-      :q -> "piece-black-queen"
-      :k -> "piece-black-king"
-      nil -> ""
-    end
-  end
 end
