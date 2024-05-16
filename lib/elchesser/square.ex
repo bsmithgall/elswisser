@@ -15,7 +15,7 @@ defmodule Elchesser.Square do
   def from(%Move{to: {file, rank}}), do: from(file, rank, nil)
   def from(file, rank), do: from(file, rank, nil)
 
-  @spec from(number(), number(), Piece.t() | nil) :: t()
+  @spec from(number(), number(), Piece.t?()) :: t()
   def from(file, rank, piece) do
     sees = %Sees{
       up: up(file, rank),

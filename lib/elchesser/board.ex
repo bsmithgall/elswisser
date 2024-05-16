@@ -2,7 +2,7 @@ defmodule Elchesser.Board do
   alias Elchesser.{Game, Square, Piece, Move}
 
   @spec move(Elchesser.Game.t(), Elchesser.Move.t()) ::
-          {:ok, {Piece.t(), nil | Piece.t(), Game.t()}} | {:error, atom()}
+          {:ok, {Piece.t(), Piece.t?(), Game.t()}} | {:error, atom()}
   def move(%Game{} = game, %Move{} = move) do
     with {:ok, {piece, game}} <- move_from(game, move.from),
          {:ok, {capture, game}} <- move_to(game, move.to, piece),
@@ -82,7 +82,7 @@ defmodule Elchesser.Board do
   end
 
   @spec move_to(Game.t(), {number(), number()}, Piece.t()) ::
-          {:ok, {nil | Piece.t(), Game.t()}} | {:error, atom()}
+          {:ok, {Piece.t?(), Game.t()}} | {:error, atom()}
   defp move_to(%Game{board: board} = game, loc, piece) do
     {%Square{piece: capture}, board} =
       Map.get_and_update(board, loc, fn current ->

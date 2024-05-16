@@ -1,6 +1,7 @@
 defmodule Elchesser.Piece do
   alias Elchesser.{Square, Game, Move}
   @type t :: :p | :n | :b | :r | :q | :k | :P | :N | :B | :R | :Q | :K
+  @type t? :: t() | nil
 
   @doc """
   Generates psuedo-legal moves for a given piece type.
@@ -11,12 +12,12 @@ defmodule Elchesser.Piece do
   @white MapSet.new([:P, :N, :B, :R, :Q, :K])
   @black MapSet.new([:p, :n, :b, :r, :q, :k])
 
-  @spec friendly?(t() | nil, t() | nil) :: boolean() | nil
+  @spec friendly?(t?(), t?()) :: boolean() | nil
   def friendly?(nil, _), do: nil
   def friendly?(_, nil), do: nil
   def friendly?(l, r), do: (white?(l) and white?(r)) or (black?(l) and black?(r))
 
-  @spec enemy?(t() | nil, t() | nil) :: boolean()
+  @spec enemy?(t?(), t?()) :: boolean()
   def enemy?(l, r), do: (white?(l) and black?(r)) or (black?(l) and white?(r))
 
   @spec from_string(String.t()) :: t()
@@ -45,7 +46,7 @@ defmodule Elchesser.Piece do
   def to_string(:k), do: "K"
   def to_string(:K), do: "K"
 
-  @spec display(t() | nil) :: String.t()
+  @spec display(t?()) :: String.t()
   def display(nil), do: " "
   def display(:P), do: "♙"
   def display(:N), do: "♘"
