@@ -17,7 +17,7 @@ defmodule ElchesserWeb.Game do
     <div
       phx-hook="ElchesserHook"
       id="ec-game"
-      class="relative m-auto left-0 right-0 flex justify-center gap-x-4 max-h-[388px]"
+      class="relative m-auto left-0 right-0 flex flex-col md:flex-row md:justify-center gap-4 max-h-[388px]"
     >
       <div class="border border-2 border-zinc-700">
         <%= for rank <- Elchesser.ranks() |> Enum.reverse() do %>
