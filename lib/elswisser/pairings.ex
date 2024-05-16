@@ -122,9 +122,7 @@ defmodule Elswisser.Pairings do
     end
   end
 
-  def finalize_colors(colors, _round_number) do
-    colors
-  end
+  def finalize_colors(colors, _round_number), do: colors
 
   @doc """
   Given an input of scores (sorted first to last placement), pick a player to receive a bye.

@@ -5,6 +5,8 @@ defmodule Elswisser.Games do
   alias Elswisser.Repo
 
   alias Elswisser.Games.Game
+  alias Elswisser.Rounds.Round
+  alias Elswisser.Tournaments.Tournament
 
   def get_game(id) do
     Game.from() |> Game.where_id(id) |> Repo.one()
@@ -12,6 +14,20 @@ defmodule Elswisser.Games do
 
   def get_game!(id) do
     Game.from() |> Game.where_id(id) |> Repo.one!()
+  end
+
+  def get_games_with_round_number_for_tournament(tournament_id) do
+    Repo.all(
+      from(g in Game,
+        join: r in Round,
+        on: g.round_id == r.id,
+        join: t in Tournament,
+        on: r.tournament_id == t.id,
+        where: t.id == ^tournament_id,
+        select: {g, r.number}
+      )
+    )
+    |> Enum.map(fn x -> %{game: elem(x, 0), rnd: %Round{number: elem(x, 1)}} end)
   end
 
   def get_games_from_tournament_for_player(tournament_id, player_id) do
