@@ -83,7 +83,7 @@ defmodule ElswisserWeb.RoundLive.Round do
 
     <%= for game <- @games do %>
       <form id={"game-#{game.id}-result"} phx-change="save-result">
-        <input type="hidden" name="id" value={game.id} />
+        <input type="hidden" name="game_id" value={game.id} />
       </form>
 
       <.game_detail_form game={game} />
@@ -139,7 +139,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   end
 
   @impl true
-  def handle_event("validate-game-link", %{"game_link" => link, "id" => id}, socket) do
+  def handle_event("validate-game-link", %{"game_link" => link, "game_id" => id}, socket) do
     {:noreply,
      socket
      |> assign(
@@ -154,7 +154,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   end
 
   @impl true
-  def handle_event("save-result", %{"id" => id} = params, socket) do
+  def handle_event("save-result", %{"game_id" => id} = params, socket) do
     with :ok <- ensure_updatable(params, socket),
          game <- find_game(socket, id),
          {:ok, game} <-
@@ -189,7 +189,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   end
 
   @impl true
-  def handle_event("switch-player-colors", %{"id" => id_str}, socket) do
+  def handle_event("switch-player-colors", %{"game_id" => id_str}, socket) do
     game = find_game(socket, id_str)
 
     case Games.update_game(game, %{white_id: game.white.id, black_id: game.black.id}) do
@@ -210,7 +210,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   end
 
   @impl true
-  def handle_event("unpair-players", %{"id" => id}, socket) do
+  def handle_event("unpair-players", %{"game_id" => id}, socket) do
     game = find_game(socket, id)
 
     with {:ok, _} <- Matches.delete_from_game(game),

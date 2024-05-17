@@ -8,6 +8,8 @@ defmodule Elswisser.Rounds do
   alias Ecto.Multi
   alias Elswisser.Repo
 
+  alias Elswisser.Tournaments
+  alias Elswisser.Tournaments.Tournament
   alias Elswisser.Rounds.Round
   alias Elswisser.Rounds.Stats
   alias Elswisser.Games.Game
@@ -237,6 +239,28 @@ defmodule Elswisser.Rounds do
          |> Repo.one() do
       0 -> {:ok, 0}
       n -> {:error, "#{n} game(s) not finished yet!"}
+    end
+  end
+
+  @doc """
+  Finalize a round by
+
+  1. Ensuring that all games have been finished for the round
+  2. Update all of the ELOs for each player based on the game results
+  3. Set the round as complete
+  4. Create the next round of the tournament.
+
+
+  """
+  def finalize_round(%Round{} = rnd, %Tournament{} = tournament) do
+    with {:ok, _} <- ensure_games_finished(rnd.id),
+         {:ok, _update} <- update_ratings_after_round(rnd.id),
+         {:ok, rnd} <- set_complete(rnd),
+         {:ok, next_round} <- Tournaments.create_next_round(tournament, rnd.number) do
+      {:ok, next_round}
+    else
+      :finished -> :finished
+      {:error, reason} -> {:error, reason}
     end
   end
 

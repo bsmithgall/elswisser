@@ -1,5 +1,5 @@
 <form id={"game-#{@game.id}"} phx-change="validate-game-link">
-  <input type="hidden" name="id" value={@game.id} />
+  <input type="hidden" name="game_id" value={@game.id} />
 </form>
 
 <.modal id={"game-#{@game.id}-edit-modal"} clickaway={false}>
