@@ -77,18 +77,15 @@ defmodule ElswisserWeb.RoundController do
   end
 
   def finalize(conn, %{"tournament_id" => tournament_id, "id" => id}) do
-    # @TODO: wrap all of this in a transaction via Ecto.Multi
-    with {:ok, _} <- Rounds.ensure_games_finished(id),
-         {:ok, _update} <- Rounds.update_ratings_after_round(id),
-         {:ok, rnd} <- Rounds.set_complete(conn.assigns[:round]),
-         {:ok, next_round} <- Tournaments.create_next_round(conn.assigns[:tournament], rnd.number) do
-      conn
-      |> put_flash(
-        :info,
-        flash(conn.assigns[:tournament].type, next_round)
-      )
-      |> redirect(to: redirect_to(conn.assigns[:tournament].type, rnd, next_round))
-    else
+    rnd = conn.assigns.round
+    tournament = conn.assigns.tournament
+
+    case Rounds.finalize_round(rnd, tournament) do
+      {:ok, next_round} ->
+        conn
+        |> put_flash(:info, flash(tournament.type, next_round))
+        |> redirect(to: redirect_to(tournament.type, rnd, next_round))
+
       :finished ->
         conn
         |> put_flash(:info, "Tournament has finished!")

@@ -27,7 +27,7 @@ defmodule ElswisserWeb.RoundLive.Pairing do
     <.flash id="pairing-error-flash" kind={:error} title="Error!" flash={@flash} />
     <div class="mt-8 md:flex">
       <div class="mb-4 md:mb-0 md:w-2/5 md:box-border md:border-r md:border-r-zinc-400 md:pr-4 md:mr-4">
-        <.success_button phx-click="auto-pair-remaining" class="mb-4 w-full">
+        <.success_button id="es:auto-pair" phx-click="auto-pair-remaining" class="mb-4 w-full">
           Auto-pair remaining players
         </.success_button>
         <.section_title class="text-xs uppercase mb-4">
@@ -112,7 +112,7 @@ defmodule ElswisserWeb.RoundLive.Pairing do
 
   @impl true
   def handle_event("auto-pair-remaining", _params, socket) do
-    remaining_ids = socket.assigns[:players] |> Enum.map(fn p -> p.id end)
+    remaining_ids = socket.assigns[:players] |> Enum.map(& &1.id)
     all_games = Games.get_games_with_round_number_for_tournament(socket.assigns[:tournament_id])
 
     remaining =
@@ -121,33 +121,18 @@ defmodule ElswisserWeb.RoundLive.Pairing do
       |> Map.filter(fn {player_id, _score} -> Enum.member?(remaining_ids, player_id) end)
 
     with {assigned_bye, eligibles} <- Pairings.assign_bye_player(Map.values(remaining)),
-         {:ok, pairings} <- eligibles |> Scores.sort() |> Pairings.pair(),
-         {:ok, assignments} <-
-           {:ok,
-            Pairings.assign_colors(pairings, remaining)
-            |> Pairings.finalize_colors(socket.assigns[:round_number])},
-         game_params <-
-           to_game_params(socket, assignments) ++ bye_game_params(socket, assigned_bye),
-         {:ok, _games} <- Matches.create_matches_from_games(game_params) do
+         sorted_scores <- Scores.sort(eligibles),
+         {:ok, pairings} <- Pairings.pair(sorted_scores),
+         tentative_assignments <- Pairings.assign_colors(pairings, remaining),
+         assignments <-
+           Pairings.finalize_colors(tentative_assignments, socket.assigns[:round_number]),
+         game_params <- to_game_params(socket, assignments),
+         ordered <-
+           order_params(game_params, sorted_scores) ++ bye_game_params(socket, assigned_bye),
+         {:ok, _games} <- Matches.create_matches_from_games(ordered) do
       handle_pairing_finished(socket)
     else
       {:error, _reason} -> {:error, socket}
-    end
-  end
-
-  defp handle_pairing_finished(socket) do
-    case Rounds.set_playing(socket.assigns[:round_id]) do
-      {:ok, _} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "All pairings finished!")
-         |> redirect(
-           to:
-             ~p"/tournaments/#{socket.assigns[:tournament_id]}/rounds/#{socket.assigns[:round_id]}"
-         )}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:error, socket |> put_flash(:error, "Could not start playing Round: #{changeset}")}
     end
   end
 
@@ -216,6 +201,36 @@ defmodule ElswisserWeb.RoundLive.Pairing do
       </.success_button>
     </div>
     """
+  end
+
+  defp handle_pairing_finished(socket) do
+    case Rounds.set_playing(socket.assigns[:round_id]) do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "All pairings finished!")
+         |> redirect(
+           to:
+             ~p"/tournaments/#{socket.assigns[:tournament_id]}/rounds/#{socket.assigns[:round_id]}"
+         )}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:error, socket |> put_flash(:error, "Could not start playing Round: #{changeset}")}
+    end
+  end
+
+  # Using the sorted scores, order the boards so that the top players are on the
+  # top boards.
+  defp order_params(game_params, scores) do
+    in_order =
+      scores
+      |> Enum.with_index()
+      |> Enum.reduce(%{}, fn {score, idx}, acc -> Map.put(acc, score.player_id, idx) end)
+
+    Enum.sort(game_params, fn g1, g2 ->
+      Enum.min([Map.get(in_order, g1.white_id), Map.get(in_order, g1.black_id)]) <=
+        Enum.min([Map.get(in_order, g2.white_id), Map.get(in_order, g2.black_id)])
+    end)
   end
 
   defp switch_color(socket) do

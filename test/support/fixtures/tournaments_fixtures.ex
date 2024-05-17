@@ -36,4 +36,19 @@ defmodule Elswisser.TournamentsFixtures do
 
     Elswisser.Tournaments.get_tournament_with_players!(tournament.id)
   end
+
+  def tournament_with_n_players_fixture(n, attrs \\ %{}) do
+    players = 0..n |> Enum.map(fn _ -> Elswisser.PlayersFixtures.player_fixture() end)
+
+    {:ok, tournament} =
+      attrs
+      |> Enum.into(%{
+        name: "some name",
+        type: :swiss,
+        player_ids: players |> Enum.map(& &1.id)
+      })
+      |> Elswisser.Tournaments.create_tournament()
+
+    Elswisser.Tournaments.get_tournament_with_players!(tournament.id)
+  end
 end
