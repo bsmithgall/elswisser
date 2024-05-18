@@ -4,13 +4,21 @@
   </.error>
   <.input field={f[:name]} type="text" label="Name" />
 
-  <.input field={f[:type]} type="select" options={tournament_opts()} disabled={!@new} />
+  <.input
+    field={f[:type]}
+    type="select"
+    options={tournament_opts()}
+    disabled={!@new}
+    label="Type"
+  />
+
   <.input
     field={f[:player_ids]}
-    type="select"
+    type="multicheckbox"
     multiple
-    options={player_opts()}
+    options={player_tuples()}
     value={selected_players(@changeset)}
+    label="Players"
   />
 
   <:actions>

@@ -5,23 +5,35 @@
   </:actions>
 </.header>
 
-<.form for={@changeset} action={~p"/tournaments/#{@tournament}/roster"}>
+<.simple_form :let={f} for={@changeset} action={~p"/tournaments/#{@tournament}/roster"}>
   <div class="md:flex md:flex-row">
     <div class="md:basis-1/2">
-      <.header class="mb-2">Registered</.header>
-      <%= for player <- @in_players do %>
-        <.player_checkbox player={player} current_user={@current_user} checked />
-      <% end %>
+      <.input
+        field={f[:player_ids]}
+        type="multicheckbox"
+        multiple
+        options={@in_players}
+        value={@in_players |> Enum.map(&elem(&1, 0))}
+        label="Registered Players"
+        checked
+      />
     </div>
     <div class="mt-4 md:m-0 md:basis-1/2">
-      <.header class="mb-2">Unregistered</.header>
-      <%= for player <- @out_players do %>
-        <.player_checkbox player={player} current_user={@current_user} />
-      <% end %>
+      <.input
+        field={f[:player_ids]}
+        type="multicheckbox"
+        multiple
+        options={@out_players}
+        value={@out_players |> Enum.map(&elem(&1, 0))}
+        label="Unregistered Players"
+      />
     </div>
   </div>
-  <.success_button :if={@current_user} class="mt-8">Submit</.success_button>
-</.form>
+
+  <:actions>
+    <.success_button :if={@current_user} class="mt-8">Submit</.success_button>
+  </:actions>
+</.simple_form>
 
 <.modal id="confirm-modal">
   <.header>Add new player</.header>

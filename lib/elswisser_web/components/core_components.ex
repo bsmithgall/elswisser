@@ -384,7 +384,7 @@ defmodule ElswisserWeb.CoreComponents do
   attr(:type, :string,
     default: "text",
     values: ~w(checkbox color date datetime-local email file hidden month number password
-               range radio search select tel text textarea time url week)
+               range radio search select tel text textarea time url week multicheckbox)
   )
 
   attr(:field, Phoenix.HTML.FormField,
@@ -437,10 +437,55 @@ defmodule ElswisserWeb.CoreComponents do
     """
   end
 
+  def input(%{type: "multicheckbox", value: value} = assigns) do
+    assigns =
+      assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
+
+    ~H"""
+    <div phx-feedback-for={@name}>
+      <div data-selector="es:multicheckbox-container">
+        <div class="flex mb-2">
+          <.label for={@id}><%= @label %></.label>
+          <label
+            class="ml-4 flex items-center gap-2 text-xs leading-6 text-zinc-600"
+            for={"#{@id}-all"}
+          >
+            <input
+              id={"#{@id}-all"}
+              type="checkbox"
+              data-selector="es:multicheckbox"
+              class="rounded border-zinc-300 text-zinc-900 focus:ring-0"
+              checked={@checked}
+            />Check all
+          </label>
+        </div>
+        <.error :for={msg <- @errors}><%= msg %></.error>
+        <div :for={{label, value} <- @options}>
+          <label
+            class="flex items-center gap-4 text-sm leading-6 text-zinc-600"
+            for={"#{@name}-#{value}"}
+          >
+            <input
+              type="checkbox"
+              id={"#{@name}-#{value}"}
+              name={@name}
+              value={value}
+              checked={value in @value or @checked}
+              class="rounded border-zinc-300 text-zinc-900 focus:ring-0"
+              {@rest}
+            /><%= label %>
+          </label>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   def input(%{type: "select"} = assigns) do
     ~H"""
     <div phx-feedback-for={@name}>
       <.label for={@id}><%= @label %></.label>
+      <.error :for={msg <- @errors}><%= msg %></.error>
       <select
         id={@id}
         name={@name}
@@ -455,7 +500,6 @@ defmodule ElswisserWeb.CoreComponents do
         <option :if={@prompt} value=""><%= @prompt %></option>
         <%= Phoenix.HTML.Form.options_for_select(@options, @value) %>
       </select>
-      <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
     """
   end
@@ -464,6 +508,7 @@ defmodule ElswisserWeb.CoreComponents do
     ~H"""
     <div class={@wrapper_class} phx-feedback-for={@name}>
       <.label for={@id}><%= @label %></.label>
+      <.error :for={msg <- @errors}><%= msg %></.error>
       <textarea
         id={@id}
         name={@name}
@@ -476,7 +521,6 @@ defmodule ElswisserWeb.CoreComponents do
         ]}
         {@rest}
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
-      <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
     """
   end
@@ -486,6 +530,7 @@ defmodule ElswisserWeb.CoreComponents do
     ~H"""
     <div class={@wrapper_class} phx-feedback-for={@name}>
       <.label for={@id}><%= @label %></.label>
+      <.error :for={msg <- @errors}><%= msg %></.error>
       <input
         type={@type}
         name={@name}
@@ -499,7 +544,6 @@ defmodule ElswisserWeb.CoreComponents do
         ]}
         {@rest}
       />
-      <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
     """
   end
