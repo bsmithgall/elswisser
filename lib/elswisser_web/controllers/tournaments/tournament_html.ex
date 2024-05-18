@@ -4,14 +4,18 @@ defmodule ElswisserWeb.Tournaments.TournamentHTML do
 
   embed_templates("tournament_html/*")
 
-  def selected_players(changeset) do
+  def selected_players(changeset, field \\ :players) do
     changeset
-    |> Ecto.Changeset.get_field(:players, [])
+    |> Ecto.Changeset.get_field(field, [])
     |> Enum.map(& &1.id)
   end
 
   def player_opts() do
     Elswisser.Players.list_players() |> Enum.map(&[key: &1.name, value: &1.id])
+  end
+
+  def player_tuples() do
+    Elswisser.Players.list_players() |> Enum.map(&{&1.name, &1.id})
   end
 
   def tournament_opts() do

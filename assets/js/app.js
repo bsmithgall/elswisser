@@ -59,3 +59,16 @@ window.addEventListener("elswisser:share-capture", async (el) => {
     }
   });
 });
+
+// register "Check all" functionality for multi-checkboxes
+document.querySelectorAll('[data-selector="es:multicheckbox"]').forEach((el) =>
+  el.addEventListener("click", (e) => {
+    let on = e.target.checked;
+    e.target
+      .closest('[data-selector="es:multicheckbox-container"]')
+      .querySelectorAll('input[type="checkbox"]')
+      .forEach((input) => {
+        input.checked = on;
+      });
+  }),
+);

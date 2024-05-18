@@ -19,13 +19,13 @@ defmodule ElswisserWeb.Tournaments.RosterController do
       current_round: conn.assigns[:current_round],
       active: "roster",
       changeset: changeset,
-      in_players: in_players,
-      out_players: out_players,
+      in_players: to_roster_tuple(in_players),
+      out_players: to_roster_tuple(out_players),
       new_player: new_player
     )
   end
 
-  def update(conn, %{"id" => id, "player_ids" => player_ids}) do
+  def update(conn, %{"id" => id, "tournament" => %{"player_ids" => player_ids}}) do
     tournament = Tournaments.get_tournament!(id)
 
     case Tournaments.update_tournament(tournament, %{player_ids: player_ids}) do
@@ -39,12 +39,16 @@ defmodule ElswisserWeb.Tournaments.RosterController do
         new_player = Players.change_player(%Players.Player{})
 
         render(conn, :index,
-          tournament: tournament,
+          tournament: conn.assigns[:tournament],
           changeset: changeset,
-          in_players: in_players,
-          out_players: out_players,
+          in_players: to_roster_tuple(in_players),
+          out_players: to_roster_tuple(out_players),
           new_player: new_player
         )
     end
+  end
+
+  defp to_roster_tuple(roster) do
+    roster |> Enum.map(&{&1.name, &1.id})
   end
 end
