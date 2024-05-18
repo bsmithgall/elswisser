@@ -31,10 +31,10 @@ defmodule Elswisser.GamesTest do
 
     test "add_pgn/3 properly updates a pgn when the game is present" do
       game = game_fixture()
-      Games.add_pgn(game.id, "TEST PGN", "http://chess.com/game/live/1234")
+      {:ok, _} = Games.add_pgn(game.id, "TEST PGN", "http://chess.com/game/live/1234")
       game = Games.get_game!(game.id)
-      assert game.pgn == "TEST PGN"
       assert game.game_link == "http://chess.com/game/live/1234"
+      assert game.pgn == "TEST PGN"
     end
 
     test "add_pgn/2 properly returns an error when no game is found" do
