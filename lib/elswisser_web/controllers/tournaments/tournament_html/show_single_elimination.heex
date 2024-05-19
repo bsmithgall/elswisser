@@ -1,6 +1,14 @@
 <.header class="pt-4">
   <%= @tournament.name %>
   <:actions>
+    <.success_button
+      id="generate-pairing-svg-btn"
+      phx-hook="ShareCaptureHook"
+      data-capture-target="bracket-boundary"
+      data-capture-bounds="complete"
+    >
+      Screenshot bracket
+    </.success_button>
     <.link href={~p"/tournaments/#{@tournament}/edit"}>
       <.button>Edit tournament</.button>
     </.link>

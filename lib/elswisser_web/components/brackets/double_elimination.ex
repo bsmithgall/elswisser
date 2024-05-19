@@ -12,27 +12,29 @@ defmodule ElswisserWeb.Brackets.DoubleElimination do
     assigns = assigns |> assign(Enum.group_by(assigns.tournament.rounds, & &1.type))
 
     ~H"""
-    <.header class="mt-4">Winners Bracket</.header>
-    <div class="my-4 flex text-sm text-zinc-700 overflow-x-auto h-full">
-      <%= for rnd <- @winner do %>
-        <.bracket_round round={rnd} />
-      <% end %>
-    </div>
+    <div id="bracket-boundary">
+      <.header class="mt-4">Winners Bracket</.header>
+      <div class="els__bracket my-4 flex text-sm text-zinc-700 overflow-x-auto h-full">
+        <%= for rnd <- @winner do %>
+          <.bracket_round round={rnd} />
+        <% end %>
+      </div>
 
-    <hr />
+      <hr />
 
-    <.header class="mt-4">Losers Bracket</.header>
-    <div class="my-4 flex text-sm text-zinc-700 overflow-x-auto h-full pb-6">
-      <%= for rnd <- @loser do %>
-        <.lower_round round={rnd} />
-      <% end %>
-    </div>
+      <.header class="mt-4">Losers Bracket</.header>
+      <div class="els__bracket my-4 flex text-sm text-zinc-700 overflow-x-auto h-full pb-6">
+        <%= for rnd <- @loser do %>
+          <.lower_round round={rnd} />
+        <% end %>
+      </div>
 
-    <hr />
+      <hr />
 
-    <.header class="mt-4">Championship</.header>
-    <div class="my-4 flex">
-      <.bracket_round round={hd(@championship)} grow={false} />
+      <.header class="mt-4">Championship</.header>
+      <div class="els__bracket my-4 flex">
+        <.bracket_round round={hd(@championship)} grow={false} />
+      </div>
     </div>
     """
   end

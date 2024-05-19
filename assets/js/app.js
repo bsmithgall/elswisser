@@ -51,12 +51,15 @@ liveSocket.connect();
 window.liveSocket = liveSocket;
 
 window.addEventListener("elswisser:share-capture", async (el) => {
-  await shareCapture(el.target, () => {
-    const flash = document.getElementById(el.detail.flash_id);
-    if (flash) {
-      flash.removeAttribute("hidden");
-      flash.style = "";
-    }
+  await shareCapture({
+    elId: el.target,
+    onSuccess: () => {
+      const flash = document.getElementById(el.detail.flash_id);
+      if (flash) {
+        flash.removeAttribute("hidden");
+        flash.style = "";
+      }
+    },
   });
 });
 

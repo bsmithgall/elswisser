@@ -37,26 +37,41 @@ module.exports = {
     //     <div class="phx-click-loading:animate-ping">
     //
     plugin(({ addVariant }) =>
-      addVariant("phx-no-feedback", [".phx-no-feedback&", ".phx-no-feedback &"])
+      addVariant("phx-no-feedback", [
+        ".phx-no-feedback&",
+        ".phx-no-feedback &",
+      ]),
     ),
     plugin(({ addVariant }) =>
       addVariant("phx-click-loading", [
         ".phx-click-loading&",
         ".phx-click-loading &",
-      ])
+      ]),
     ),
     plugin(({ addVariant }) =>
       addVariant("phx-submit-loading", [
         ".phx-submit-loading&",
         ".phx-submit-loading &",
-      ])
+      ]),
     ),
     plugin(({ addVariant }) =>
       addVariant("phx-change-loading", [
         ".phx-change-loading&",
         ".phx-change-loading &",
-      ])
+      ]),
     ),
+
+    plugin(({ addUtilities }) => {
+      addUtilities({
+        ".no-scrollbar": {
+          "-ms-overflow-style": "none",
+          "scrollbar-width": "none",
+        },
+        ".no-scrollbar::-webkit-scrollbar": {
+          display: "none",
+        },
+      });
+    }),
 
     // Embeds Hero Icons (https://heroicons.com) into your app.css bundle
     // See your `CoreComponents.icon/1` for more information.
@@ -94,7 +109,7 @@ module.exports = {
             };
           },
         },
-        { values }
+        { values },
       );
     }),
     plugin(function ({ matchComponents, theme }) {
@@ -114,7 +129,7 @@ module.exports = {
               .replace(/\r?\n|\r/g, "");
             return {
               [`--icon-${name}`]: `url('data:image/svg+xml;utf8,${encodeURIComponent(
-                content
+                content,
               )}')`,
               "-webkit-mask": `var(--icon-${name})`,
               mask: `var(--icon-${name})`,
@@ -126,7 +141,7 @@ module.exports = {
             };
           },
         },
-        { values }
+        { values },
       );
     }),
     plugin(function ({ matchComponents, theme }) {
@@ -152,7 +167,7 @@ module.exports = {
 
             return {
               "background-image": `url('data:image/svg+xml;base64,${Buffer.from(
-                content
+                content,
               ).toString("base64")}')`,
               display: "inline-block",
               width: theme("spacing.5"),
@@ -161,7 +176,7 @@ module.exports = {
             };
           },
         },
-        { values }
+        { values },
       );
     }),
   ],
