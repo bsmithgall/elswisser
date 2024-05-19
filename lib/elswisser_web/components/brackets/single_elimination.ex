@@ -9,7 +9,7 @@ defmodule ElswisserWeb.Brackets.SingleElimination do
 
   def bracket(assigns) do
     ~H"""
-    <div class="flex text-sm text-zinc-700 overflow-x-auto mt-8">
+    <div id="bracket-boundary" class="flex text-sm text-zinc-700 overflow-x-auto mt-8">
       <%= for idx <- 1..@length do %>
         <.bracket_round
           round={Enum.at(@rounds, idx - 1)}
