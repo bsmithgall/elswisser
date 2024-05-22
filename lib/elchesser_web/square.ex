@@ -16,7 +16,7 @@ defmodule ElchesserWeb.Square do
   def square(assigns) do
     ~H"""
     <div
-      class={["w-10 h-10 md:w-12 md:h-12", background(@square)]}
+      class={["w-10 h-10 sm:w-12 sm:h-12", background(@square)]}
       phx-click={@square_click}
       phx-value-file={@square.file}
       phx-value-rank={@square.rank}
@@ -37,22 +37,22 @@ defmodule ElchesserWeb.Square do
 
   defp square_contents(%{piece: nil, highlight: true} = assigns) do
     ~H"""
-    <span class="md:w-[45px] md:h-[45px] md:mt-[1.5px] inline-block rounded-full border-2 border-zinc-600" />
+    <span class="w-[38px] md:w-[45px] h-[38px] md:h-[45px] mt-[1px] md:mt-[1.5px] inline-block rounded-full border-2 border-zinc-600" />
     """
   end
 
   defp square_contents(%{piece: piece, highlight: true} = assigns) when not is_nil(piece) do
     ~H"""
     <div class="relative">
-      <span class="absolute md:w-[45px] md:h-[45px] md:mt-[1.5px] inline-block rounded-full border-2 border-zinc-600" />
-      <.piece piece={@piece} class="w-[45px] h-[45px] mt-[1.5px]" />
+      <span class="absolute w-[38px] sm:w-[45px] h-[38px] sm:h-[45px] mt-[1px] sm:mt-[1.5px] inline-block rounded-full border-2 border-zinc-600" />
+      <.piece piece={@piece} class="w-[38px] sm:w-[45px] h-[38px] sm:h-[45px] mt-[1px] sm:mt-[1.5px]" />
     </div>
     """
   end
 
   defp square_contents(%{piece: piece, highlight: false} = assigns) when not is_nil(piece) do
     ~H"""
-    <.piece piece={@piece} class="md:w-[45px] md:h-[45px] md:mt-[1.5px]" />
+    <.piece piece={@piece} class="w-[38px] md:w-[45px] h-[38px] md:h-[45px] mt-[1px] md:mt-[1.5px]" />
     """
   end
 
