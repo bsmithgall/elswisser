@@ -1,14 +1,24 @@
 defmodule Elchesser.Board do
+  require IEx
   alias Elchesser.{Game, Square, Piece, Move}
 
   @spec move(Elchesser.Game.t(), Elchesser.Move.t()) ::
-          {:ok, {Piece.t(), Piece.t?(), Game.t()}} | {:error, atom()}
+          {:ok, {Move.t(), Game.t()}} | {:error, atom()}
   def move(%Game{} = game, %Move{} = move) do
     with {:ok, {piece, game}} <- move_from(game, move.from),
          {:ok, {capture, game}} <- move_to(game, move.to, piece),
          {:ok, game} <- castle(game, move),
          {:ok, game} <- promote(game, move) do
-      {:ok, {piece, capture, game}}
+      check = Game.Check.check?(game)
+
+      move =
+        Map.merge(
+          move,
+          %{checking: if(check == true, do: :check, else: nil), capture: capture, piece: piece}
+        )
+        |> then(&Map.merge(&1, %{san: Move.as_san(&1)}))
+
+      {:ok, {move, game}}
     end
   end
 
@@ -72,7 +82,7 @@ defmodule Elchesser.Board do
 
   @spec move_from(Game.t(), {number(), number()}) ::
           {:error, atom()} | {:ok, {Piece.t(), Game.t()}}
-  defp move_from(%Game{board: board} = game, loc) do
+  def move_from(%Game{board: board} = game, loc) do
     case Map.get_and_update(board, loc, fn current ->
            {current, %Square{current | piece: nil}}
          end) do
@@ -83,7 +93,7 @@ defmodule Elchesser.Board do
 
   @spec move_to(Game.t(), {number(), number()}, Piece.t()) ::
           {:ok, {Piece.t?(), Game.t()}} | {:error, atom()}
-  defp move_to(%Game{board: board} = game, loc, piece) do
+  def move_to(%Game{board: board} = game, loc, piece) do
     {%Square{piece: capture}, board} =
       Map.get_and_update(board, loc, fn current ->
         {current, %Square{current | piece: piece}}
@@ -96,26 +106,26 @@ defmodule Elchesser.Board do
   end
 
   @spec castle(Game.t(), Move.t()) :: {:ok, Game.t()} | {:error, atom()}
-  defp castle(game, %Move{castle: false}), do: {:ok, game}
+  def castle(game, %Move{castle: false}), do: {:ok, game}
 
-  defp castle(%Game{} = game, %Move{to: to}) do
+  def castle(%Game{} = game, %Move{to: to}) do
     move =
       case to do
-        {?g, 1} -> Move.from({?h, 1}, {?f, 1})
-        {?g, 8} -> Move.from({?h, 8}, {?f, 8})
-        {?c, 1} -> Move.from({?a, 1}, {?d, 1})
-        {?c, 8} -> Move.from({?a, 8}, {?d, 8})
+        {?g, 1} -> Move.from({?h, 1, :R}, {?f, 1})
+        {?g, 8} -> Move.from({?h, 8, :r}, {?f, 8})
+        {?c, 1} -> Move.from({?a, 1, :R}, {?d, 1})
+        {?c, 8} -> Move.from({?a, 8, :r}, {?d, 8})
       end
 
-    with {:ok, {_, _, game}} <- move(game, move) do
+    with {:ok, {_, game}} <- move(game, move) do
       {:ok, game}
     end
   end
 
   @spec promote(Game.t(), Move.t()) :: {:ok, Game.t()} | {:error, atom()}
-  defp promote(game, %Move{promotion: false}), do: {:ok, game}
+  def promote(game, %Move{promotion: nil}), do: {:ok, game}
 
-  defp promote(%Game{board: board} = game, %Move{to: to, promotion: promotion}) do
+  def promote(%Game{board: board} = game, %Move{to: to, promotion: promotion}) do
     with {_, board} <-
            Map.get_and_update(board, to, fn current ->
              {current, %Square{current | piece: promotion}}

@@ -68,7 +68,7 @@ defmodule Elchesser.Square do
       do:
         Piece.module(piece).moves(square, game)
         |> Enum.reject(fn %Move{} = move ->
-          {:ok, {_, _, g}} = Board.move(game, move)
+          {:ok, {_, g}} = Board.move(game, move)
           Game.Check.check?(g, color(square))
         end),
       else: []

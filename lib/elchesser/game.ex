@@ -1,4 +1,5 @@
 defmodule Elchesser.Game do
+  require IEx
   alias Elchesser.{Square, Move, Board, Piece}
   alias __MODULE__
 
@@ -46,16 +47,16 @@ defmodule Elchesser.Game do
   @spec move(Game.t(), Move.t()) :: {:error, atom()} | {:ok, Game.t()}
   def move(%Game{} = game, %Move{} = move) do
     with :ok <- ensure_valid_move(game, move),
-         {:ok, {piece, capture, game}} <- Board.move(game, move) do
+         {:ok, {move, game}} <- Board.move(game, move) do
       game =
         game
         |> flip_color()
         |> set_in_check()
-        |> add_move(move, piece)
-        |> add_capture(capture)
-        |> set_castling_rights(move, piece)
-        |> set_en_passant(move, piece)
-        |> set_half_move_count(capture, piece)
+        |> add_move(move)
+        |> add_capture(move.capture)
+        |> set_castling_rights(move)
+        |> set_en_passant(move)
+        |> set_half_move_count(move)
         |> set_full_move_count()
 
       {:ok, game}
@@ -97,17 +98,11 @@ defmodule Elchesser.Game do
     end
   end
 
-  defp add_move(%Game{moves: moves} = game, %Move{} = move, piece) do
-    move =
-      cond do
-        game.check == true -> Move.with_san(move, piece, :check)
-        true -> Move.with_san(move, piece)
-      end
-
+  defp add_move(%Game{moves: moves} = game, %Move{} = move) do
     %Game{game | moves: Enum.concat(moves, [move])}
   end
 
-  @spec add_capture(Game.t(), Piece.t() | nil) :: Game.t()
+  @spec add_capture(Game.t(), Piece.t?()) :: Game.t()
   defp add_capture(game, nil), do: game
 
   defp add_capture(%Game{captures: captures} = game, piece) do
@@ -121,52 +116,52 @@ defmodule Elchesser.Game do
   @spec set_in_check(Game.t()) :: Game.t()
   defp set_in_check(%Game{} = game), do: %Game{game | check: Game.Check.check?(game, game.active)}
 
-  @spec set_castling_rights(Game.t(), Move.t(), Piece.t()) :: Game.t()
-  defp set_castling_rights(%Game{castling: castling} = game, _, :K) do
+  @spec set_castling_rights(Game.t(), Move.t()) :: Game.t()
+  defp set_castling_rights(%Game{castling: castling} = game, %Move{piece: :K}) do
     %Game{game | castling: MapSet.delete(castling, :K) |> MapSet.delete(:Q)}
   end
 
-  defp set_castling_rights(%Game{castling: castling} = game, _, :k) do
+  defp set_castling_rights(%Game{castling: castling} = game, %Move{piece: :k}) do
     %Game{game | castling: MapSet.delete(castling, :k) |> MapSet.delete(:q)}
   end
 
-  defp set_castling_rights(%Game{castling: castling} = game, %Move{from: {?h, 1}}, :R) do
+  defp set_castling_rights(%Game{castling: castling} = game, %Move{from: {?h, 1}, piece: :R}) do
     %Game{game | castling: MapSet.delete(castling, :K)}
   end
 
-  defp set_castling_rights(%Game{castling: castling} = game, %Move{from: {?a, 1}}, :R) do
+  defp set_castling_rights(%Game{castling: castling} = game, %Move{from: {?a, 1}, piece: :R}) do
     %Game{game | castling: MapSet.delete(castling, :Q)}
   end
 
-  defp set_castling_rights(%Game{castling: castling} = game, %Move{from: {?h, 8}}, :r) do
+  defp set_castling_rights(%Game{castling: castling} = game, %Move{from: {?h, 8}, piece: :r}) do
     %Game{game | castling: MapSet.delete(castling, :k)}
   end
 
-  defp set_castling_rights(%Game{castling: castling} = game, %Move{from: {?a, 8}}, :r) do
+  defp set_castling_rights(%Game{castling: castling} = game, %Move{from: {?a, 8}, piece: :r}) do
     %Game{game | castling: MapSet.delete(castling, :q)}
   end
 
-  defp set_castling_rights(game, _, _), do: game
+  defp set_castling_rights(game, _), do: game
 
-  @spec set_en_passant(Game.t(), Move.t(), Piece.t()) :: Game.t()
-  defp set_en_passant(%Game{} = game, %Move{from: {f, 2}, to: {f, 4}}, :P),
+  @spec set_en_passant(Game.t(), Move.t()) :: Game.t()
+  defp set_en_passant(%Game{} = game, %Move{from: {f, 2}, to: {f, 4}, piece: :P}),
     do: %Game{game | en_passant: {f, 3}}
 
-  defp set_en_passant(%Game{} = game, %Move{from: {f, 7}, to: {f, 5}}, :p),
+  defp set_en_passant(%Game{} = game, %Move{from: {f, 7}, to: {f, 5}, piece: :p}),
     do: %Game{game | en_passant: {f, 6}}
 
-  defp set_en_passant(%Game{} = game, _, _), do: %Game{game | en_passant: nil}
+  defp set_en_passant(%Game{} = game, _), do: %Game{game | en_passant: nil}
 
-  @spec set_half_move_count(Game.t(), Piece.t(), Piece.t()) :: Game.t()
-  defp set_half_move_count(game, _, piece) when piece in [:P, :p] do
+  @spec set_half_move_count(Game.t(), Move.t()) :: Game.t()
+  defp set_half_move_count(game, %Move{piece: piece}) when piece in [:P, :p] do
     %Game{game | half_moves: 0}
   end
 
-  defp set_half_move_count(game, capture, _) when not is_nil(capture) do
+  defp set_half_move_count(game, %Move{capture: capture}) when not is_nil(capture) do
     %Game{game | half_moves: 0}
   end
 
-  defp set_half_move_count(%Game{half_moves: half_moves} = game, _, _) do
+  defp set_half_move_count(%Game{half_moves: half_moves} = game, _) do
     %Game{game | half_moves: half_moves + 1}
   end
 

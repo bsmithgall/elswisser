@@ -42,7 +42,7 @@ defmodule Elchesser.Piece.PawnTest do
       assert_list_eq_any_order(Pawn.moves(square, game), [
         Move.from(square, {?e, 3}),
         Move.from(square, {?e, 4}),
-        Move.from(square, {?f, 3}, capture: true)
+        Move.from(square, {?f, 3}, capture: :p)
       ])
     end
 
@@ -51,7 +51,7 @@ defmodule Elchesser.Piece.PawnTest do
       square = Game.get_square(game, {?a, 3})
 
       assert Pawn.moves(square, game) == [
-               Move.from(square, {?b, 4}, capture: true)
+               Move.from(square, {?b, 4}, capture: :p)
              ]
     end
 
@@ -61,7 +61,7 @@ defmodule Elchesser.Piece.PawnTest do
 
       assert_list_eq_any_order(Pawn.moves(square, game), [
         Move.from(square, {?e, 6}),
-        Move.from(square, {?f, 6}, capture: true)
+        Move.from(square, {?f, 6}, capture: :p)
       ])
     end
   end
@@ -93,7 +93,7 @@ defmodule Elchesser.Piece.PawnTest do
       assert_list_eq_any_order(Pawn.moves(square, game), [
         Move.from(square, {?e, 6}),
         Move.from(square, {?e, 5}),
-        Move.from(square, {?f, 6}, capture: true)
+        Move.from(square, {?f, 6}, capture: :P)
       ])
     end
 
@@ -102,7 +102,7 @@ defmodule Elchesser.Piece.PawnTest do
       square = Game.get_square(game, {?h, 6})
 
       assert_list_eq_any_order(Pawn.moves(square, game), [
-        Move.from(square, {?g, 5}, capture: true)
+        Move.from(square, {?g, 5}, capture: :P)
       ])
     end
 
@@ -112,7 +112,7 @@ defmodule Elchesser.Piece.PawnTest do
 
       assert_list_eq_any_order(Pawn.moves(square, game), [
         Move.from(square, {?e, 3}),
-        Move.from(square, {?d, 3}, capture: true)
+        Move.from(square, {?d, 3}, capture: :P)
       ])
     end
   end
