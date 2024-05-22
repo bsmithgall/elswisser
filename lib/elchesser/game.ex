@@ -1,5 +1,4 @@
 defmodule Elchesser.Game do
-  require IEx
   alias Elchesser.{Square, Move, Board, Piece}
   alias __MODULE__
 
@@ -13,6 +12,7 @@ defmodule Elchesser.Game do
             half_moves: 0,
             full_moves: 1,
             moves: [],
+            fens: [],
             captures: []
 
   @type t :: %Game{
@@ -24,6 +24,7 @@ defmodule Elchesser.Game do
           half_moves: number(),
           full_moves: number(),
           moves: [Move.t()],
+          fens: [binary()],
           captures: [Piece.t()]
         }
 
@@ -41,6 +42,8 @@ defmodule Elchesser.Game do
     Elchesser.Fen.parse(@starting_position)
   end
 
+  def get_square(%{board: board}, {file, rank}), do: Map.get(board, {file, rank})
+  def get_square(%{board: board}, %Square{loc: loc}), do: Map.get(board, loc)
   def get_square(%Game{board: board}, {file, rank}), do: Map.get(board, {file, rank})
   def get_square(%Game{board: board}, %Square{loc: loc}), do: Map.get(board, loc)
 
@@ -53,6 +56,7 @@ defmodule Elchesser.Game do
         |> flip_color()
         |> set_in_check()
         |> add_move(move)
+        |> add_fen()
         |> add_capture(move.capture)
         |> set_castling_rights(move)
         |> set_en_passant(move)
@@ -100,6 +104,10 @@ defmodule Elchesser.Game do
 
   defp add_move(%Game{moves: moves} = game, %Move{} = move) do
     %Game{game | moves: Enum.concat(moves, [move])}
+  end
+
+  defp add_fen(%Game{fens: fens} = game) do
+    %Game{game | fens: Enum.concat(fens, [Elchesser.Fen.dump(game)])}
   end
 
   @spec add_capture(Game.t(), Piece.t?()) :: Game.t()

@@ -6,7 +6,8 @@ defmodule ElswisserWeb.Elchesser.Live do
   def render(assigns) do
     ~H"""
     <.game
-      game={@game}
+      game={@display_game}
+      moves={@moves}
       move_map={@move_map}
       next_click={@next_click}
       active_square={@active_square}
@@ -16,9 +17,14 @@ defmodule ElswisserWeb.Elchesser.Live do
   end
 
   def mount(_, _, socket) do
+    game = Elchesser.Game.new()
+
     socket =
       socket
-      |> assign(game: Elchesser.Game.new())
+      |> assign(game: game)
+      |> assign(display_game: game)
+      |> assign(moves: game.moves)
+      |> assign(disable_moves: false)
       |> assign(move_map: %{})
       |> assign(next_click: "start")
       |> assign(active_square: nil)
@@ -38,7 +44,11 @@ defmodule ElswisserWeb.Elchesser.Live do
     socket =
       case Elchesser.Game.move(socket.assigns.game, Map.get(socket.assigns.move_map, loc)) do
         {:ok, game} ->
-          socket |> assign(game: game) |> assign_stop_move()
+          socket
+          |> assign(game: game)
+          |> assign(display_game: game)
+          |> assign(moves: game.moves)
+          |> assign_stop_move()
 
         {:error, err} when err in [:invalid_to_color, :invalid_from_color, :no_move_provided] ->
           assign_start_move(socket, loc)
@@ -48,6 +58,17 @@ defmodule ElswisserWeb.Elchesser.Live do
       end
 
     {:noreply, socket}
+  end
+
+  def handle_event("view-game-at", %{"number" => number, "color" => color}, socket) do
+    pos = (String.to_integer(number) - 1) * 2 + String.to_integer(color)
+    game = socket.assigns.game
+
+    {:noreply,
+     socket
+     |> assign(active_move: pos + 2)
+     |> assign(disable_moves: pos + 1 != length(game.moves))
+     |> assign(display_game: Enum.at(game.fens, pos) |> Elchesser.Fen.parse())}
   end
 
   defp assign_start_move(socket, loc) do
@@ -68,8 +89,11 @@ defmodule ElswisserWeb.Elchesser.Live do
   end
 
   defp get_move_map(loc, socket) do
-    Elchesser.Square.legal_moves(loc, socket.assigns.game)
-    |> Enum.reduce(%{}, fn move, acc -> Map.put(acc, move.to, move) end)
+    if socket.assigns.disable_moves,
+      do: %{},
+      else:
+        Elchesser.Square.legal_moves(loc, socket.assigns.game)
+        |> Enum.reduce(%{}, fn move, acc -> Map.put(acc, move.to, move) end)
   end
 
   defp get_active_square(loc, socket) do

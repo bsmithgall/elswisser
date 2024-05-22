@@ -31,4 +31,12 @@ defmodule Elchesser.FenTest do
                |> String.trim_trailing()
     end
   end
+
+  describe "dump/1" do
+    test "starting position works as expected" do
+      g = Elchesser.Game.new()
+
+      assert Elchesser.Fen.dump(g) == "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    end
+  end
 end

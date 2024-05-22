@@ -6,6 +6,7 @@ defmodule ElchesserWeb.Game do
   alias Elchesser.Game
 
   attr(:game, Game)
+  attr(:moves, :list)
   attr(:active_square, Elchesser.Square, default: nil)
   attr(:active_move, :integer, default: 0)
   attr(:move_map, :map, default: %{})
@@ -36,7 +37,7 @@ defmodule ElchesserWeb.Game do
       <div class="border border-zinc-700 w-48 rounded-sm flex flex-col">
         <.captures pieces={Game.captures(@game, :w)} />
         <.moves
-          moves={@game.moves}
+          moves={@moves}
           class="grow"
           active_move={:erlang.div(@active_move, 2)}
           active_color={:erlang.rem(@active_move, 2)}
@@ -61,11 +62,16 @@ defmodule ElchesserWeb.Game do
             <tr>
               <td class="w-8"><%= number %>.</td>
               <%= for {move, color} <- moves |> Enum.with_index() do %>
-                <td class={[
-                  "hover:bg-zinc-300",
-                  number == @active_move && color == @active_color &&
-                    "bg-zinc-300"
-                ]}>
+                <td
+                  class={[
+                    "cursor-pointer hover:bg-zinc-300",
+                    number == @active_move && color == @active_color &&
+                      "bg-zinc-300"
+                  ]}
+                  phx-click="view-game-at"
+                  phx-value-number={number}
+                  phx-value-color={color}
+                >
                   <span class="m-1"><%= move.san %></span>
                 </td>
               <% end %>
