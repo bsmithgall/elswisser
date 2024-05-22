@@ -3,6 +3,9 @@ defmodule Elchesser.Game.Check do
 
   def check?(%Game{active: active} = game), do: check?(game, active)
 
+  def opponent_in_check?(%Game{active: :w} = game), do: check?(game, :b)
+  def opponent_in_check?(%Game{active: :b} = game), do: check?(game, :w)
+
   @spec check?(Elchesser.Game.t(), :b | :w) :: boolean()
   def check?(%Game{} = game, :w) do
     Board.find(game, :K) |> then(&Board.black_attacks_any?(game, &1))

@@ -41,42 +41,43 @@ defmodule Elchesser.Move do
     )
   end
 
-  @spec as_san(Move.t()) :: binary()
-  def as_san(%Move{castle: true, to: {?g, _}, piece: piece}) when piece in [:k, :K], do: "O-O"
-  def as_san(%Move{castle: true, to: {?c, _}, piece: piece}) when piece in [:k, :K], do: "O-O-O"
+  @spec san(Move.t()) :: binary()
+  def san(%Move{checking: nil} = move), do: as_san(move)
+  def san(%Move{checking: :check} = move), do: as_san(move) <> "+"
+  def san(%Move{checking: :checkmate} = move), do: as_san(move) <> "#"
+  def san(%Move{checking: :stalemate} = move), do: as_san(move) <> "="
 
-  def as_san(%Move{capture: nil, promotion: nil, to: {f, r}, piece: piece})
-      when piece in [:p, :P] do
+  @spec as_san(Move.t()) :: binary()
+  defp as_san(%Move{castle: true, to: {?g, _}, piece: piece}) when piece in [:k, :K], do: "O-O"
+  defp as_san(%Move{castle: true, to: {?c, _}, piece: piece}) when piece in [:k, :K], do: "O-O-O"
+
+  defp as_san(%Move{capture: nil, promotion: nil, to: {f, r}, piece: piece})
+       when piece in [:p, :P] do
     <<f, r + 48>>
   end
 
-  def as_san(%Move{capture: c, promotion: nil, from: {f, _}, to: {f2, r}, piece: piece})
-      when piece in [:p, :P] and not is_nil(c) do
+  defp as_san(%Move{capture: c, promotion: nil, from: {f, _}, to: {f2, r}, piece: piece})
+       when piece in [:p, :P] and not is_nil(c) do
     <<f>> <> "x" <> <<f2, r + 48>>
   end
 
-  def as_san(%Move{capture: nil, promotion: prom, to: {f, r}, piece: piece})
-      when prom != false and piece in [:p, :P] do
+  defp as_san(%Move{capture: nil, promotion: prom, to: {f, r}, piece: piece})
+       when prom != false and piece in [:p, :P] do
     <<f, r + 48>> <> "=" <> Piece.to_string(prom)
   end
 
-  def as_san(%Move{capture: c, promotion: prom, from: {f, _}, to: {f2, r}, piece: piece})
-      when prom != false and piece in [:p, :P] and not is_nil(c) do
+  defp as_san(%Move{capture: c, promotion: prom, from: {f, _}, to: {f2, r}, piece: piece})
+       when prom != false and piece in [:p, :P] and not is_nil(c) do
     <<f>> <> "x" <> <<f2, r + 48>> <> "=" <> Piece.to_string(prom)
   end
 
-  def as_san(%Move{capture: nil, to: {f, r}, piece: piece}) do
+  defp as_san(%Move{capture: nil, to: {f, r}, piece: piece}) do
     Piece.to_string(piece) <> <<f, r + 48>>
   end
 
-  def as_san(%Move{capture: c, to: {f, r}, piece: piece}) when not is_nil(c) do
+  defp as_san(%Move{capture: c, to: {f, r}, piece: piece}) when not is_nil(c) do
     Piece.to_string(piece) <> "x" <> <<f, r + 48>>
   end
-
-  @spec as_san(Move.t(), :check | :checkmate | :stalemate) :: binary()
-  def as_san(move, :check), do: as_san(move) <> "+"
-  def as_san(move, :checkmate), do: as_san(move) <> "#"
-  def as_san(move, :stalemate), do: as_san(move) <> "="
 
   defp validate_opts(opts) do
     {_, opts} = Keyword.validate(opts, capture: nil, promotion: nil, castle: false, checking: nil)

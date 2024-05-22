@@ -1,5 +1,4 @@
 defmodule Elchesser.Board do
-  require IEx
   alias Elchesser.{Game, Square, Piece, Move}
 
   @spec move(Elchesser.Game.t(), Elchesser.Move.t()) ::
@@ -9,14 +8,14 @@ defmodule Elchesser.Board do
          {:ok, {capture, game}} <- move_to(game, move.to, piece),
          {:ok, game} <- castle(game, move),
          {:ok, game} <- promote(game, move) do
-      check = Game.Check.check?(game)
+      check = Game.Check.opponent_in_check?(game)
 
       move =
         Map.merge(
           move,
           %{checking: if(check == true, do: :check, else: nil), capture: capture, piece: piece}
         )
-        |> then(&Map.merge(&1, %{san: Move.as_san(&1)}))
+        |> then(&Map.merge(&1, %{san: Move.san(&1)}))
 
       {:ok, {move, game}}
     end
