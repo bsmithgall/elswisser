@@ -18,7 +18,7 @@ defmodule ElchesserWeb.Game do
     <div
       phx-hook="ElchesserHook"
       id="ec-game"
-      class="relative m-auto left-0 right-0 flex flex-col md:flex-row md:justify-center gap-4 h-[324px] sm:h-[388px] w-[324px] sm:w-[388px]"
+      class="relative m-auto left-0 right-0 flex flex-col md:flex-row md:justify-center gap-4"
     >
       <.board
         game={@game}
@@ -26,7 +26,7 @@ defmodule ElchesserWeb.Game do
         active_square={@active_square}
         next_click={@next_click}
       />
-      <div class="border border-zinc-700 md:w-48 rounded-sm flex flex-col">
+      <div class="border border-zinc-700 w-[324px] sm:w-[388px] md:w-48 rounded-sm flex flex-col">
         <.captures pieces={Game.captures(@game, :w)} />
         <.moves
           moves={@moves}
@@ -47,7 +47,7 @@ defmodule ElchesserWeb.Game do
 
   def board(assigns) do
     ~H"""
-    <div class="border border-2 border-zinc-700 grid grid-rows-8 grid-cols-8">
+    <div class="border border-2 border-zinc-700 grid grid-rows-8 grid-cols-8 h-[324px] sm:h-[388px] w-[324px] sm:w-[388px]">
       <%= for rank <- Elchesser.ranks() |> Enum.reverse() do %>
         <%= for file <- Elchesser.files() do %>
           <.square

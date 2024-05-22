@@ -21,6 +21,7 @@ defmodule ElchesserWeb.Square do
       phx-value-file={@square.file}
       phx-value-rank={@square.rank}
       phx-value-type={@click_type}
+      data-draggable={not is_nil(@square.piece)}
     >
       <span class={[
         "font-mono w-full h-full inline-block text-3xl text-center align-middle cursor-pointer",
