@@ -1,9 +1,7 @@
 defmodule ElchesserWeb.Square do
   use Phoenix.Component
 
-  alias Elchesser.Square
-
-  import ElchesserWeb.Piece
+  alias Elchesser.{Square, Piece}
 
   defguardp is_white(file, rank) when rem(file + rank, 2) != 0
 
@@ -16,14 +14,18 @@ defmodule ElchesserWeb.Square do
   def square(assigns) do
     ~H"""
     <div
+      id={Square.rf_string(@square)}
       class={["w-10 h-10 sm:w-12 sm:h-12", background(@square)]}
       phx-click={@square_click}
       phx-value-file={@square.file}
       phx-value-rank={@square.rank}
       phx-value-type={@click_type}
+      data-square
+      data-file={@square.file}
+      data-rank={@square.rank}
     >
       <span class={[
-        "font-mono w-full h-full inline-block text-3xl text-center align-middle cursor-pointer",
+        "font-mono w-full h-full inline-block text-3xl text-center align-middle cursor-pointer ",
         @active && "bg-purple-200/60"
       ]}>
         <.square_contents highlight={@highlight} piece={@square.piece} />
@@ -57,6 +59,38 @@ defmodule ElchesserWeb.Square do
   end
 
   defp square_contents(assigns), do: ~H""
+
+  attr(:piece, :atom)
+  attr(:class, :string, default: nil)
+  attr(:draggable, :boolean, default: true)
+
+  def piece(assigns) do
+    ~H"""
+    <span
+      data-color={Piece.color(@piece)}
+      draggable={"#{@draggable}"}
+      class={[piece_name(@piece), @class]}
+    />
+    """
+  end
+
+  defp piece_name(piece) do
+    case piece do
+      :P -> "piece-white-pawn"
+      :N -> "piece-white-knight"
+      :B -> "piece-white-bishop"
+      :R -> "piece-white-rook"
+      :Q -> "piece-white-queen"
+      :K -> "piece-white-king"
+      :p -> "piece-black-pawn"
+      :n -> "piece-black-knight"
+      :b -> "piece-black-bishop"
+      :r -> "piece-black-rook"
+      :q -> "piece-black-queen"
+      :k -> "piece-black-king"
+      nil -> ""
+    end
+  end
 
   defp background(%Square{file: file, rank: rank}) when is_white(file, rank), do: "bg-boardwhite"
   defp background(%Square{}), do: "bg-boardblack"
