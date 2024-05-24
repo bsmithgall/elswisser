@@ -42,10 +42,10 @@ defmodule Elchesser.Game do
     Elchesser.Fen.parse(@starting_position)
   end
 
-  def get_square(%{board: board}, {file, rank}), do: Map.get(board, {file, rank})
-  def get_square(%{board: board}, %Square{loc: loc}), do: Map.get(board, loc)
   def get_square(%Game{board: board}, {file, rank}), do: Map.get(board, {file, rank})
   def get_square(%Game{board: board}, %Square{loc: loc}), do: Map.get(board, loc)
+  def get_square(%{} = board, {file, rank}), do: Map.get(board, {file, rank})
+  def get_square(%{} = board, %Square{loc: loc}), do: Map.get(board, loc)
 
   @spec move(Game.t(), Move.t()) :: {:error, atom()} | {:ok, Game.t()}
   def move(%Game{} = game, %Move{} = move) do

@@ -93,6 +93,10 @@ defmodule Elchesser.Piece do
   def int(:q), do: 14
   def int(:k), do: 15
 
+  @spec color(t?()) :: :w | :b | nil
+  def color(nil), do: nil
+  def color(p), do: if(white?(p), do: :w, else: :b)
+
   @spec white?(t()) :: boolean()
   def white?(p), do: MapSet.member?(@white, p)
 

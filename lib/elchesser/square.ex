@@ -90,6 +90,7 @@ defmodule Elchesser.Square do
   def piece_display(%Square{} = square), do: Elchesser.Piece.display(square.piece)
 
   def rf(%Square{file: file, rank: rank}), do: {file, rank}
+  def rf_string(%Square{file: file, rank: rank}), do: <<file, rank + 48>>
 
   defp up(file, rank), do: for(r <- Elchesser.ranks(), r > rank, do: {file, r})
 
