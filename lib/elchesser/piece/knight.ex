@@ -6,7 +6,7 @@ defmodule Elchesser.Piece.Knight do
   @impl true
   def moves(%Square{} = square, %Game{} = game) do
     Enum.reduce(square.sees.knight, [], fn {file, rank}, acc ->
-      s = Map.get(game.board, {file, rank})
+      s = Game.get_square(game, {file, rank})
 
       case Piece.friendly?(square.piece, s.piece) do
         true -> acc

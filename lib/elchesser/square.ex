@@ -92,6 +92,21 @@ defmodule Elchesser.Square do
   def rf(%Square{file: file, rank: rank}), do: {file, rank}
   def rf_string(%Square{file: file, rank: rank}), do: <<file, rank + 48>>
 
+  @spec move_range(%Square{}, %Game{}, Square.Sees.t()) :: [Move.t()]
+  def move_range(%Square{} = square, %Game{} = game, direction) do
+    Kernel.get_in(square.sees, [Access.key!(direction)])
+    |> Enum.reduce_while([], fn {file, rank}, acc ->
+      s = Game.get_square(game, {file, rank})
+
+      case Piece.friendly?(square.piece, s.piece) do
+        true -> {:halt, acc}
+        false -> {:halt, [Move.from(square, {s.file, s.rank}, capture: true) | acc]}
+        nil -> {:cont, [Move.from(square, {s.file, s.rank}) | acc]}
+      end
+    end)
+    |> Enum.reverse()
+  end
+
   defp up(file, rank), do: for(r <- Elchesser.ranks(), r > rank, do: {file, r})
 
   defp down(file, rank),

@@ -6,7 +6,7 @@ defmodule Elchesser.Piece.Bishop do
   @impl true
   def moves(%Square{} = square, %Game{} = game) do
     for d <- [:up_right, :up_left, :down_left, :down_right], reduce: [] do
-      acc -> [Piece.move_range(square, game, d) | acc]
+      acc -> [Square.move_range(square, game, d) | acc]
     end
     |> List.flatten()
   end
