@@ -2,6 +2,7 @@ defmodule ElchesserWeb.Game do
   use Phoenix.Component
 
   import ElchesserWeb.Square
+  import ElswisserWeb.CoreComponents
 
   alias Elchesser.Game
 
@@ -15,6 +16,7 @@ defmodule ElchesserWeb.Game do
   attr(:move_map, :map, default: %{})
   attr(:square_click, :string, default: "square-click")
   attr(:next_click, :string, values: ["start", "stop"])
+  attr(:orientation, :atom, values: [:w, :b], default: :w)
 
   def game(assigns) do
     ~H"""
@@ -24,21 +26,24 @@ defmodule ElchesserWeb.Game do
       class="relative m-auto left-0 right-0 flex flex-col md:flex-row md:justify-center gap-4"
       data-active-color={@active_color}
     >
-      <.board
-        board={@board}
-        move_map={@move_map}
-        active_square={@active_square}
-        next_click={@next_click}
-      />
-      <div class="border border-zinc-700 w-[324px] sm:w-[388px] md:w-48 rounded-sm flex flex-col">
-        <.captures pieces={@white_captures} />
-        <.moves
-          moves={@moves}
-          class="grow"
-          active_move={:erlang.div(@active_move, 2)}
-          active_color={:erlang.rem(@active_move, 2)}
+      <div class="w-[324px] sm:w-[388px]">
+        <.board
+          board={@board}
+          move_map={@move_map}
+          active_square={@active_square}
+          next_click={@next_click}
+          orientation={@orientation}
         />
-        <.captures pieces={@black_captures} />
+        <.board_controls
+          active_move={@active_move - 1}
+          total_moves={length(@moves)}
+          orientation={@orientation}
+        />
+      </div>
+      <div class="border border-zinc-700 w-[324px] sm:w-[388px] md:w-48 rounded-sm flex flex-col max-h-[388px]">
+        <.captures pieces={if @orientation == :w, do: @white_captures, else: @black_captures} />
+        <.moves moves={@moves} class="grow" active_move={@active_move - 1} />
+        <.captures pieces={if @orientation == :w, do: @black_captures, else: @white_captures} />
       </div>
     </div>
     """
@@ -48,16 +53,33 @@ defmodule ElchesserWeb.Game do
   attr(:active_square, Elchesser.Square, default: nil)
   attr(:move_map, :map, default: %{})
   attr(:next_click, :string, values: ["start", "stop"])
+  attr(:orientation, :atom, values: [:w, :b])
 
   def board(assigns) do
+    assigns =
+      assigns
+      |> assign(
+        ranks:
+          if(assigns.orientation == :w,
+            do: Elchesser.ranks() |> Enum.reverse(),
+            else: Elchesser.ranks()
+          )
+      )
+      |> assign(
+        files:
+          if(assigns.orientation == :w,
+            do: Elchesser.files(),
+            else: Elchesser.files() |> Enum.reverse()
+          )
+      )
+
     ~H"""
     <div
       id="board"
-      phx-update="append"
-      class="border border-2 border-zinc-700 grid grid-rows-8 grid-cols-8 h-[324px] sm:h-[388px] w-[324px] sm:w-[388px] select-none"
+      class="border border-2 border-zinc-700 grid grid-rows-8 grid-cols-8 h-[324px] sm:h-[388px]  select-none"
     >
-      <%= for rank <- Elchesser.ranks() |> Enum.reverse() do %>
-        <%= for file <- Elchesser.files() do %>
+      <%= for rank <- @ranks do %>
+        <%= for file <- @files do %>
           <.square
             square={Game.get_square(@board, {file, rank})}
             highlight={Map.has_key?(@move_map, {file, rank})}
@@ -70,10 +92,45 @@ defmodule ElchesserWeb.Game do
     """
   end
 
+  attr(:active_move, :integer)
+  attr(:total_moves, :integer)
+  attr(:orientation, :atom, values: [:w, :b])
+
+  def board_controls(assigns) do
+    ~H"""
+    <div class="pt-2 flex place-content-center text-center items-center">
+      <.icon_button large name="hero-chevron-double-left" phx-click="view-game-at" phx-value-idx={0} />
+      <.icon_button
+        large
+        name="hero-arrow-left"
+        phx-click="view-game-at"
+        phx-value-idx={@active_move - 1}
+      />
+      <.icon_button
+        large
+        name="hero-arrow-right"
+        phx-click="view-game-at"
+        phx-value-idx={@active_move + 1}
+      />
+      <.icon_button
+        large
+        name="hero-chevron-double-right"
+        phx-click="view-game-at"
+        phx-value-idx={@total_moves - 1}
+      />
+      <.icon_button
+        large
+        name="hero-arrows-up-down"
+        phx-click="flip-board"
+        phx-value-current={@orientation}
+      />
+    </div>
+    """
+  end
+
   attr(:class, :string, default: nil)
   attr(:moves, :list, default: [])
   attr(:active_move, :integer, default: nil)
-  attr(:active_color, :integer, values: [0, 1])
 
   def moves(assigns) do
     ~H"""
@@ -86,19 +143,17 @@ defmodule ElchesserWeb.Game do
     >
       <table class="table-fixed w-full text-sm font-mono my-2">
         <tbody>
-          <%= for {moves, number} <- @moves |> Enum.chunk_every(2) |> Enum.with_index(1) do %>
+          <%= for {moves, number} <- @moves |> Enum.with_index() |> Enum.chunk_every(2) |> Enum.with_index(1) do %>
             <tr>
               <td class="w-8"><%= number %>.</td>
-              <%= for {move, color} <- moves |> Enum.with_index() do %>
+              <%= for {move, idx} <- moves do %>
                 <td
                   class={[
                     "cursor-pointer hover:bg-zinc-300",
-                    number == @active_move && color == @active_color &&
-                      "bg-zinc-300"
+                    idx == @active_move && "bg-zinc-300"
                   ]}
                   phx-click="view-game-at"
-                  phx-value-number={number}
-                  phx-value-color={color}
+                  phx-value-idx={idx}
                 >
                   <span class="m-1"><%= move.san %></span>
                 </td>

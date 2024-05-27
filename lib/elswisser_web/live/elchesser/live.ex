@@ -17,6 +17,7 @@ defmodule ElswisserWeb.Elchesser.Live do
       next_click={@next_click}
       active_square={@active_square}
       active_move={@active_move}
+      orientation={@orientation}
     />
     """
   end
@@ -31,7 +32,8 @@ defmodule ElswisserWeb.Elchesser.Live do
       |> assign(move_map: %{})
       |> assign(next_click: "start")
       |> assign(active_square: nil)
-      |> assign(active_move: 1)
+      |> assign(active_move: 0)
+      |> assign(orientation: :w)
 
     {:ok, socket}
   end
@@ -61,17 +63,26 @@ defmodule ElswisserWeb.Elchesser.Live do
     {:noreply, socket}
   end
 
-  def handle_event("view-game-at", %{"number" => number, "color" => color}, socket) do
-    pos = (String.to_integer(number) - 1) * 2 + String.to_integer(color)
+  def handle_event("view-game-at", %{"idx" => idx}, socket) do
     game = socket.assigns.game
+    game_length = length(game.moves)
+    idx = String.to_integer(idx) |> clamp(game_length)
 
-    to_display = Enum.at(game.fens, pos) |> Fen.parse()
+    to_display = Enum.at(game.fens, idx) |> Fen.parse()
 
     {:noreply,
      socket
-     |> assign(active_move: pos + 2)
-     |> assign(disable_moves: pos + 1 != length(game.moves))
+     |> assign(active_move: idx + 1)
+     |> assign(disable_moves: idx + 1 != game_length)
      |> assign(board: to_display.board)}
+  end
+
+  def handle_event("flip-board", %{"current" => "w"}, socket) do
+    {:noreply, socket |> assign(orientation: :b)}
+  end
+
+  def handle_event("flip-board", %{"current" => "b"}, socket) do
+    {:noreply, socket |> assign(orientation: :w)}
   end
 
   defp assign_start_move(socket, loc) do
@@ -88,7 +99,7 @@ defmodule ElswisserWeb.Elchesser.Live do
     |> assign(start: nil)
     |> assign(next_click: "start")
     |> assign(active_square: nil)
-    |> assign(active_move: length(socket.assigns.game.moves) + 1)
+    |> assign(active_move: length(socket.assigns.game.moves))
   end
 
   defp assign_game_parts(socket, %Game{} = game) do
@@ -115,4 +126,8 @@ defmodule ElswisserWeb.Elchesser.Live do
       do: square,
       else: nil
   end
+
+  defp clamp(idx, _) when idx < 0, do: 0
+  defp clamp(idx, len) when idx > len, do: len
+  defp clamp(idx, _), do: idx
 end

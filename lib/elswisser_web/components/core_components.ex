@@ -228,6 +228,7 @@ defmodule ElswisserWeb.CoreComponents do
   attr(:name, :string)
   attr(:rest, :global)
   attr(:active, :boolean, default: false)
+  attr(:large, :boolean, default: false)
 
   def icon_button(assigns) do
     ~H"""
@@ -236,6 +237,7 @@ defmodule ElswisserWeb.CoreComponents do
         "flex-none first:border-l first:rounded-l-md last:rounded-r-md",
         "border border-l-0 border-zinc-400 px-2 z-0",
         "hover:ring-1 hover:ring-slate-400 hover:ring-inset z-0",
+        @large && "leading-6 py-2 px-3",
         @active && "bg-slate-200"
       ]}
       {@rest}
@@ -460,17 +462,17 @@ defmodule ElswisserWeb.CoreComponents do
           </label>
         </div>
         <.error :for={msg <- @errors}><%= msg %></.error>
-        <div :for={{label, value} <- @options}>
+        <div :for={{label, val} <- @options}>
           <label
             class="flex items-center gap-4 text-sm leading-6 text-zinc-600"
-            for={"#{@name}-#{value}"}
+            for={"#{@name}-#{val}"}
           >
             <input
               type="checkbox"
-              id={"#{@name}-#{value}"}
+              id={"#{@name}-#{val}"}
               name={@name}
-              value={value}
-              checked={value in @value or @checked}
+              value={val}
+              checked={val in @value or @checked}
               class="rounded border-zinc-300 text-zinc-900 focus:ring-0"
               {@rest}
             /><%= label %>
