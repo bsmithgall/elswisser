@@ -5,27 +5,11 @@ defmodule Elchesser.Piece.King do
 
   @impl true
   def moves(%Square{piece: :K} = square, game) do
-    black_attacks = Board.black_attacks(game)
-    as_fr = black_attacks |> Enum.into(MapSet.new())
-
-    all =
-      attacks(square, game)
-      |> Enum.concat(maybe_castle_kingside(square, game, black_attacks))
-      |> Enum.concat(maybe_castle_queenside(square, game, black_attacks))
-
-    all |> Enum.reject(fn move -> MapSet.member?(as_fr, move.to) end)
+    moves(square, game, Board.black_attacks(game) |> Enum.into(MapSet.new()))
   end
 
   def moves(%Square{piece: :k} = square, game) do
-    white_attacks = Board.white_attacks(game)
-    as_fr = white_attacks |> Enum.into(MapSet.new())
-
-    all =
-      attacks(square, game)
-      |> Enum.concat(maybe_castle_kingside(square, game, white_attacks))
-      |> Enum.concat(maybe_castle_queenside(square, game, white_attacks))
-
-    all |> Enum.reject(fn move -> MapSet.member?(as_fr, move.to) end)
+    moves(square, game, Board.white_attacks(game) |> Enum.into(MapSet.new()))
   end
 
   @impl true
@@ -40,6 +24,13 @@ defmodule Elchesser.Piece.King do
         nil -> [Move.from(square, {s.file, s.rank}) | acc]
       end
     end)
+  end
+
+  defp moves(%Square{} = square, %Game{} = game, %MapSet{} = attacks) do
+    attacks(square, game)
+    |> Enum.concat(maybe_castle_kingside(square, game, attacks))
+    |> Enum.concat(maybe_castle_queenside(square, game, attacks))
+    |> Enum.reject(&MapSet.member?(attacks, &1.to))
   end
 
   defp attacks(%Square{file: file, rank: rank}) do
@@ -93,11 +84,11 @@ defmodule Elchesser.Piece.King do
       else: []
   end
 
-  @spec can_castle?([Square.t()], [Move.t()]) :: boolean()
+  @spec can_castle?([Square.t()], MapSet.t()) :: boolean()
   defp can_castle?(through_squares, attacks),
     do: can_castle?(through_squares, through_squares, attacks)
 
-  @spec can_castle?([Square.t()], [Square.t()], [Move.t()]) :: boolean()
+  @spec can_castle?([Square.t()], [Square.t()], MapSet.t()) :: boolean()
   defp can_castle?(empty_through, attack_through, attacks) do
     empty? = Enum.all?(empty_through, &Square.empty?/1)
 
