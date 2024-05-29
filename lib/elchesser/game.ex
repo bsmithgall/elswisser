@@ -1,4 +1,5 @@
 defmodule Elchesser.Game do
+  alias Elchesser.Move.SanParser
   alias Elchesser.{Square, Move, Board, Piece}
   alias __MODULE__
 
@@ -13,19 +14,23 @@ defmodule Elchesser.Game do
             full_moves: 1,
             moves: [],
             fens: [],
-            captures: []
+            captures: [],
+            tags: %{},
+            result: nil
 
   @type t :: %Game{
           board: %{{number(), number()} => Square.t()},
           active: :w | :b,
           check: boolean(),
           castling: %MapSet{},
-          en_passant: {number(), number()} | nil,
+          en_passant: Square.t() | nil,
           half_moves: number(),
           full_moves: number(),
           moves: [Move.t()],
           fens: [binary()],
-          captures: [Piece.t()]
+          captures: [Piece.t()],
+          tags: %{atom() => binary()},
+          result: nil | :white | :black | :draw
         }
 
   @spec empty() :: Elchesser.Game.t()
@@ -42,12 +47,15 @@ defmodule Elchesser.Game do
     Elchesser.Fen.parse(@starting_position)
   end
 
+  def with_tags(%Game{} = game, %{} = tags), do: %{game | tags: tags}
+  def with_result(%Game{} = game, result), do: %{game | result: result}
+
   def get_square(%Game{board: board}, {file, rank}), do: Map.get(board, {file, rank})
   def get_square(%Game{board: board}, %Square{loc: loc}), do: Map.get(board, loc)
   def get_square(%{} = board, {file, rank}), do: Map.get(board, {file, rank})
   def get_square(%{} = board, %Square{loc: loc}), do: Map.get(board, loc)
 
-  @spec move(Game.t(), Move.t()) :: {:error, atom()} | {:ok, Game.t()}
+  @spec move(Game.t(), Move.t() | binary()) :: {:error, atom()} | {:ok, Game.t()}
   def move(%Game{} = game, %Move{} = move) do
     with :ok <- ensure_valid_move(game, move),
          {:ok, {move, game}} <- Board.move(game, move) do
@@ -65,6 +73,11 @@ defmodule Elchesser.Game do
 
       {:ok, game}
     end
+  end
+
+  def move(%Game{} = game, move) when is_binary(move) do
+    {:ok, move} = SanParser.parse(move, game)
+    move(game, move)
   end
 
   def move(_, nil), do: {:error, :no_move_provided}
