@@ -1,10 +1,10 @@
 defmodule Elchesser.Move.SanParser do
-  require IEx
   alias __MODULE__
   alias Elchesser.{Game, Move, Piece, Board, Square}
 
   import Elchesser, only: [in_ranks: 1, in_files: 1]
   import NimbleParsec
+  import Elchesser.Move.ParserHelpers
 
   defstruct from: nil,
             to: nil,
@@ -14,41 +14,7 @@ defmodule Elchesser.Move.SanParser do
             promotion: nil,
             castling: nil
 
-  @pieces ~c"RNBQK"
-
-  piece = ascii_char(@pieces) |> label("piece")
-  file = ascii_char([Elchesser.files()]) |> label("f")
-  rank = ascii_char([Elchesser.ranks_c()]) |> label("rank")
-
-  loc = concat(file, rank) |> label("Location")
-  castle_queenside = string("O-O-O") |> replace(:queenside)
-  castle_kingside = string("O-O") |> lookahead_not(string("-O")) |> replace(:kingside)
-
-  capture = ascii_char(~c"x") |> label("takes") |> replace(true) |> unwrap_and_tag(:capture)
-  check = ascii_char(~c"+") |> label("check") |> replace(:check) |> unwrap_and_tag(:checking)
-
-  checkmate =
-    ascii_char(~c"#") |> label("mate") |> replace(:checkmate) |> unwrap_and_tag(:checking)
-
-  promote = ascii_char(~c"=") |> ignore() |> label("promote") |> concat(piece) |> tag(:promotion)
-
-  pawn_move =
-    optional(choice([file, rank]) |> tag(:from) |> lookahead(choice([capture, loc])))
-    |> optional(capture)
-    |> concat(loc |> tag(:to))
-    |> optional(promote)
-    |> optional(choice([check, checkmate]))
-
-  piece_move =
-    tag(piece, :piece)
-    |> optional(choice([loc, file, rank]) |> tag(:from) |> lookahead(choice([capture, loc])))
-    |> optional(capture)
-    |> concat(loc |> tag(:to))
-    |> optional(choice([check, checkmate]))
-
-  castling = choice([castle_kingside, castle_queenside]) |> unwrap_and_tag(:castling)
-
-  defparsecp(:move, choice([pawn_move, piece_move, castling]))
+  defparsecp(:move, parse_move())
 
   @spec parse(binary(), Game.t()) :: {:ok, Move.t()} | {:error, atom()}
   def parse(san, %Game{} = game) do
