@@ -14,7 +14,7 @@
   <:item :if={!is_nil(@game.opening_name)} title="Opening">
     <%= @game.opening_name %> (<%= @game.eco %>)
   </:item>
-  <:item :if={!is_nil(@game.pgn)} title="PGN">
+  <:item :if={!is_nil(@game.pgn)} title="Game" split_title>
     <%= live_render(@conn, ElswisserWeb.LiveComponents.Pgn,
       id: "pgn",
       session: %{

@@ -22,7 +22,6 @@ import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 
-import { GameNavigatorHook } from "./pgn-navigator";
 import { ShareCaptureHook, shareCapture } from "./share-capture";
 import { FlashHook } from "./flash";
 import { ElchesserHook } from "./elchesser";
@@ -33,7 +32,7 @@ let csrfToken = document
 
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
-  hooks: { GameNavigatorHook, ShareCaptureHook, FlashHook, ElchesserHook },
+  hooks: { ShareCaptureHook, FlashHook, ElchesserHook },
 });
 
 // Show progress bar on live navigation and form submits
