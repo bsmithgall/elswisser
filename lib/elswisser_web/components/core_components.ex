@@ -737,15 +737,26 @@ defmodule ElswisserWeb.CoreComponents do
   slot :item, required: true do
     attr(:title, :string, required: true)
     attr(:full_width, :boolean)
+    attr(:split_title, :boolean)
   end
 
   def list(assigns) do
     ~H"""
     <div class="mt-14">
       <dl class="-my-4 divide-y divide-zinc-100">
-        <div :for={item <- @item} class="flex gap-4 py-4 text-sm leading-6 sm:gap-8">
+        <div
+          :for={item <- @item}
+          class={[
+            if(Map.get(item, :split_title, false), do: "", else: "flex"),
+            "gap-4 py-4 text-sm leading-6 sm:gap-8"
+          ]}
+        >
           <dt class="w-1/4 flex-none text-zinc-500"><%= item.title %></dt>
-          <dd class={["text-zinc-700", Map.get(item, :full_width, false) && "w-3/4"]}>
+          <dd class={[
+            "text-zinc-700",
+            Map.get(item, :full_width, false) && "w-3/4",
+            Map.get(item, :split_title, false) && "mt-4"
+          ]}>
             <%= render_slot(item) %>
           </dd>
         </div>

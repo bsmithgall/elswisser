@@ -57,7 +57,11 @@ defmodule ElchesserWeb.Board do
 
   def board_controls(assigns) do
     ~H"""
-    <div class="pt-2 flex place-content-center text-center items-center">
+    <div
+      class="pt-2 flex place-content-center text-center items-center"
+      phx-window-keyup="kb-view-game-at"
+      phx-target={@target}
+    >
       <.icon_button
         large
         name="hero-chevron-double-left"

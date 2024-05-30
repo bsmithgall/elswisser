@@ -31,16 +31,20 @@ defmodule ElchesserWeb.LiveGame do
     socket =
       socket
       |> assign(game_id: generate_id())
-      |> assign_game_parts(game)
-      |> assign(disable_moves: false)
-      |> assign(move_map: %{})
-      |> assign(next_click: "start")
-      |> assign(active_square: nil)
-      |> assign(active_move: 0)
       |> assign(orientation: :w)
+      |> assign(disable_moves: false)
+      |> assign_game_parts(game)
+      |> assign_stop_move()
 
     {:ok, socket}
   end
+
+  def update(%{pgn: pgn}, socket) when not is_nil(pgn) do
+    {:ok, game} = Elchesser.Pgn.parse(pgn)
+    {:ok, socket |> assign_game_parts(game) |> assign(active_move: length(game.moves))}
+  end
+
+  def update(_, socket), do: {:ok, socket}
 
   def handle_event("square-click", %{"file" => f, "rank" => r, "type" => "start"}, socket) do
     loc = {String.to_integer(f), String.to_integer(r)}
@@ -68,18 +72,31 @@ defmodule ElchesserWeb.LiveGame do
   end
 
   def handle_event("view-game-at", %{"idx" => idx}, socket) do
-    game = socket.assigns.game
-    game_length = length(game.moves)
-    idx = String.to_integer(idx) |> clamp(game_length - 1)
-
-    to_display = Enum.at(game.fens, idx) |> Fen.parse()
-
-    {:noreply,
-     socket
-     |> assign(active_move: idx + 1)
-     |> assign(disable_moves: idx + 1 != game_length)
-     |> assign(board: to_display.board)}
+    idx = String.to_integer(idx)
+    {:noreply, socket |> assign_move_navigation(idx)}
   end
+
+  def handle_event("kb-view-game-at", %{"key" => "ArrowLeft"}, socket) do
+    idx = socket.assigns.active_move - 2
+    {:noreply, socket |> assign_move_navigation(idx)}
+  end
+
+  def handle_event("kb-view-game-at", %{"key" => "ArrowRight"}, socket) do
+    idx = socket.assigns.active_move
+    {:noreply, socket |> assign_move_navigation(idx)}
+  end
+
+  def handle_event("kb-view-game-at", %{"key" => "ArrowUp"}, socket) do
+    idx = 0
+    {:noreply, socket |> assign_move_navigation(idx)}
+  end
+
+  def handle_event("kb-view-game-at", %{"key" => "ArrowDown"}, socket) do
+    idx = game_length(socket) - 1
+    {:noreply, socket |> assign_move_navigation(idx)}
+  end
+
+  def handle_event("kb-view-game-at", _, socket), do: {:noreply, socket}
 
   def handle_event("flip-board", %{"current" => "w"}, socket) do
     {:noreply, socket |> assign(orientation: :b)}
@@ -115,6 +132,17 @@ defmodule ElchesserWeb.LiveGame do
     |> assign(active_move: length(socket.assigns.game.moves))
   end
 
+  def assign_move_navigation(socket, idx) do
+    game_length = game_length(socket)
+    idx = clamp(idx, game_length - 1)
+    to_display = Enum.at(socket.assigns.game.fens, idx) |> Fen.parse()
+
+    socket
+    |> assign(active_move: idx + 1)
+    |> assign(disable_moves: idx + 1 != game_length(socket))
+    |> assign(board: to_display.board)
+  end
+
   defp get_move_map(loc, socket) do
     if socket.assigns.disable_moves,
       do: %{},
@@ -130,6 +158,8 @@ defmodule ElchesserWeb.LiveGame do
       do: square,
       else: nil
   end
+
+  defp game_length(socket), do: length(socket.assigns.game.moves)
 
   defp clamp(idx, _) when idx < 0, do: 0
   defp clamp(idx, len) when idx > len, do: len

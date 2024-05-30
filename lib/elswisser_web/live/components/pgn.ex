@@ -31,29 +31,7 @@ defmodule ElswisserWeb.LiveComponents.Pgn do
     <.flash title="PGN Update" flash={@flash} kind={:info} />
     <.flash title="PGN Update" flash={@flash} kind={:error} />
 
-    <div id="pgn-board-container" phx-hook="GameNavigatorHook" phx-value-pgn={@pgn}>
-      <span><%= @black_player %></span>
-      <div id="pgn-board" class="w:40 md:w-96"></div>
-      <span><%= @white_player %></span>
-    </div>
-
-    <div class="pt-2 text-center">
-      <.game_nav navigate="start" icon="hero-chevron-double-left" />
-      <.game_nav navigate="back" icon="hero-arrow-left" />
-      <.game_nav navigate="forward" icon="hero-arrow-right" />
-      <.game_nav navigate="end" icon="hero-chevron-double-right" />
-    </div>
-    """
-  end
-
-  attr(:icon, :string, required: true)
-  attr(:navigate, :string, required: true)
-
-  def game_nav(assigns) do
-    ~H"""
-    <.button data-js-navigate={@navigate}>
-      <.icon name={@icon} />
-    </.button>
+    <.live_component module={ElchesserWeb.LiveGame} id="live-game" pgn={@pgn} />
     """
   end
 
