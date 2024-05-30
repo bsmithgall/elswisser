@@ -1,7 +1,8 @@
 defmodule ElchesserWeb.Square do
   use Phoenix.Component
+  import ElchesserWeb.Piece
 
-  alias Elchesser.{Square, Piece}
+  alias Elchesser.Square
 
   defguardp is_white(file, rank) when rem(file + rank, 2) != 0
 
@@ -10,6 +11,7 @@ defmodule ElchesserWeb.Square do
   attr(:highlight, :boolean, default: false)
   attr(:active, :boolean, default: false)
   attr(:click_type, :atom, values: [:start, :stop])
+  attr(:target, :string)
 
   def square(assigns) do
     ~H"""
@@ -20,6 +22,7 @@ defmodule ElchesserWeb.Square do
       phx-value-file={@square.file}
       phx-value-rank={@square.rank}
       phx-value-type={@click_type}
+      phx-target={@target}
       data-square
       data-file={@square.file}
       data-rank={@square.rank}
@@ -59,38 +62,6 @@ defmodule ElchesserWeb.Square do
   end
 
   defp square_contents(assigns), do: ~H""
-
-  attr(:piece, :atom)
-  attr(:class, :string, default: nil)
-  attr(:draggable, :boolean, default: true)
-
-  def piece(assigns) do
-    ~H"""
-    <span
-      data-color={Piece.color(@piece)}
-      draggable={"#{@draggable}"}
-      class={[piece_name(@piece), @class]}
-    />
-    """
-  end
-
-  defp piece_name(piece) do
-    case piece do
-      :P -> "piece-white-pawn"
-      :N -> "piece-white-knight"
-      :B -> "piece-white-bishop"
-      :R -> "piece-white-rook"
-      :Q -> "piece-white-queen"
-      :K -> "piece-white-king"
-      :p -> "piece-black-pawn"
-      :n -> "piece-black-knight"
-      :b -> "piece-black-bishop"
-      :r -> "piece-black-rook"
-      :q -> "piece-black-queen"
-      :k -> "piece-black-king"
-      nil -> ""
-    end
-  end
 
   defp background(%Square{file: file, rank: rank}) when is_white(file, rank), do: "bg-boardwhite"
   defp background(%Square{}), do: "bg-boardblack"

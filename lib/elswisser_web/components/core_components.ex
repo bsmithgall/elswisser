@@ -226,7 +226,7 @@ defmodule ElswisserWeb.CoreComponents do
 
   attr(:idx, :integer)
   attr(:name, :string)
-  attr(:rest, :global)
+  attr(:rest, :global, include: ~w(disabled form name value))
   attr(:active, :boolean, default: false)
   attr(:large, :boolean, default: false)
 
@@ -236,6 +236,7 @@ defmodule ElswisserWeb.CoreComponents do
       class={[
         "flex-none first:border-l first:rounded-l-md last:rounded-r-md",
         "border border-l-0 border-zinc-400 px-2 z-0",
+        "disabled:pointer-none disabled:hover:ring-0 disabled:text-zinc-400",
         "hover:ring-1 hover:ring-slate-400 hover:ring-inset z-0",
         @large && "leading-6 py-2 px-3",
         @active && "bg-slate-200"
