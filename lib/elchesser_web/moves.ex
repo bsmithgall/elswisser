@@ -28,6 +28,7 @@ defmodule ElchesserWeb.Moves do
                     "cursor-pointer hover:bg-zinc-300",
                     idx == @active_move && "bg-zinc-300"
                   ]}
+                  data-active-move={@active_move == idx}
                   phx-click="view-game-at"
                   phx-value-idx={idx}
                   phx-target={@target}
