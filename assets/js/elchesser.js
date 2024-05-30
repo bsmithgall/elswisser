@@ -15,7 +15,8 @@ const HOVER_CLASSES = `
 export const ElchesserHook = {
   mounted() {
     let moves = this.el.querySelector("#ec-moves");
-    moves.scrollTo(0, moves.scrollHeight);
+    let activeMove = moves.querySelector("[data-active-move]");
+    activeMove.scrollIntoView({ block: "nearest" });
 
     registerDraggables(this);
     registerDropZones(this);
@@ -23,7 +24,8 @@ export const ElchesserHook = {
 
   updated() {
     let moves = this.el.querySelector("#ec-moves");
-    moves.scrollTo(0, moves.scrollHeight);
+    let activeMove = moves.querySelector("[data-active-move]");
+    activeMove.scrollIntoView({ block: "nearest" });
 
     // @TODO: We are constantly re-registering mostly duplicates here.
     // We should figure out a way to avoid doing this somehow.
