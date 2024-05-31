@@ -15,8 +15,7 @@ const HOVER_CLASSES = `
 export const ElchesserHook = {
   mounted() {
     let moves = this.el.querySelector("#ec-moves");
-    let activeMove = moves.querySelector("[data-active-move]");
-    activeMove.scrollIntoView({ block: "nearest" });
+    scroll(moves, moves.querySelector("[data-active-move]"));
 
     registerDraggables(this);
     registerDropZones(this);
@@ -24,8 +23,7 @@ export const ElchesserHook = {
 
   updated() {
     let moves = this.el.querySelector("#ec-moves");
-    let activeMove = moves.querySelector("[data-active-move]");
-    activeMove.scrollIntoView({ block: "nearest" });
+    scroll(moves, moves.querySelector("[data-active-move]"));
 
     // @TODO: We are constantly re-registering mostly duplicates here.
     // We should figure out a way to avoid doing this somehow.
@@ -74,4 +72,21 @@ function registerDropZones(live) {
       },
     });
   });
+}
+
+function scroll(parent, el) {
+  if (!el) return;
+  let offset = calculateOffest(el);
+
+  parent.scroll(0, offset);
+}
+
+function calculateOffest(el) {
+  let offset = 0;
+  if (el.offsetParent) {
+    do {
+      offset += el.offsetTop;
+    } while ((el = el.offsetParent));
+  }
+  return offset;
 }

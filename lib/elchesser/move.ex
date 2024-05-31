@@ -5,7 +5,8 @@ defmodule Elchesser.Move do
             capture: nil,
             promotion: nil,
             castle: false,
-            checking: nil
+            checking: nil,
+            san: nil
 
   alias __MODULE__
   alias Elchesser.{Square, Piece}
@@ -17,7 +18,8 @@ defmodule Elchesser.Move do
           capture: Piece.t?(),
           promotion: Piece.t?(),
           castle: boolean(),
-          checking: nil | :check | :checkmate | :stalemate
+          checking: nil | :check | :checkmate | :stalemate,
+          san: nil | binary()
         }
 
   def from({file, rank}), do: %Move{to: {file, rank}}

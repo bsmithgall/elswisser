@@ -33,7 +33,7 @@ defmodule ElchesserWeb.Board do
     ~H"""
     <div
       id="board"
-      class="border border-2 border-zinc-700 grid grid-rows-8 grid-cols-8 h-[324px] sm:h-[388px]  select-none"
+      class="border border-2 border-zinc-700 grid grid-rows-8 grid-cols-8 h-[324px] sm:h-[388px] select-none"
     >
       <%= for rank <- @ranks do %>
         <%= for file <- @files do %>

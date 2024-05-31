@@ -10,12 +10,14 @@ defmodule Elchesser.Board do
          {:ok, game} <- promote(game, move) do
       check = Game.Check.opponent_in_check?(game)
 
-      move =
-        Map.merge(
-          move,
-          %{checking: if(check == true, do: :check, else: nil), capture: capture, piece: piece}
-        )
-        |> then(&Map.merge(&1, %{san: Move.san(&1)}))
+      move = %{
+        move
+        | checking: if(check == true, do: :check, else: nil),
+          capture: capture,
+          piece: piece
+      }
+
+      move = %{move | san: Move.san(move)}
 
       {:ok, {move, game}}
     end

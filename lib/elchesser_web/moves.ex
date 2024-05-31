@@ -13,7 +13,7 @@ defmodule ElchesserWeb.Moves do
     <div
       id="ec-moves"
       class={[
-        "border-y border-zinc-400 bg-zinc-50 min-h-24 max-h-[290px] overflow-y-scroll",
+        "border-y border-zinc-400 bg-zinc-50 min-h-24 max-h-[90px] sm:max-h-[290px] overflow-y-scroll",
         @class
       ]}
     >
