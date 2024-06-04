@@ -192,7 +192,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   def handle_event("switch-player-colors", %{"id" => id_str}, socket) do
     game = find_game(socket, id_str)
 
-    case Games.update_game(game, %{white_id: game.white.id, black_id: game.black.id}) do
+    case Games.update_game(game, %{white_id: game.black.id, black_id: game.white.id}) do
       {:ok, _updated} ->
         {:noreply,
          socket
