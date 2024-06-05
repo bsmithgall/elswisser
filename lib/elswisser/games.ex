@@ -113,4 +113,23 @@ defmodule Elswisser.Games do
       {:error, reason} -> {:error, reason}
     end
   end
+
+  def flip_players(%Game{} = game) do
+    case update_game(game, %{
+           white_id: game.black.id,
+           white_rating: game.black_rating,
+           white_seed: game.black_seed,
+           white_rating_change: game.black_rating_change,
+           black_id: game.white.id,
+           black_rating: game.white_rating,
+           black_seed: game.white_seed,
+           black_rating_change: game.white_rating_change
+         }) do
+      {:ok, game} ->
+        {:ok, Repo.preload(game, [:white, :black])}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
+  end
 end

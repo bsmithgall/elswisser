@@ -192,17 +192,11 @@ defmodule ElswisserWeb.RoundLive.Round do
   def handle_event("switch-player-colors", %{"id" => id_str}, socket) do
     game = find_game(socket, id_str)
 
-    case Games.update_game(game, %{white_id: game.black.id, black_id: game.white.id}) do
-      {:ok, _updated} ->
+    case Games.flip_players(game) do
+      {:ok, game} ->
         {:noreply,
          socket
-         |> assign(
-           :games,
-           update_session_game(socket.assigns[:games], game.id, %{
-             black: game.white,
-             white: game.black
-           })
-         )}
+         |> assign(:games, update_session_game(socket.assigns[:games], game.id, game))}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, socket |> put_flash(:error, "Could not switch colors: #{changeset}")}
