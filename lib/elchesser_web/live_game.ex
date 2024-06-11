@@ -39,12 +39,30 @@ defmodule ElchesserWeb.LiveGame do
     {:ok, socket}
   end
 
-  def update(%{pgn: pgn}, socket) when not is_nil(pgn) do
-    {:ok, game} = Elchesser.Pgn.parse(pgn)
-    {:ok, socket |> assign_game_parts(game) |> assign(active_move: length(game.moves))}
+  def update(%{from_engine: true, move: move}, socket) do
+    {:ok, game} = Game.move(socket.assigns.game, move)
+
+    {:ok,
+     socket
+     |> assign_game_parts(game)
+     |> assign_stop_move()}
   end
 
-  def update(_, socket), do: {:ok, socket}
+  def update(%{pgn: pgn}, socket) when not is_nil(pgn) do
+    {:ok, game} = Elchesser.Pgn.parse(pgn)
+    socket = socket |> assign_game_parts(game) |> assign(active_move: length(game.moves))
+
+    update(%{}, socket)
+  end
+
+  def update(assigns, socket) do
+    socket =
+      if Map.has_key?(assigns, :game_id),
+        do: assign(socket, game_id: assigns.game_id),
+        else: socket
+
+    {:ok, socket}
+  end
 
   def handle_event("square-click", %{"file" => f, "rank" => r, "type" => "start"}, socket) do
     loc = {String.to_integer(f), String.to_integer(r)}
@@ -53,10 +71,13 @@ defmodule ElchesserWeb.LiveGame do
 
   def handle_event("square-click", %{"file" => f, "rank" => r, "type" => "stop"}, socket) do
     loc = {String.to_integer(f), String.to_integer(r)}
+    move = Map.get(socket.assigns.move_map, loc)
 
     socket =
-      case Game.move(socket.assigns.game, Map.get(socket.assigns.move_map, loc)) do
+      case Game.move(socket.assigns.game, move) do
         {:ok, game} ->
+          ElswisserWeb.Endpoint.broadcast("board:" <> socket.assigns.game_id, "move", game)
+
           socket
           |> assign_game_parts(game)
           |> assign_stop_move()

@@ -65,6 +65,7 @@ defmodule ElswisserWeb.Router do
     resources("/players", PlayerController, only: [:index, :show])
 
     live "/live-board", Elchesser.Live
+    live "/play-computer", Elchesser.Computer
   end
 
   ## Authentication routes

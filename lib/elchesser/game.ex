@@ -88,6 +88,12 @@ defmodule Elchesser.Game do
     game
   end
 
+  @spec all_legal_moves(Game.t()) :: [Move.t()]
+
+  def all_legal_moves(%Game{} = game) do
+    Map.values(game.board) |> Enum.map(&Square.legal_moves(&1, game)) |> List.flatten()
+  end
+
   def captures(%Game{} = game, :w) do
     game.captures
     |> Enum.filter(fn p ->

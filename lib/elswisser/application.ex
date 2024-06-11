@@ -20,8 +20,9 @@ defmodule Elswisser.Application do
       # Start the Endpoint (http/https)
       ElswisserWeb.Endpoint,
       # Start the python processes to calculate pairings
-      :poolboy.child_spec(:worker, python_poolboy_config())
-      # Start a worker by calling: Elswisser.Worker.start_link(arg)
+      :poolboy.child_spec(:worker, python_poolboy_config()),
+      # Start a worker by calling: Elswisser.Worker.start_link(arg),
+      Elchesser.Engine.Server
       # {Elswisser.Worker, arg}
     ]
 
