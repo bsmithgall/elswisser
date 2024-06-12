@@ -1,6 +1,7 @@
 defmodule Elchesser.GameTest do
   use ExUnit.Case, async: true
 
+  require IEx
   alias Elchesser.{Game, Move}
 
   describe "new/0" do
@@ -170,6 +171,18 @@ defmodule Elchesser.GameTest do
       {:ok, game} = Game.move(game, Move.from({?h, 7, :P}, {?h, 8}, promotion: :R))
       assert Game.get_square(game, {?h, 8}).piece == :R
       assert game.check == true
+    end
+
+    test "sets results after checkmate" do
+      game =
+        Game.new()
+        |> Game.move!(Move.from({?e, 2, :P}, {?e, 4}))
+        |> Game.move!(Move.from({?f, 7, :p}, {?f, 6}))
+        |> Game.move!(Move.from({?d, 2, :P}, {?d, 4}))
+        |> Game.move!(Move.from({?g, 7, :p}, {?g, 5}))
+        |> Game.move!(Move.from({?d, 1, :Q}, {?h, 5}))
+
+      assert game.result == :white
     end
   end
 end

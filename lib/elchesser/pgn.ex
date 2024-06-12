@@ -1,5 +1,4 @@
 defmodule Elchesser.Pgn do
-  require IEx
   alias Elchesser.Game
   import NimbleParsec
   import Elchesser.Pgn.ParserHelpers

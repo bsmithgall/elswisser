@@ -1,5 +1,4 @@
 defmodule ElswisserWeb.Elchesser.Computer do
-  require IEx
   use ElswisserWeb, :live_view
 
   def mount(_params, _session, socket) do
