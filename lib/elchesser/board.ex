@@ -4,22 +4,22 @@ defmodule Elchesser.Board do
   @spec move(Elchesser.Game.t(), Elchesser.Move.t()) ::
           {:ok, {Move.t(), Game.t()}} | {:error, atom()}
   def move(%Game{} = game, %Move{} = move) do
-    with {:ok, {piece, game}} <- move_from(game, move.from),
-         {:ok, {capture, game}} <- move_to(game, move.to, piece),
+    with {:ok, {move, game}} <- raw_move(game, move),
          {:ok, game} <- castle(game, move),
          {:ok, game} <- promote(game, move) do
-      check = Game.Check.opponent_in_check?(game)
-
-      move = %{
-        move
-        | checking: if(check == true, do: :check, else: nil),
-          capture: capture,
-          piece: piece
-      }
-
+      move = %{move | checking: Game.Check.opponent_checking(game)}
       move = %{move | san: Move.san(move)}
 
       {:ok, {move, game}}
+    end
+  end
+
+  @spec raw_move(Elchesser.Game.t(), Elchesser.Move.t()) ::
+          {:ok, {Move.t(), Game.t()}} | {:error, :atom}
+  def raw_move(%Game{} = game, %Move{} = move) do
+    with {:ok, {piece, game}} <- move_from(game, move.from),
+         {:ok, {capture, game}} <- move_to(game, move.to, piece) do
+      {:ok, {%{move | capture: capture, piece: piece}, game}}
     end
   end
 

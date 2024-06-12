@@ -127,4 +127,25 @@ defmodule Elchesser.BoardTest do
       assert Game.get_square(game, Square.from(?b, 8)).piece == :N
     end
   end
+
+  describe "move/2 various checkmates etc" do
+    test "checkmate" do
+      game =
+        Elchesser.Fen.parse("r1bqkbnr/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 1")
+
+      {:ok, {move, _game}} = Board.move(game, Move.from({?h, 5, :Q}, {?f, 7}))
+
+      assert move.checking == :checkmate
+      assert move.san == "Qxf7#"
+    end
+
+    test "stalemate" do
+      game = Elchesser.Fen.parse("7K/8/8/5q2/8/8/8/5k2 b - - 0 1")
+
+      {:ok, {move, _game}} = Board.move(game, Move.from({?f, 5, :q}, {?f, 7}))
+
+      assert move.checking == :stalemate
+      assert move.san == "Qf7="
+    end
+  end
 end

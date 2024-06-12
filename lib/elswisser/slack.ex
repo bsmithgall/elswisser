@@ -1,5 +1,4 @@
 defmodule Elswisser.Slack do
-  require IEx
   @post_message "https://slack.com/api/chat.postMessage"
 
   def send(msg) do

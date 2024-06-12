@@ -90,8 +90,16 @@ defmodule Elchesser.Game do
 
   @spec all_legal_moves(Game.t()) :: [Move.t()]
 
-  def all_legal_moves(%Game{} = game) do
-    Map.values(game.board) |> Enum.map(&Square.legal_moves(&1, game)) |> List.flatten()
+  def all_legal_moves(%Game{board: board} = game) do
+    Map.values(board) |> Enum.map(&Square.legal_moves(&1, game)) |> List.flatten()
+  end
+
+  def any_legal_moves?(%Game{board: board} = game) do
+    Map.values(board)
+    |> Enum.any?(fn sq ->
+      moves = Square.legal_moves(sq, game)
+      length(moves) > 0
+    end)
   end
 
   def captures(%Game{} = game, :w) do
