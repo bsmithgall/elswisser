@@ -139,6 +139,15 @@ defmodule Elchesser.BoardTest do
       assert move.san == "Qxf7#"
     end
 
+    test "checkate 2" do
+      game = Elchesser.Fen.parse("rnbqkbnr/ppppp2p/5p2/6p1/3PP3/8/PPP2PPP/RNBQKBNR w KQkq - 0 1")
+
+      {:ok, {move, _game}} = Board.move(game, Move.from({?d, 1, :Q}, {?h, 5}))
+
+      assert move.checking == :checkmate
+      assert move.san == "Qh5#"
+    end
+
     test "stalemate" do
       game = Elchesser.Fen.parse("7K/8/8/5q2/8/8/8/5k2 b - - 0 1")
 

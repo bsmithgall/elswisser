@@ -7,7 +7,7 @@ defmodule Elchesser.Board do
     with {:ok, {move, game}} <- raw_move(game, move),
          {:ok, game} <- castle(game, move),
          {:ok, game} <- promote(game, move) do
-      move = %{move | checking: Game.Check.opponent_checking(game)}
+      move = %{move | checking: Game.Check.opponent_checking(game, move)}
       move = %{move | san: Move.san(move)}
 
       {:ok, {move, game}}
