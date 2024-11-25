@@ -5,7 +5,7 @@ defmodule Elswisser.MixProject do
     [
       app: :elswisser,
       version: "0.1.0",
-      elixir: "~> 1.14",
+      elixir: "~> 1.17",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -56,14 +56,14 @@ defmodule Elswisser.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
       {:math, "~> 0.7.0"},
-      {:httpoison, "~> 2.0"},
-      {:erlport, "~> 0.10.1"},
+      {:erlport, "~> 0.11.0"},
       {:poolboy, "~> 1.5.2"},
-      {:timex, "~> 3.0"},
+      {:timex, "~> 3.7"},
       {:prom_ex, "~> 1.8.0"},
       {:nimble_parsec, "~> 1.4.0"},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:dotenv_parser, "~> 2.0", only: [:dev, :test]}
+      {:dotenv_parser, "~> 2.0", only: [:dev, :test]},
+      {:req, "~> 0.5.7"}
     ]
   end
 

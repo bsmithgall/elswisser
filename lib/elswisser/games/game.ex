@@ -81,7 +81,7 @@ defmodule Elswisser.Games.Game do
   end
 
   def where_tournament_id(query, tournament_id) do
-    from([..., game: g] in query, where: g.tournament_id == ^tournament_id)
+    from([game: g] in query, where: g.tournament_id == ^tournament_id)
   end
 
   def where_round_id(query, round_id) do
@@ -89,28 +89,28 @@ defmodule Elswisser.Games.Game do
   end
 
   def where_player_id(query, player_id) do
-    from([..., game: g] in query, where: g.white_id == ^player_id or g.black_id == ^player_id)
+    from([game: g] in query, where: g.white_id == ^player_id or g.black_id == ^player_id)
   end
 
   def where_not_bye(query) do
     id = Bye.bye_player_id()
 
     from(
-      [..., game: g] in query,
+      [game: g] in query,
       where: g.white_id != ^id and g.black_id != ^id
     )
   end
 
   def where_unfinished(query) do
-    from([..., game: g] in query, where: is_nil(g.result))
+    from([game: g] in query, where: is_nil(g.result))
   end
 
   def where_finished(query) do
-    from([..., game: g] in query, where: not is_nil(g.result))
+    from([game: g] in query, where: not is_nil(g.result))
   end
 
   def where_both_players(query) do
-    from([..., game: g] in query, where: not is_nil(g.white_id) and not is_nil(g.black_id))
+    from([game: g] in query, where: not is_nil(g.white_id) and not is_nil(g.black_id))
   end
 
   def with_both_players(query) do
@@ -118,21 +118,21 @@ defmodule Elswisser.Games.Game do
   end
 
   def with_white_player(query) do
-    from([..., game: g] in query,
+    from([game: g] in query,
       left_join: w in assoc(g, :white),
       as: :white
     )
   end
 
   def with_black_player(query) do
-    from([..., game: g] in query,
+    from([game: g] in query,
       left_join: b in assoc(g, :black),
       as: :black
     )
   end
 
   def preload_players(query) do
-    from([..., game: g, white: w, black: b] in query, preload: [white: w, black: b])
+    from([game: g, white: w, black: b] in query, preload: [white: w, black: b])
   end
 
   def count(query) do

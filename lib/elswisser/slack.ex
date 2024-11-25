@@ -16,11 +16,17 @@ defmodule Elswisser.Slack do
 
   defp send_to_slack(msg, channel, token) do
     with {:ok, encoded} <- encode(msg, channel),
-         {:ok, %HTTPoison.Response{status_code: 200, body: body}} <-
-           HTTPoison.post(@post_message, encoded, [
-             {"Content-Type", "application/json; charset=utf-8"},
-             {"Authorization", "Bearer #{token}"}
-           ]) do
+         {:ok, %Req.Response{status: 200, body: body}} <-
+           Req.post(
+             Req.new(
+               url: @post_message,
+               headers: [
+                 {"content-type", "application/json; charset=utf-8"},
+                 {"authorization", "Bearer #{token}"}
+               ]
+             ),
+             body: encoded
+           ) do
       {:ok, body}
     else
       err -> {:error, err}

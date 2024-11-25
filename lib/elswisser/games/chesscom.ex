@@ -38,8 +38,8 @@ defmodule Elswisser.Games.Chesscom do
   end
 
   def fetch_callback_info(game_id) do
-    case HTTPoison.get("https://www.chess.com/callback/live/game/#{game_id}") do
-      {:ok, %HTTPoison.Response{status_code: 200, body: body}} -> {:ok, body}
+    case Req.get("https://www.chess.com/callback/live/game/#{game_id}") do
+      {:ok, %Req.Response{status: 200, body: body}} -> {:ok, body}
       _ -> {:error, "Something bad happened requesting callback from chesscom"}
     end
   end
@@ -59,12 +59,8 @@ defmodule Elswisser.Games.Chesscom do
   end
 
   def fetch_archive(username, archive_month) do
-    case HTTPoison.get(
-           "https://api.chess.com/pub/player/#{username}/games/#{archive_month}",
-           [],
-           follow_redirect: true
-         ) do
-      {:ok, %HTTPoison.Response{status_code: 200, body: body}} -> {:ok, body}
+    case Req.get("https://api.chess.com/pub/player/#{username}/games/#{archive_month}") do
+      {:ok, %Req.Response{status: 200, body: body}} -> {:ok, body}
       _ -> {:error, "Error fetching game archive from chesscom"}
     end
   end
