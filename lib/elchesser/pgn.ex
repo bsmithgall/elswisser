@@ -37,7 +37,10 @@ defmodule Elchesser.Pgn do
     |> Enum.map(&Elchesser.Move.san/1)
     |> Enum.chunk_every(2)
     |> Enum.with_index(1)
-    |> Enum.map(fn {[w, b], idx} -> "#{idx}. #{w} #{b}" end)
+    |> Enum.map(&move_list_text/1)
     |> Enum.join(" ")
   end
+
+  defp move_list_text({[w], idx}), do: "#{idx}. #{w}"
+  defp move_list_text({[w, b], idx}), do: "#{idx}. #{w} #{b}"
 end

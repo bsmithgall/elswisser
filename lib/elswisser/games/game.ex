@@ -29,6 +29,8 @@ defmodule Elswisser.Games.Game do
     belongs_to(:white, Elswisser.Players.Player)
     belongs_to(:black, Elswisser.Players.Player)
 
+    belongs_to(:opening, Elswisser.Openings.Opening)
+
     timestamps()
   end
 
@@ -52,7 +54,8 @@ defmodule Elswisser.Games.Game do
       :white_id,
       :white_rating,
       :white_rating_change,
-      :white_seed
+      :white_seed,
+      :opening_id
     ])
     |> validate_required([:round_id, :tournament_id, :match_id])
     |> validate_different_players()

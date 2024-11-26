@@ -9,14 +9,14 @@ defmodule Mix.Tasks.Elswisser.Openings do
   `eco`, `name`, and `pgn`. An index will be added on PGN to allow for faster
   searching when back-matching existing games.
   """
-  require IEx
   @shortdoc "Download and store opening names from lichess"
 
   use Mix.Task
 
   @requirements ["app.start"]
 
-  alias Elswisser.Games.Opening
+  alias Elswisser.Openings.Opening
+  import Ecto.Query
 
   @impl Mix.Task
   def run(_args) do
@@ -42,6 +42,21 @@ defmodule Mix.Tasks.Elswisser.Openings do
         %{eco: eco, name: name, pgn: pgn},
         Opening.changeset(%Opening{}, %{eco: eco, name: name, pgn: pgn}),
         on_conflict: :nothing
+      )
+    end)
+    |> Elswisser.Repo.transaction()
+
+    Mix.shell().info("Openings loaded, attaching to current games!")
+
+    from(g in Elswisser.Games.Game, where: not is_nil(g.pgn) and is_nil(g.opening_id))
+    |> Elswisser.Repo.all()
+    |> Enum.reduce(Ecto.Multi.new(), fn %Elswisser.Games.Game{} = game, multi ->
+      opening = Elswisser.Openings.find_from_game(game)
+
+      Ecto.Multi.update(
+        multi,
+        game.id,
+        Elswisser.Games.Game.changeset(game, %{opening_id: opening.id})
       )
     end)
     |> Elswisser.Repo.transaction()
