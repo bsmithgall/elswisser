@@ -6,7 +6,8 @@ defmodule Elchesser.Move do
             promotion: nil,
             castle: false,
             checking: nil,
-            san: nil
+            san: nil,
+            discriminator: nil
 
   alias __MODULE__
   alias Elchesser.{Square, Piece}
@@ -19,7 +20,8 @@ defmodule Elchesser.Move do
           promotion: Piece.t?(),
           castle: boolean(),
           checking: nil | :check | :checkmate | :stalemate,
-          san: nil | binary()
+          san: nil | binary(),
+          discriminator: nil | :file | :rank | :both
         }
 
   def from({file, rank}), do: %Move{to: {file, rank}}
@@ -73,16 +75,21 @@ defmodule Elchesser.Move do
     <<f>> <> "x" <> <<f2, r + 48>> <> "=" <> Piece.to_string(prom)
   end
 
-  defp as_san(%Move{capture: nil, to: {f, r}, piece: piece}) do
-    Piece.to_string(piece) <> <<f, r + 48>>
+  defp as_san(%Move{capture: nil, to: {f, r}, piece: piece} = move) do
+    Piece.to_string(piece) <> discriminator(move) <> <<f, r + 48>>
   end
 
-  defp as_san(%Move{capture: c, to: {f, r}, piece: piece}) when not is_nil(c) do
-    Piece.to_string(piece) <> "x" <> <<f, r + 48>>
+  defp as_san(%Move{capture: c, to: {f, r}, piece: piece} = move) when not is_nil(c) do
+    Piece.to_string(piece) <> discriminator(move) <> "x" <> <<f, r + 48>>
   end
 
   defp validate_opts(opts) do
     {_, opts} = Keyword.validate(opts, capture: nil, promotion: nil, castle: false, checking: nil)
     opts
   end
+
+  defp discriminator(%Move{discriminator: nil}), do: ""
+  defp discriminator(%Move{discriminator: :file, from: {f, _}}), do: <<f>>
+  defp discriminator(%Move{discriminator: :rank, from: {_, r}}), do: <<r + 48>>
+  defp discriminator(%Move{discriminator: :both, from: {f, r}}), do: <<f, r + 48>>
 end

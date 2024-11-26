@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Openings do
+defmodule Mix.Tasks.Elswisser.Openings do
   @moduledoc """
   Download and store lichess openings in a sqlite database. Does this by paging
   through the public record TSV files from github and storing them in a database
@@ -14,26 +14,13 @@ defmodule Mix.Tasks.Openings do
 
   use Mix.Task
 
+  @requirements ["app.start"]
+
+  alias Elswisser.Games.Opening
+
   @impl Mix.Task
   def run(_args) do
     {:ok, _} = Application.ensure_all_started(:req)
-
-    Mix.shell().info("Downloading!")
-    {:ok, conn} = Exqlite.Sqlite3.open("openings.db")
-
-    :ok =
-      Exqlite.Sqlite3.execute(
-        conn,
-        "CREATE TABLE IF NOT EXISTS openings (fen text, name text, pgn, text)"
-      )
-
-    :ok =
-      Exqlite.Sqlite3.execute(
-        conn,
-        "CREATE INDEX IF NOT EXISTS openings_pgn_idx ON openings (pgn)"
-      )
-
-    :ok = Exqlite.Sqlite3.execute(conn, "DELETE FROM openings")
 
     ~w[a b c d e]
     |> Enum.map(&url/1)
@@ -43,20 +30,21 @@ defmodule Mix.Tasks.Openings do
     end)
     |> Enum.flat_map(fn body ->
       [_ | data] = String.split(body, "\n")
-      data |> Enum.filter(&(&1 != "")) |> Enum.map(&String.split(&1, "\t"))
-    end)
-    |> Enum.each(fn [fen, name, pgn] ->
-      {:ok, statement} =
-        Exqlite.Sqlite3.prepare(
-          conn,
-          "INSERT INTO openings (fen, name, pgn) VALUES (?1, ?2, ?3)"
-        )
 
-      :ok = Exqlite.Sqlite3.bind(statement, [fen, name, pgn])
-      :done = Exqlite.Sqlite3.step(conn, statement)
-      :ok = Exqlite.Sqlite3.release(conn, statement)
-      :ok
+      data
+      |> Enum.filter(&(&1 != ""))
+      |> Enum.map(&String.split(&1, "\t"))
     end)
+    |> Enum.map(&List.to_tuple/1)
+    |> Enum.reduce(Ecto.Multi.new(), fn {eco, name, pgn}, multi ->
+      Ecto.Multi.insert(
+        multi,
+        %{eco: eco, name: name, pgn: pgn},
+        Opening.changeset(%Opening{}, %{eco: eco, name: name, pgn: pgn}),
+        on_conflict: :nothing
+      )
+    end)
+    |> Elswisser.Repo.transaction()
   end
 
   defp url(l) do

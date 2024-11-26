@@ -20,5 +20,5 @@ defmodule ElswisserWeb.Gettext do
 
   See the [Gettext Docs](https://hexdocs.pm/gettext) for detailed usage.
   """
-  use Gettext, otp_app: :elswisser
+  use Gettext.Backend, otp_app: :elswisser
 end

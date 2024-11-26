@@ -1,5 +1,6 @@
 defmodule Elchesser.Pgn do
   alias Elchesser.Game
+
   import NimbleParsec
   import Elchesser.Pgn.ParserHelpers
 
@@ -25,7 +26,18 @@ defmodule Elchesser.Pgn do
       {:ok, Game.with_result(game, result)}
     else
       {:error, reason, _, _, _, _} -> {:error, reason}
-      {:error, reason} -> {:error, reason}
     end
+  end
+
+  @doc """
+  Generate a PGN move list from a given game
+  """
+  def to_move_list(%Elchesser.Game{moves: moves}) do
+    moves
+    |> Enum.map(&Elchesser.Move.san/1)
+    |> Enum.chunk_every(2)
+    |> Enum.with_index(1)
+    |> Enum.map(fn {[w, b], idx} -> "#{idx}. #{w} #{b}" end)
+    |> Enum.join(" ")
   end
 end
