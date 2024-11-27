@@ -26,9 +26,7 @@ rm elswisser_dev.db* ||: && mix ecto.migrate && mix run priv/repo/seeds.exs
 ## The dumbest release process on earth
 
 ```sh
-docker build --platform linux/arm64 .
-docker tag <copy sha here> ghcr.io/bsmithgall/elswisser:<version>
-docker tag <copy sha here> ghcr.io/bsmithgall/elswisser:latest
+docker build --platform linux/arm64 . --tag ghcr.io/bsmithgall/elswisser:<version> --tag ghcr.io/bsmithgall:latest
 docker push ghcr.io/bsmithgall/elswisser:<version>
 docker push ghcr.io/bsmithgall/elswisser:latest
 ```
