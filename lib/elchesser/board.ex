@@ -4,11 +4,13 @@ defmodule Elchesser.Board do
   @spec move(Elchesser.Game.t(), Elchesser.Move.t()) ::
           {:ok, {Move.t(), Game.t()}} | {:error, atom()}
   def move(%Game{} = game, %Move{} = move) do
-    with {:ok, {move, game}} <- raw_move(game, move),
+    with discriminator <- discriminator(game, move),
+         {:ok, {move, game}} <- raw_move(game, move),
          {:ok, game} <- castle(game, move),
          {:ok, game} <- promote(game, move) do
       move = %{move | checking: Game.Check.opponent_checking(game, move)}
       move = %{move | san: Move.san(move)}
+      move = %{move | discriminator: discriminator}
 
       {:ok, {move, game}}
     end
@@ -100,9 +102,9 @@ defmodule Elchesser.Board do
         {current, %Square{current | piece: piece}}
       end)
 
-    cond do
-      Piece.friendly?(piece, capture) -> {:error, :invalid_to_color}
-      true -> {:ok, {capture, %Game{game | board: board}}}
+    case Piece.friendly?(piece, capture) do
+      true -> {:error, :invalid_to_color}
+      n when n in [false, nil] -> {:ok, {capture, %Game{game | board: board}}}
     end
   end
 
@@ -134,4 +136,36 @@ defmodule Elchesser.Board do
       {:ok, %Game{game | board: board}}
     end
   end
+
+  def discriminator(_, %Move{piece: :p}), do: nil
+  def discriminator(_, %Move{piece: :P}), do: nil
+  def discriminator(_, %Move{piece: :k}), do: nil
+  def discriminator(_, %Move{piece: :K}), do: nil
+
+  def discriminator(%Game{} = game, %Move{piece: piece, from: {f, r}, to: to}) do
+    candidate_squares =
+      find(game, piece)
+      |> Enum.filter(fn s -> Elchesser.Square.attacks?(s, game, to) end)
+
+    with true <- check_discriminators?(candidate_squares) do
+      file_count =
+        candidate_squares |> Enum.map(& &1.file) |> Enum.filter(&(&1 == f)) |> Enum.count()
+
+      rank_count =
+        candidate_squares |> Enum.map(& &1.rank) |> Enum.filter(&(&1 == r)) |> Enum.count()
+
+      cond do
+        file_count > 1 && rank_count > 1 -> :both
+        rank_count == 1 && file_count > 1 -> :rank
+        file_count > 1 -> :file
+        rank_count > 1 -> :rank
+        # knights
+        file_count == 1 && rank_count == 1 -> :file
+      end
+    else
+      false -> nil
+    end
+  end
+
+  defp check_discriminators?(squares), do: length(squares) > 1
 end

@@ -88,6 +88,7 @@ defmodule Elswisser.Tournaments do
     |> Round.order_by_number()
     |> Match.with_games()
     |> Game.with_both_players()
+    |> Game.with_opening()
     |> Tournament.preload_all()
     |> Repo.one()
   end

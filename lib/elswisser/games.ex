@@ -1,5 +1,6 @@
 defmodule Elswisser.Games do
   import Ecto.Query, warn: false
+  alias Elswisser.Openings
   alias Elswisser.Games.PgnTagParser
   alias Elswisser.Games.PgnProvider
   alias Elswisser.Repo
@@ -50,6 +51,16 @@ defmodule Elswisser.Games do
     |> Repo.one!()
   end
 
+  def get_game_with_players_and_opening!(id) do
+    Game.from()
+    |> Game.where_id(id)
+    |> Game.with_both_players()
+    |> Game.with_opening()
+    |> Game.preload_players()
+    |> Game.preload_opening()
+    |> Repo.one!()
+  end
+
   def get_history_for_player(player_id) do
     Game.from()
     |> Game.where_player_id(player_id)
@@ -90,13 +101,21 @@ defmodule Elswisser.Games do
   end
 
   def add_pgn(id, pgn, game_link) do
-    case get_game(id) do
-      nil ->
-        {:error, "Could not find game!"}
+    with game when not is_nil(game) <- get_game(id),
+         {eco, opening_name} = PgnTagParser.parse_eco(pgn),
+         {:ok, opening} <- Openings.find_from_game(pgn) do
+      opening_id = if is_nil(opening), do: nil, else: opening.id
 
-      game ->
-        {eco, opening_name} = PgnTagParser.parse_eco(pgn)
-        update_game(game, %{pgn: pgn, eco: eco, opening_name: opening_name, game_link: game_link})
+      update_game(game, %{
+        pgn: pgn,
+        eco: eco,
+        opening_name: opening_name,
+        game_link: game_link,
+        opening_id: opening_id
+      })
+    else
+      nil -> {:error, "Could not find game!"}
+      {:error, reason} -> {:error, reason}
     end
   end
 

@@ -12,7 +12,7 @@ defmodule Elswisser.Games.PgnProvider do
 
   @spec find_provider(list(t()), String.t()) :: {:error, String.t()} | {:ok, t()}
   def find_provider(providers, game_link) do
-    if p = Enum.find(providers, fn p -> Regex.match?(p.provides_for, game_link) end) do
+    if p = Enum.find(providers, fn p -> Regex.match?(p.provides_for(), game_link) end) do
       {:ok, p}
     else
       {:error, "Could not find PGN parser for game link"}

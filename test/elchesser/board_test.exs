@@ -139,7 +139,7 @@ defmodule Elchesser.BoardTest do
       assert move.san == "Qxf7#"
     end
 
-    test "checkate 2" do
+    test "checkmate 2" do
       game = Elchesser.Fen.parse("rnbqkbnr/ppppp2p/5p2/6p1/3PP3/8/PPP2PPP/RNBQKBNR w KQkq - 0 1")
 
       {:ok, {move, _game}} = Board.move(game, Move.from({?d, 1, :Q}, {?h, 5}))
@@ -155,6 +155,63 @@ defmodule Elchesser.BoardTest do
 
       assert move.checking == :stalemate
       assert move.san == "Qf7="
+    end
+  end
+
+  describe "discriminators" do
+    # all tests starting from this position
+    #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
+    # 8 │   │   │   │   │   │   │   │   │
+    #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+    # 7 │   │   │   │   │   │   │   │   │
+    #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+    # 6 │   │ ♕ │   │   │   │   │   │   │
+    #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+    # 5 │   │   │   │ ♚ │   │   │   │   │
+    #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+    # 4 │   │ ♕ │   │   │   │ ♕ │   │   │
+    #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+    # 3 │   │   │   │   │   │   │   │   │
+    #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+    # 2 │   │ ♕ │   │   │   │   │   │   │
+    #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+    # 1 │ ♔ │   │   │   │   │   │   │   │
+    #   └───┴───┴───┴───┴───┴───┴───┴───┘
+    #     a   b   c   d   e   f   g   h
+    setup do
+      {:ok, game: Elchesser.Fen.parse("8/8/1Q6/3k4/1Q3Q2/8/1Q6/K7 w - - 0 1")}
+    end
+
+    test "works when no discriminators needed", %{game: game} do
+      {:ok, {move, _}} = Board.move(game, Move.from({?b, 2, :Q}, {?a, 2}))
+
+      assert move.checking == :checkmate
+      assert move.discriminator == nil
+      assert Move.san(move) == "Qa2#"
+    end
+
+    test "works when file discriminator needed", %{game: game} do
+      {:ok, {move, _}} = Board.move(game, Move.from({?b, 2, :Q}, {?e, 5}))
+
+      assert move.checking == :checkmate
+      assert move.discriminator == :file
+      assert Move.san(move) == "Qbe5#"
+    end
+
+    test "works when rank discriminator needed", %{game: game} do
+      {:ok, {move, _}} = Board.move(game, Move.from({?b, 2, :Q}, {?d, 2}))
+
+      assert move.checking == :checkmate
+      assert move.discriminator == :rank
+      assert Move.san(move) == "Q2d2#"
+    end
+
+    test "works when both discriminators are needed", %{game: game} do
+      {:ok, {move, _}} = Board.move(game, Move.from({?b, 4, :Q}, {?d, 2}))
+
+      assert move.checking == :checkmate
+      assert move.discriminator == :both
+      assert Move.san(move) == "Qb4d2#"
     end
   end
 end

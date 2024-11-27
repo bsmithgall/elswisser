@@ -15,8 +15,8 @@ defmodule Elswisser.Games.Lichess do
   end
 
   def extract_pgn(game_id) do
-    case HTTPoison.get("https://lichess.org/game/export/#{game_id}") do
-      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+    case Req.get("https://lichess.org/game/export/#{game_id}") do
+      {:ok, %Req.Response{status: 200, body: body}} ->
         {:ok, body}
 
       _ ->

@@ -59,11 +59,11 @@ defmodule Elswisser.Matches.Match do
   end
 
   def preload_games_and_players(query) do
-    from([..., game: g, white: w, black: b] in query, preload: [games: {g, black: b, white: w}])
+    from([game: g, white: w, black: b] in query, preload: [games: {g, black: b, white: w}])
   end
 
   def preload_round(query) do
-    from([..., round: r] in query, preload: [round: r])
+    from([round: r] in query, preload: [round: r])
   end
 
   def order_by_display_number(query) do
@@ -123,7 +123,7 @@ defmodule Elswisser.Matches.Match do
     end
 
     def select_into(query) do
-      from([..., match: m, round: r, game: g, white: w, black: b] in query,
+      from([match: m, round: r, game: g, white: w, black: b] in query,
         select: %__MODULE__{
           id: m.id,
           round_id: r.id,

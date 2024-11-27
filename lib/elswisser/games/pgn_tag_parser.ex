@@ -1,4 +1,5 @@
 defmodule Elswisser.Games.PgnTagParser do
+  @spec parse_eco(binary) :: {binary(), binary()}
   def parse_eco(pgn) do
     Regex.named_captures(~r/\[ECO "(?<eco>\w+)"\]/, pgn)
     |> then(fn v -> {v["eco"], eco_matcher(v["eco"])} end)

@@ -392,4 +392,15 @@ defmodule ElswisserWeb.ChessComponents do
     </div>
     """
   end
+
+  attr(:name, :string)
+  def opening_link(%{name: nil} = assigns), do: ~H"&mdash;"
+
+  def opening_link(assigns) do
+    ~H"""
+    <.link class="text-cyan-600 underline" href={"https://lichess.org/opening/#{@name}"}>
+      <%= @name %>
+    </.link>
+    """
+  end
 end

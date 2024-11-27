@@ -11,8 +11,8 @@
   <:item title="Result" full_width>
     <.game_result game={@game} />
   </:item>
-  <:item :if={!is_nil(@game.opening_name)} title="Opening">
-    <%= @game.opening_name %> (<%= @game.eco %>)
+  <:item :if={!is_nil(@game.opening)} title="Opening">
+    <.opening_link name={@game.opening.name} />
   </:item>
   <:item :if={!is_nil(@game.pgn)} title="Game" split_title>
     <%= live_render(@conn, ElswisserWeb.LiveComponents.Pgn,

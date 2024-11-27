@@ -87,6 +87,16 @@ defmodule Elchesser.Square do
     Piece.module(piece).attacks(square, game)
   end
 
+  def attacks?(%Square{piece: nil}, _, _), do: false
+
+  def attacks?(%Square{} = square, %Game{} = game, {f, r}) do
+    attacks?(square, game, Square.from({f, r}))
+  end
+
+  def attacks?(%Square{} = square, %Game{} = game, %Square{} = to) do
+    attacks(square, game) |> Enum.map(& &1.to) |> Enum.member?(to.loc)
+  end
+
   def piece_display(%Square{} = square), do: Elchesser.Piece.display(square.piece)
 
   def rf(%Square{file: file, rank: rank}), do: {file, rank}

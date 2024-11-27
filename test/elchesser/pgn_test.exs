@@ -142,4 +142,35 @@ defmodule Elchesser.PgnTest do
     assert Game.get_square(game, {?e, 3}).piece == :q
     assert length(game.moves) == 82
   end
+
+  describe "to_move_list/1" do
+    test "works as expected" do
+      {:ok, game} =
+        Elchesser.Pgn.parse("""
+        [Event "FIDE Candidates 2024"]
+        [Site "Toronto, Canada"]
+        [Date "2024.04.04"]
+        [Round "1"]
+        [White "Caruana, Fabiano"]
+        [Black "Nakamura, Hikaru"]
+        [Result "1/2-1/2"]
+        [WhiteElo "2803"]
+        [WhiteTitle "GM"]
+        [WhiteFideId "2020009"]
+        [BlackElo "2789"]
+        [BlackTitle "GM"]
+        [BlackFideId "2016192"]
+        [TimeControl "40/7200:1800+30"]
+        [Variant "Standard"]
+        [ECO "B56"]
+        [Opening "Sicilian Defense: Venice Attack"]
+        [Annotator "https://lichess.org/broadcast/-/-/AjqSsU1w"]
+
+        1. e4 { [%eval 0.14] [%clk 1:59:56] } 1... c5 { [%eval 0.17] [%clk 1:59:50] } 2. Nf3 { [%eval 0.22] [%clk 1:59:51] } 2... d6 { [%eval 0.0] [%clk 1:59:46] } 3. d4 { [%eval 0.18] [%clk 1:59:37] } 3... cxd4 { [%eval 0.13] [%clk 1:59:40] } 4. Nxd4 { [%eval 0.27] [%clk 1:59:34] } 4... Nf6 { [%eval 0.3] [%clk 1:59:34] } 5. Nc3 { [%eval 0.21] [%clk 1:59:30] } 5... e5 { [%eval 0.4] [%clk 1:59:29] } 6. Bb5+ { [%eval 0.68] [%clk 1:55:46] } 6... Nbd7 { [%eval 0.48] [%clk 1:58:59] } 7. Nf5 { [%eval 0.42] [%clk 1:51:39] } 7... a6 { [%eval 0.37] [%clk 1:58:16] } 8. Ba4 { [%eval 0.53] [%clk 1:42:19] } 8... b5 { [%eval 0.52] [%clk 1:58:02] } 9. Bb3 { [%eval 0.58] [%clk 1:42:16] } 9... Nc5 { [%eval 0.52] [%clk 1:57:57] } 10. Bg5 { [%eval 0.51] [%clk 1:40:36] } 10... Bxf5 { [%eval 0.6] [%clk 1:57:51] } 11. exf5 { [%eval 0.51] [%clk 1:38:42] } 11... Be7 { [%eval 0.64] [%clk 1:57:46] } 12. Bxf6 { [%eval 0.48] [%clk 1:33:12] } 12... Bxf6 { [%eval 0.54] [%clk 1:56:03] } 13. O-O { [%eval 0.41] [%clk 1:22:58] } 13... e4 { [%eval 0.4] [%clk 1:53:20] } 14. Nxe4 { [%eval 0.4] [%clk 1:13:23] } 14... Nxe4 { [%eval 0.41] [%clk 1:52:04] } 15. Re1 { [%eval 0.25] [%clk 1:13:03] } 15... O-O { [%eval 0.29] [%clk 1:51:56] } 16. Rxe4 { [%eval 0.32] [%clk 1:13:00] } 16... Bxb2 { [%eval 0.34] [%clk 1:51:42] } 17. Rb1 { [%eval 0.33] [%clk 1:12:58] } 17... Bf6 { [%eval 0.47] [%clk 1:47:50] } 18. Qd5 { [%eval 0.29] [%clk 1:10:20] } 18... Rc8 { [%eval 0.28] [%clk 1:41:13] } 19. Qb7 { [%eval 0.28] [%clk 0:57:51] } 19... Rc5 { [%eval 0.46] [%clk 1:06:46] } 20. Qxa6 { [%eval 0.39] [%clk 0:56:30] } 20... Rxf5 { [%eval 0.51] [%clk 1:02:19] } 21. Rd1 { [%eval 0.21] [%clk 0:51:45] } 21... d5 { [%eval 0.39] [%clk 0:59:30] } 22. Rb4 { [%eval 0.36] [%clk 0:30:49] } 22... Bc3?! { [%eval 1.22] } { Inaccuracy. Qe7 was best. } { [%clk 0:39:20] } (22... Qe7) 23. Rxb5 { [%eval 1.29] [%clk 0:30:26] } 23... Rxf2 { [%eval 1.29] [%clk 0:39:13] } 24. Rbxd5 { [%eval 1.17] [%clk 0:20:08] } 24... Qh4 { [%eval 1.36] [%clk 0:38:42] } 25. Qd3 { [%eval 1.3] [%clk 0:17:37] } 25... Rf6 { [%eval 1.55] [%clk 0:35:57] } 26. g3 { [%eval 1.48] [%clk 0:15:07] } 26... Qb4 { [%eval 1.38] [%clk 0:35:21] } 27. Kg2 { [%eval 1.14] [%clk 0:12:19] } 27... Bb2 { [%eval 1.39] [%clk 0:33:45] } 28. Rf5?! { [%eval 0.49] } { Inaccuracy. Rf1 was best. } { [%clk 0:09:21] } (28. Rf1 Rxf1) 28... g6 { [%eval 0.92] [%clk 0:22:58] } 29. Rxf6?! { [%eval 0.29] } { Inaccuracy. Rb5 was best. } { [%clk 0:09:18] } (29. Rb5) 29... Bxf6 { [%eval 0.26] [%clk 0:22:54] } 30. Qf3 { [%eval 0.1] [%clk 0:09:01] } 30... Qe7 { [%eval 0.17] [%clk 0:22:50] } 31. a4 { [%eval 0.11] [%clk 0:08:05] } 31... Kg7 { [%eval 0.08] [%clk 0:21:22] } 32. a5 { [%eval 0.0] [%clk 0:07:49] } 32... Ra8 { [%eval 0.0] [%clk 0:18:27] } 33. Rd5 { [%eval 0.0] [%clk 0:06:46] } 33... Ra7 { [%eval 0.0] [%clk 0:18:22] } 34. Rb5 { [%eval 0.0] [%clk 0:05:08] } 34... Qd8 { [%eval 0.0] [%clk 0:16:57] } 35. Rd5 { [%eval 0.0] [%clk 0:04:14] } 35... Qc7 { [%eval 0.0] [%clk 0:15:22] } 36. h4 { [%eval 0.0] [%clk 0:03:22] } 36... Rxa5 { [%eval 0.12] [%clk 0:09:07] } 37. Rxa5 { [%eval 0.07] [%clk 0:03:18] } 37... Qxa5 { [%eval 0.06] [%clk 0:09:04] } 38. Qb7 { [%eval 0.06] [%clk 0:03:15] } 38... Qd8 { [%eval 0.1] [%clk 0:08:42] } 39. Qxf7+ { [%eval 0.09] [%clk 0:03:09] } 39... Kh6 { [%eval 0.08] [%clk 0:08:41] } 40. Kh3 { [%eval 0.1] [%clk 0:32:02] } 40... Qe7 { [%eval 0.46] [%clk 0:38:54] } 41. Qc4 { [%eval 0.11] [%clk 0:31:46] } 41... Qe3 { [%eval 0.12] [%clk 0:38:49] } 1/2-1/2
+        """)
+
+      assert Elchesser.Pgn.to_move_list(game) ==
+               "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 e5 6. Bb5+ Nbd7 7. Nf5 a6 8. Ba4 b5 9. Bb3 Nc5 10. Bg5 Bxf5 11. exf5 Be7 12. Bxf6 Bxf6 13. O-O e4 14. Nxe4 Nxe4 15. Re1 O-O 16. Rxe4 Bxb2 17. Rb1 Bf6 18. Qd5 Rc8 19. Qb7 Rc5 20. Qxa6 Rxf5 21. Rd1 d5 22. Rb4 Bc3 23. Rxb5 Rxf2 24. Rbxd5 Qh4 25. Qd3 Rf6 26. g3 Qb4 27. Kg2 Bb2 28. Rf5 g6 29. Rxf6 Bxf6 30. Qf3 Qe7 31. a4 Kg7 32. a5 Ra8 33. Rd5 Ra7 34. Rb5 Qd8 35. Rd5 Qc7 36. h4 Rxa5 37. Rxa5 Qxa5 38. Qb7 Qd8 39. Qxf7+ Kh6 40. Kh3 Qe7 41. Qc4 Qe3"
+    end
+  end
 end

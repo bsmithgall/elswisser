@@ -50,5 +50,17 @@ defmodule Elchesser.MoveTest do
     test "stalemate works as expected" do
       assert Move.from({?d, 6, :p}, {?d, 7}, checking: :stalemate) |> Move.san() == "d7="
     end
+
+    test "file discriminator works as expected" do
+      assert Move.from({?d, 6, :n}, {?e, 4}, discriminator: :file) |> Move.san() == "Nde4"
+    end
+
+    test "rank discriminator works as expected" do
+      assert Move.from({?d, 6, :r}, {?d, 4}, discriminator: :rank) |> Move.san() == "R6d4"
+    end
+
+    test "rank + file discriminators work as expected" do
+      assert Move.from({?d, 6, :q}, {?d, 4}, discriminator: :both) |> Move.san() == "Qd6d4"
+    end
   end
 end
