@@ -142,32 +142,25 @@ defmodule Elchesser.Board do
   def discriminator(_, %Move{piece: :k}), do: nil
   def discriminator(_, %Move{piece: :K}), do: nil
 
-  def discriminator(%Game{} = game, %Move{piece: piece, to: to}) do
+  def discriminator(%Game{} = game, %Move{piece: piece, from: {f, r}, to: to}) do
     candidate_squares =
       find(game, piece)
       |> Enum.filter(fn s -> Elchesser.Square.attacks?(s, game, to) end)
 
     with true <- check_discriminators?(candidate_squares) do
-      max_files =
-        candidate_squares
-        |> Enum.map(& &1.file)
-        |> Enum.frequencies()
-        |> Map.values()
-        |> Enum.max()
+      file_count =
+        candidate_squares |> Enum.map(& &1.file) |> Enum.filter(&(&1 == f)) |> Enum.count()
 
-      max_ranks =
-        candidate_squares
-        |> Enum.map(& &1.rank)
-        |> Enum.frequencies()
-        |> Map.values()
-        |> Enum.max()
+      rank_count =
+        candidate_squares |> Enum.map(& &1.rank) |> Enum.filter(&(&1 == r)) |> Enum.count()
 
       cond do
-        max_files > 1 && max_ranks > 1 -> :both
-        max_files > 1 -> :file
-        max_ranks > 1 -> :rank
+        file_count > 1 && rank_count > 1 -> :both
+        rank_count == 1 && file_count > 1 -> :rank
+        file_count > 1 -> :file
+        rank_count > 1 -> :rank
         # knights
-        max_files == 1 && max_ranks == 1 -> :file
+        file_count == 1 && rank_count == 1 -> :file
       end
     else
       false -> nil

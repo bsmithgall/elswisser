@@ -84,7 +84,15 @@ defmodule Elchesser.Move do
   end
 
   defp validate_opts(opts) do
-    {_, opts} = Keyword.validate(opts, capture: nil, promotion: nil, castle: false, checking: nil)
+    {_, opts} =
+      Keyword.validate(opts,
+        capture: nil,
+        promotion: nil,
+        castle: false,
+        checking: nil,
+        discriminator: nil
+      )
+
     opts
   end
 
