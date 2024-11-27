@@ -21,11 +21,13 @@ defmodule Elswisser.Openings do
   def find_from_game(%Elswisser.Games.Game{pgn: pgn}), do: find_from_game(pgn)
 
   def find_from_game(pgn) when is_binary(pgn) do
-    {:ok, game} = Elchesser.Pgn.parse(pgn)
-    find_from_game(game)
+    case Elchesser.Pgn.parse(pgn) do
+      {:ok, game} -> find_from_game(game)
+      {:error, _} -> {:ok, nil}
+    end
   end
 
-  def find_from_game(%Elchesser.Game{moves: []}), do: nil
+  def find_from_game(%Elchesser.Game{moves: []}), do: {:ok, nil}
 
   def find_from_game(%Elchesser.Game{moves: moves} = game) when length(moves) > 36 do
     find_from_game(%Elchesser.Game{game | moves: Enum.slice(moves, 0, 36)})
@@ -36,7 +38,7 @@ defmodule Elswisser.Openings do
 
     case get_by_pgn(opening_pgn) do
       nil -> find_from_game(%Elchesser.Game{game | moves: Enum.drop(moves, -1)})
-      %Opening{} = opening -> opening
+      %Opening{} = opening -> {:ok, opening}
     end
   end
 end

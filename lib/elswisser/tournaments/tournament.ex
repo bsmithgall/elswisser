@@ -71,9 +71,12 @@ defmodule Elswisser.Tournaments.Tournament do
   end
 
   def preload_all(query) do
-    from([round: r, match: m, game: g, white: w, black: b, player: p] in query,
+    from([round: r, match: m, game: g, white: w, black: b, player: p, opening: o] in query,
       preload: [
-        rounds: {r, matches: {m, games: {g, white: w, black: b}}, games: {g, white: w, black: b}},
+        rounds:
+          {r,
+           matches: {m, games: {g, white: w, black: b}},
+           games: {g, white: w, black: b, opening: o}},
         players: p
       ]
     )

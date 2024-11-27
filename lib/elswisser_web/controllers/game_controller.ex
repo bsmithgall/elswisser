@@ -5,7 +5,7 @@ defmodule ElswisserWeb.GameController do
   alias Elswisser.Games
 
   def show(conn, %{"id" => id}) do
-    game = Games.get_game_with_players!(id)
+    game = Games.get_game_with_players_and_opening!(id)
 
     render(conn, :show, game: game)
   end

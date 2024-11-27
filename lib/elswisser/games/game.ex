@@ -138,6 +138,14 @@ defmodule Elswisser.Games.Game do
     from([game: g, white: w, black: b] in query, preload: [white: w, black: b])
   end
 
+  def with_opening(query) do
+    from([game: g] in query, left_join: o in assoc(g, :opening), as: :opening)
+  end
+
+  def preload_opening(query) do
+    from([game: g, opening: o] in query, preload: [opening: o])
+  end
+
   def count(query) do
     from(query, select: count())
   end

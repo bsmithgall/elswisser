@@ -51,7 +51,7 @@ defmodule Mix.Tasks.Elswisser.Openings do
     from(g in Elswisser.Games.Game, where: not is_nil(g.pgn) and is_nil(g.opening_id))
     |> Elswisser.Repo.all()
     |> Enum.reduce(Ecto.Multi.new(), fn %Elswisser.Games.Game{} = game, multi ->
-      opening = Elswisser.Openings.find_from_game(game)
+      {:ok, opening} = Elswisser.Openings.find_from_game(game)
 
       Ecto.Multi.update(
         multi,

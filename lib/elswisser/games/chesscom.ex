@@ -29,8 +29,7 @@ defmodule Elswisser.Games.Chesscom do
          {:ok, httpbody} <- fetch_callback_info(game_id),
          {:ok, username, archive_month} <- parse_callback_info(httpbody),
          {:ok, archive_body} <- fetch_archive(username, archive_month),
-         {:ok, archive} <- parse_archive(archive_body),
-         {:ok, games} <- extract_pgn(archive, game_id) do
+         {:ok, games} <- extract_pgn(archive_body["games"], game_id) do
       {:ok, games}
     else
       {:error, reason} -> {:error, reason}
@@ -45,30 +44,17 @@ defmodule Elswisser.Games.Chesscom do
   end
 
   def parse_callback_info(httpbody) do
-    case Jason.decode(httpbody) do
-      {:ok, parsed} ->
-        {:ok, parsed["players"]["top"]["username"],
-         Calendar.strftime(
-           Date.from_iso8601!(String.replace(parsed["game"]["pgnHeaders"]["Date"], ".", "-")),
-           "%Y/%m"
-         )}
-
-      _ ->
-        {:error, "Could not decode Chess.com JSON response"}
-    end
+    {:ok, httpbody["players"]["top"]["username"],
+     Calendar.strftime(
+       Date.from_iso8601!(String.replace(httpbody["game"]["pgnHeaders"]["Date"], ".", "-")),
+       "%Y/%m"
+     )}
   end
 
   def fetch_archive(username, archive_month) do
     case Req.get("https://api.chess.com/pub/player/#{username}/games/#{archive_month}") do
       {:ok, %Req.Response{status: 200, body: body}} -> {:ok, body}
       _ -> {:error, "Error fetching game archive from chesscom"}
-    end
-  end
-
-  def parse_archive(httpbody) do
-    case Jason.decode(httpbody) do
-      {:ok, parsed} -> {:ok, parsed["games"]}
-      _ -> {:error, "Could not decode Chess.com JSON response"}
     end
   end
 

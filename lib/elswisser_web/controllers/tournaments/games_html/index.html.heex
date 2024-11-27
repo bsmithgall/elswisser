@@ -27,7 +27,11 @@
             phx-click={JS.navigate(~p"/tournaments/#{@tournament}/games/#{game.id}")}
             class="pl-8 hover:cursor-pointer"
           >
-            <%= game.opening_name %>
+            <%= if is_nil(game.opening) do %>
+              <%= game.opening_name %>
+            <% else %>
+              <.opening_link name={game.opening.name} />
+            <% end %>
           </td>
           <td
             phx-click={JS.navigate(~p"/tournaments/#{@tournament}/games/#{game.id}")}
