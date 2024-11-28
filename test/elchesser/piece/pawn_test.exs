@@ -64,6 +64,23 @@ defmodule Elchesser.Piece.PawnTest do
         Move.from(square, {?f, 6}, capture: :p)
       ])
     end
+
+    test "second rank and third rank, second rank cannot move to fourth rank" do
+      game = Elchesser.Fen.parse("5k2/4p3/8/8/8/1P6/1P6/5K2 w - - 0 1")
+      square = Game.get_square(game, {?b, 2})
+
+      assert Pawn.moves(square, game) == []
+
+      square = Game.get_square(game, {?b, 3})
+      assert Pawn.moves(square, game) == [Move.from(square, {?b, 4})]
+    end
+
+    test "second rank and fourth rank, second rank can move to third rank only" do
+      game = Elchesser.Fen.parse("5k2/4p3/8/8/1n6/8/1P6/5K2 w - - 0 1")
+      square = Game.get_square(game, {?b, 2})
+
+      assert Pawn.moves(square, game) == [Move.from(square, {?b, 3})]
+    end
   end
 
   describe "black pieces" do

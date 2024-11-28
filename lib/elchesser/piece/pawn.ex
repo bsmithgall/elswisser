@@ -22,10 +22,10 @@ defmodule Elchesser.Piece.Pawn do
   @impl true
   def attacks(%Square{} = square, _), do: attacks(square) |> Enum.map(&Move.from(square, &1))
 
+  @spec moves(Square.t(), Game.t(), [{integer(), integer()}], boolean()) :: [Square.t()]
   defp moves(square, game, candidates, promotion) do
     m =
-      candidates
-      |> Enum.filter(fn candidate -> Game.get_square(game, candidate) |> Square.empty?() end)
+      valid_candidates(game, candidates)
       |> Enum.map(fn {file, rank} ->
         Move.from(square, {file, rank}, promotion: promote(promotion, square.piece))
       end)
@@ -51,6 +51,21 @@ defmodule Elchesser.Piece.Pawn do
       end)
 
     Enum.concat(m, a)
+  end
+
+  defp valid_candidates(%Game{} = game, [first, second] = c) when length(c) == 2 do
+    first_empty? = Game.get_square(game, first) |> Square.empty?()
+    second_empty? = Game.get_square(game, second) |> Square.empty?()
+
+    cond do
+      not first_empty? -> []
+      not second_empty? -> [first]
+      true -> [first, second]
+    end
+  end
+
+  defp valid_candidates(%Game{} = game, [candidate] = c) when length(c) == 1 do
+    if Game.get_square(game, candidate) |> Square.empty?(), do: [candidate], else: []
   end
 
   defp attacks(%Square{piece: :P, rank: rank, file: file}) do

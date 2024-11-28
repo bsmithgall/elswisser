@@ -19,13 +19,15 @@ defmodule Mix.Tasks.Elswisser.Openings do
   import Ecto.Query
 
   @impl Mix.Task
-  def run(_args) do
+  def run(_args), do: run()
+
+  def run() do
     {:ok, _} = Application.ensure_all_started(:req)
 
     ~w[a b c d e]
     |> Enum.map(&url/1)
     |> Enum.map(fn url ->
-      Mix.shell().info("Downloading table from #{url}")
+      IO.puts("Downloading table from #{url}")
       Req.get!(url).body
     end)
     |> Enum.flat_map(fn body ->
@@ -46,18 +48,24 @@ defmodule Mix.Tasks.Elswisser.Openings do
     end)
     |> Elswisser.Repo.transaction()
 
-    Mix.shell().info("Openings loaded, attaching to current games!")
+    IO.puts("Openings loaded, attaching to current games!")
 
     from(g in Elswisser.Games.Game, where: not is_nil(g.pgn) and is_nil(g.opening_id))
     |> Elswisser.Repo.all()
     |> Enum.reduce(Ecto.Multi.new(), fn %Elswisser.Games.Game{} = game, multi ->
-      {:ok, opening} = Elswisser.Openings.find_from_game(game)
+      try do
+        {:ok, opening} = Elswisser.Openings.find_from_game(game)
 
-      Ecto.Multi.update(
-        multi,
-        game.id,
-        Elswisser.Games.Game.changeset(game, %{opening_id: opening.id})
-      )
+        Ecto.Multi.update(
+          multi,
+          game.id,
+          Elswisser.Games.Game.changeset(game, %{opening_id: opening.id})
+        )
+      rescue
+        _ ->
+          IO.puts("Bad game: #{game.id}")
+          multi
+      end
     end)
     |> Elswisser.Repo.transaction()
   end
