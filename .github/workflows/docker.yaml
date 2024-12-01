@@ -2,9 +2,11 @@ name: Docker Image CI
 
 # Temporarily disabled until a bug with QEMU/OTP's JIT compiler is resolved. See
 # here: https://elixirforum.com/t/elixir-docker-image-wont-build-for-linux-arm64-v8-using-github-actions/56383/11
-# on:
-#   push:
-#     branches: ["main", "releases"]
+on:
+  push:
+    branches: ["main", "docker-env-var"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
   build:
@@ -34,9 +36,13 @@ jobs:
           username: ${{github.action}}
           password: ${{secrets.GITHUB_TOKEN}}
 
+      - name: "Set JPperf"
+        run: |
+          echo 'ERL_AFLAGS="+JPperf true"' >> $GITHUB_ENV
+
       - name: "Build the docker image"
         run: |
           docker build . --platform linux/arm64 \
-            -t ghcr.io/bsmithgall/elswisser:0.1-${GITHUB_SHA::6} \
+            -t ghcr.io/bsmithgall/elswisser:0.16-${GITHUB_SHA::6} \
             -t ghcr.io/bsmithgall/elswisser:latest
           docker push --all-tags ghcr.io/bsmithgall/elswisser
