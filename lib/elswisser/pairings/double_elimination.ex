@@ -1,14 +1,15 @@
 defmodule Elswisser.Pairings.DoubleElimination do
   use Ecto.Schema
 
+  alias Elswisser.Games.Game
   alias Elswisser.Matches
+  alias Elswisser.Matches.Match
   alias Elswisser.Pairings.BracketPairing
+  alias Elswisser.Pairings.BracketWorker
+  alias Elswisser.Pairings.Bye
   alias Elswisser.Repo
   alias Elswisser.Rounds.Round
-  alias Elswisser.Pairings.BracketWorker
   alias Elswisser.Tournaments.Tournament
-  alias Elswisser.Matches.Match
-  alias Elswisser.Games.Game
 
   @primary_key false
   embedded_schema do
@@ -23,8 +24,11 @@ defmodule Elswisser.Pairings.DoubleElimination do
 
   def create_all(%Tournament{} = tournament) do
     players = Enum.sort_by(tournament.players, & &1.rating, :desc)
+    size = BracketPairing.next_power_of_two(players)
 
-    with {:ok, raw_matches, rounds} <- BracketWorker.generate_bracket(players),
+    byes = -1..(-1 * (size - length(players)))//-1 |> Enum.map(&Bye.bye_player(&1))
+
+    with {:ok, raw_matches, rounds} <- BracketWorker.generate_bracket(players ++ byes),
          matches <- Enum.map(raw_matches, &parse(&1, players, tournament.id)),
          {:ok, rounds_multi} <-
            make_round_multi(matches, rounds, tournament.id) |> Repo.transaction(),
@@ -73,8 +77,8 @@ defmodule Elswisser.Pairings.DoubleElimination do
   end
 
   def parse(m, players, tournament_id) do
-    player_one_idx = Enum.find_index(players, &(&1.id == m["player1"]))
-    player_two_idx = Enum.find_index(players, &(&1.id == m["player2"]))
+    {player_one_seed, player_one} = find_player(m["player1"], players)
+    {player_two_seed, player_two} = find_player(m["player2"], players)
 
     %__MODULE__{
       round_number: m["round"],
@@ -85,10 +89,10 @@ defmodule Elswisser.Pairings.DoubleElimination do
       loser_match: if(m["loss"], do: m["loss"]["match"]),
       pairing: %BracketPairing{
         tournament_id: tournament_id,
-        player_one: if(not is_nil(player_one_idx), do: Enum.at(players, player_one_idx)),
-        player_one_seed: if(not is_nil(player_one_idx), do: player_one_idx + 1),
-        player_two: if(not is_nil(player_two_idx), do: Enum.at(players, player_two_idx)),
-        player_two_seed: if(not is_nil(player_two_idx), do: player_two_idx + 1),
+        player_one: player_one,
+        player_one_seed: player_one_seed,
+        player_two: player_two,
+        player_two_seed: player_two_seed,
         display_order: m["match"]
       }
     }
@@ -268,5 +272,12 @@ defmodule Elswisser.Pairings.DoubleElimination do
       |> hd()
       |> then(fn game -> Game.changeset(game, Game.take_seat(game, player, seed)) end)
     )
+  end
+
+  defp find_player(id, _) when id < 0, do: {nil, Bye.bye_player()}
+
+  defp find_player(id, players) do
+    idx = players |> Enum.find_index(&(&1.id == id))
+    if is_nil(idx), do: {nil, nil}, else: {idx + 1, Enum.at(players, idx)}
   end
 end

@@ -18,6 +18,7 @@ defmodule Elswisser.Pairings.BracketPairing do
     field :player_two_seed, :integer
     field :display_order, :integer
     field :tournament_id, :integer
+    field :result, :integer
   end
 
   @doc """
@@ -108,7 +109,7 @@ defmodule Elswisser.Pairings.BracketPairing do
   end
 
   def to_game_params(%__MODULE__{} = pairing, round_id) do
-    %{
+    base = %{
       white_id: if(pairing.player_one, do: pairing.player_one.id),
       white_rating: if(pairing.player_one, do: pairing.player_one.rating),
       white_seed: pairing.player_one_seed,
@@ -118,6 +119,8 @@ defmodule Elswisser.Pairings.BracketPairing do
       tournament_id: pairing.tournament_id,
       round_id: round_id
     }
+
+    if base.black_id == Bye.bye_player().id, do: base |> Map.merge(%{result: 1}), else: base
   end
 
   def assign_colors(%__MODULE__{player_two: player_two} = pairing)
