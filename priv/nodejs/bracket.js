@@ -140,6 +140,7 @@ function DoubleElimination(playerArray, startingRound = 1) {
       for (let i = 0; i < 2 ** (Math.floor(exponent) - 1); i++) {
         matches.push({
           round: round,
+          round_type,
           match: i + 1,
           player1: null,
           player2: null,
