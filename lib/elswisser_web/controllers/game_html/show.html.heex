@@ -1,5 +1,5 @@
 <.header class="pt-4">
-  Game <%= @game.id %>
+  Game {@game.id}
   <:actions>
     <.link href={~p"/tournaments/#{@game.tournament_id}/games/#{@game}/edit"}>
       <.button>Edit game</.button>
@@ -15,7 +15,7 @@
     <.opening_link name={@game.opening.name} />
   </:item>
   <:item :if={!is_nil(@game.pgn)} title="Game" split_title>
-    <%= live_render(@conn, ElswisserWeb.LiveComponents.Pgn,
+    {live_render(@conn, ElswisserWeb.LiveComponents.Pgn,
       id: "pgn",
       session: %{
         "game_link" => @game.game_link,
@@ -24,7 +24,7 @@
         "white_player" => @game.white.name,
         "black_player" => @game.black.name
       }
-    ) %>
+    )}
   </:item>
   <:item :if={!is_nil(@game.game_link)} title="Game Link">
     <.link class="text-cyan-600 underline" href={@game.game_link} target="_blank">

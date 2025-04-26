@@ -4,7 +4,7 @@
 
 <%= for rnd <- @tournament.rounds do %>
   <div class="mb-8">
-    <.section_title>Round <%= rnd.number %></.section_title>
+    <.section_title>Round {rnd.number}</.section_title>
 
     <table class="w-[40rem] sm:w-full table-fixed">
       <thead class="text-sm leading-4 text-zinc-500">
@@ -28,7 +28,7 @@
             class="pl-8 hover:cursor-pointer"
           >
             <%= if is_nil(game.opening) do %>
-              <%= game.opening_name %>
+              {game.opening_name}
             <% else %>
               <.opening_link name={game.opening.name} />
             <% end %>

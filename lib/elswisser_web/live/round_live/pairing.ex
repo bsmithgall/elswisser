@@ -31,7 +31,7 @@ defmodule ElswisserWeb.RoundLive.Pairing do
           Auto-pair remaining players
         </.success_button>
         <.section_title class="text-xs uppercase mb-4">
-          or select player for pairing (<%= @color %> pieces)
+          or select player for pairing ({@color} pieces)
         </.section_title>
         <.select_player
           players={@players}

@@ -16,7 +16,7 @@ defmodule ElswisserWeb.Brackets.Shared do
     ~H"""
     <div class={[@class, "flex flex-col", @grow && "grow"]}>
       <.section_title :if={@round_number} class="text-center">
-        Round <%= @round_number %>
+        Round {@round_number}
       </.section_title>
       <%= for _ <- 1..@match_count do %>
         <.match />
@@ -36,7 +36,7 @@ defmodule ElswisserWeb.Brackets.Shared do
           href={~p"/tournaments/#{@round.tournament_id}/rounds/#{@round}"}
           class="hover:underline"
         >
-          <%= @round.display_name %>
+          {@round.display_name}
         </.link>
       </.section_title>
       <%= for match <- @sorted do %>

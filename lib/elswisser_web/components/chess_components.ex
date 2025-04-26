@@ -102,7 +102,7 @@ defmodule ElswisserWeb.ChessComponents do
             class={["hover:underline", @highlight && "font-bold"]}
             href={~p"/players/#{@player.id}"}
           >
-            <%= @player.name %><span :if={@rating}> (<%= @rating %>)</span>
+            {@player.name}<span :if={@rating}> (<%= @rating %>)</span>
           </.link>
         </span>
       </div>
@@ -177,7 +177,7 @@ defmodule ElswisserWeb.ChessComponents do
 
     ~H"""
     <span class="inline-block text-xs text-center align-text-bottom rounded-lg bg-zinc-200 w-4 h-4 mr-1 -ml-1">
-      <%= @seed %>
+      {@seed}
     </span>
     """
   end
@@ -215,19 +215,19 @@ defmodule ElswisserWeb.ChessComponents do
 
   def rating_change(%{change: change} = assigns) when change > 0 do
     ~H"""
-    <span class="text-emerald-600">+<%= @change %></span>
+    <span class="text-emerald-600">+{@change}</span>
     """
   end
 
   def rating_change(%{change: 0} = assigns) do
     ~H"""
-    <span>+<%= @change %></span>
+    <span>+{@change}</span>
     """
   end
 
   def rating_change(%{change: change} = assigns) when change < 0 do
     ~H"""
-    <span class="text-red-600"><%= @change %></span>
+    <span class="text-red-600">{@change}</span>
     """
   end
 
@@ -252,11 +252,11 @@ defmodule ElswisserWeb.ChessComponents do
     ~H"""
     <div class={[@class]}>
       <span class={[!@nopad && "pr-1", @result == 1 && "font-bold"]}>
-        <%= @white %> <%= raw(@white_result) %>
+        {@white} {raw(@white_result)}
       </span>
       &#8212;
       <span class={[!@nopad && "pl-1", @result == -1 && "font-bold"]}>
-        <%= @black %> <%= raw(@black_result) %>
+        {@black} {raw(@black_result)}
       </span>
       <span :if={is_nil(@result)}>(Unplayed)</span>
     </div>
@@ -309,17 +309,17 @@ defmodule ElswisserWeb.ChessComponents do
 
     ~H"""
     <div class="w-full">
-      <.header><span class={@black && "text-boardwhite-lighter"}><%= @player.name %></span></.header>
+      <.header><span class={@black && "text-boardwhite-lighter"}>{@player.name}</span></.header>
 
       <.condensed_list
         dt_color={if @black, do: "text-boardwhite-lighter", else: "text-zinc-500"}
         dd_color={if @black, do: "text-boardwhite", else: "text-zinc-700"}
         divide_color={if @black, do: "divide-boardblack-lighter", else: "divide-boardwhite-darker"}
       >
-        <:item title="Score"><%= @score %></:item>
-        <:item title="Rating"><%= @player.rating %></:item>
-        <:item title="White Games"><%= length(@player.white_games) %></:item>
-        <:item title="Black Games"><%= length(@player.black_games) %></:item>
+        <:item title="Score">{@score}</:item>
+        <:item title="Rating">{@player.rating}</:item>
+        <:item title="White Games">{length(@player.white_games)}</:item>
+        <:item title="Black Games">{length(@player.black_games)}</:item>
       </.condensed_list>
     </div>
     <hr class={[
@@ -399,7 +399,7 @@ defmodule ElswisserWeb.ChessComponents do
   def opening_link(assigns) do
     ~H"""
     <.link class="text-cyan-600 underline" href={"https://lichess.org/opening/#{@name}"}>
-      <%= @name %>
+      {@name}
     </.link>
     """
   end

@@ -49,7 +49,7 @@ defmodule ElswisserWeb.PairShare do
   def share_player(assigns) do
     ~H"""
     <div class="text-base font-bold">
-      <%= @player.name %>
+      {@player.name}
       <div
         :if={!is_nil(@player.chesscom) or !is_nil(@player.lichess)}
         class={[
@@ -59,11 +59,11 @@ defmodule ElswisserWeb.PairShare do
       >
         <span :if={@player.chesscom} class="flex items-center gap-1">
           <.icon name="icon-chesscom" class="bg-green-400 opacity-70" />
-          <%= @player.chesscom %>
+          {@player.chesscom}
         </span>
         <span :if={@player.lichess} class="flex items-center gap-1">
           <.icon name="icon-lichess" />
-          <%= @player.lichess %>
+          {@player.lichess}
         </span>
       </div>
     </div>

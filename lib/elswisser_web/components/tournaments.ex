@@ -18,7 +18,7 @@ defmodule ElswisserWeb.TournamentLayouts do
       phx-click={JS.navigate(@href)}
     >
       <span :if={@icon != nil} class={[@icon, @icon_class, "-mt-1"]} />
-      <a href={@href}><%= @label %></a>
+      <a href={@href}>{@label}</a>
     </div>
     """
   end

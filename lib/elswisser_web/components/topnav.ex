@@ -66,7 +66,7 @@ defmodule ElswisserWeb.Topnav do
               </button>
             </div>
             <div :if={@inner_hamburger != []}>
-              <%= render_slot(@inner_hamburger) %>
+              {render_slot(@inner_hamburger)}
             </div>
           </div>
           <div>
@@ -104,7 +104,7 @@ defmodule ElswisserWeb.Topnav do
       phx-click={JS.navigate(@href)}
     >
       <span :if={@icon != nil} class={[@icon, @icon_class, "-mt-1"]} />
-      <a href={@href}><%= @label %></a>
+      <a href={@href}>{@label}</a>
     </li>
     """
   end
