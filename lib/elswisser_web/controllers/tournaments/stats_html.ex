@@ -50,7 +50,7 @@ defmodule ElswisserWeb.Tournaments.StatsHTML do
       <span :if={@is_self}><.icon name="hero-x-mark-solid" /></span>
       <span :if={is_nil(@result)}></span>
       <span :if={@result == 0.5}>&half;</span>
-      <span :if={@result != 0.5}><%= @result %></span>
+      <span :if={@result != 0.5}>{@result}</span>
     </td>
     """
   end
@@ -68,7 +68,7 @@ defmodule ElswisserWeb.Tournaments.StatsHTML do
     assigns = assigns |> assign(:p, (assigns.top / assigns.bot * 100) |> Float.round(1))
 
     ~H"""
-    <span class="text-[10px]">(<%= @p %>%)</span>
+    <span class="text-[10px]">({@p}%)</span>
     """
   end
 
@@ -77,7 +77,7 @@ defmodule ElswisserWeb.Tournaments.StatsHTML do
   def player_link(assigns) do
     ~H"""
     <.link class="underline" href={~p"/players/#{@player}"}>
-      <%= @player.name %> (<%= @player.rating %>)
+      {@player.name} ({@player.rating})
     </.link>
     """
   end

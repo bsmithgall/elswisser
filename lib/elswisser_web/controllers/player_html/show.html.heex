@@ -1,5 +1,5 @@
 <.header>
-  <%= @player.name %>
+  {@player.name}
   <:actions>
     <.link :if={@current_user} href={~p"/players/#{@player}/edit"}>
       <.button>Edit player</.button>
@@ -8,8 +8,8 @@
 </.header>
 
 <.condensed_list>
-  <:item title="Rating"><%= @player.rating %></:item>
-  <:item title="Record"><%= @record.wins %>W-<%= @record.draws %>D-<%= @record.losses %>L</:item>
+  <:item title="Rating">{@player.rating}</:item>
+  <:item title="Record">{@record.wins}W-{@record.draws}D-{@record.losses}L</:item>
   <:item title="Chess.com username">
     <.icon :if={@player.chesscom} name="icon-chesscom" />
     <a
@@ -18,7 +18,7 @@
       target="_blank"
       href={"https://chess.com/member/#{@player.chesscom}"}
     >
-      <%= @player.chesscom %>
+      {@player.chesscom}
     </a>
     <span :if={is_nil(@player.chesscom)}>-</span>
   </:item>
@@ -30,7 +30,7 @@
       target="_blank"
       href={"https://lichess.org/@/#{@player.lichess}"}
     >
-      <%= @player.lichess %>
+      {@player.lichess}
     </a>
     <span :if={is_nil(@player.lichess)}>-</span>
   </:item>
@@ -61,7 +61,7 @@
     <.rating_change :if={@player.id == game.black_id} change={game.black_rating_change} />
   </:col>
   <:col :let={game} label="Finished" center>
-    <%= if is_nil(game.finished_at), do: "-", else: Timex.from_now(game.finished_at) %>
+    {if is_nil(game.finished_at), do: "-", else: Timex.from_now(game.finished_at)}
   </:col>
 </.table>
 

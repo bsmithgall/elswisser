@@ -52,7 +52,7 @@ defmodule ElswisserWeb.Brackets.DoubleElimination do
           href={~p"/tournaments/#{@round.tournament_id}/rounds/#{@round}"}
           class="hover:underline"
         >
-          <%= @round.display_name %>
+          {@round.display_name}
         </.link>
       </.section_title>
       <%= for match <- @sorted do %>

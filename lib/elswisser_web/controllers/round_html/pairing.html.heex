@@ -1,5 +1,5 @@
 <.header class="pt-4">
-  Round <%= @round.number %> pairings
+  Round {@round.number} pairings
   <:actions>
     <.link href={~p"/tournaments/#{@round.tournament_id}/rounds/#{@round}"}>
       <.button>View games</.button>
@@ -7,7 +7,7 @@
   </:actions>
 </.header>
 
-<%= live_render(
+{live_render(
   @conn,
   ElswisserWeb.RoundLive.Pairing,
   session: %{
@@ -16,4 +16,4 @@
     "tournament_id" => @tournament.id,
     "roster" => @tournament.players
   }
-) %>
+)}

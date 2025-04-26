@@ -1,4 +1,4 @@
-<%= live_render(
+{live_render(
   @conn,
   ElswisserWeb.RoundLive.Round,
   session: %{
@@ -6,4 +6,4 @@
     "tournament_type" => @tournament.type,
     "current_user" => @current_user
   }
-) %>
+)}

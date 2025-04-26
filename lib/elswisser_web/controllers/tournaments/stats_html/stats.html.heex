@@ -4,25 +4,25 @@
 
 <.table rows={@stats ++ [@tournament_stats]} id="stats" striped>
   <:col :let={stat} label="#">
-    <%= if is_nil(stat.round), do: "Σ", else: "#{stat.round.display_name}" %>
+    {if is_nil(stat.round), do: "Σ", else: "#{stat.round.display_name}"}
   </:col>
   <:col :let={stat} label="White wins" center>
-    <%= stat.white_wins %>
+    {stat.white_wins}
     <.percentage top={stat.white_wins} bot={stat.total} />
   </:col>
   <:col :let={stat} label="Black wins" center>
-    <%= stat.black_wins %>
+    {stat.black_wins}
     <.percentage top={stat.black_wins} bot={stat.total} />
   </:col>
   <:col :let={stat} label="Draws" center>
-    <%= stat.draws %>
+    {stat.draws}
     <.percentage top={stat.draws} bot={stat.total} />
   </:col>
   <:col :let={stat} label="Upsets" center>
-    <%= stat.upsets %>
+    {stat.upsets}
     <.percentage top={stat.upsets} bot={stat.total} />
   </:col>
-  <:col :let={stat} label="Total" center><%= stat.total %></:col>
+  <:col :let={stat} label="Total" center>{stat.total}</:col>
 </.table>
 
 <div class="mb-8">
@@ -31,12 +31,12 @@
   </.header>
 
   <.table rows={@opening_stats} id="openings">
-    <:col :let={stat} label="Opening Name"><%= stat.opening_name %></:col>
+    <:col :let={stat} label="Opening Name">{stat.opening_name}</:col>
     <:col :let={stat} label="ECO">
       <a class="underline" href={"https://www.365chess.com/eco/#{stat.eco}"} target="_blank">
-        <%= stat.eco %>
+        {stat.eco}
       </a>
     </:col>
-    <:col :let={stat} label="#"><%= stat.count %></:col>
+    <:col :let={stat} label="#">{stat.count}</:col>
   </.table>
 </div>

@@ -21,7 +21,7 @@ defmodule ElchesserWeb.Moves do
         <tbody>
           <%= for {moves, number} <- @moves |> Enum.with_index() |> Enum.chunk_every(2) |> Enum.with_index(1) do %>
             <tr>
-              <td class="w-8"><%= number %>.</td>
+              <td class="w-8">{number}.</td>
               <%= for {move, idx} <- moves do %>
                 <td
                   class={[
@@ -33,7 +33,7 @@ defmodule ElchesserWeb.Moves do
                   phx-value-idx={idx}
                   phx-target={@target}
                 >
-                  <span class="m-1"><%= move.san %></span>
+                  <span class="m-1">{move.san}</span>
                 </td>
               <% end %>
             </tr>

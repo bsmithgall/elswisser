@@ -77,7 +77,7 @@ defmodule ElswisserWeb.RoundLive.Round do
       show
       on_cancel={hide_modal("game-info") |> JS.push("hide-game-info")}
     >
-      <.header class="pb-4">Round <%= @round.number %> matchup</.header>
+      <.header class="pb-4">Round {@round.number} matchup</.header>
       <.matchup white={assigns[:white]} black={assigns[:black]} />
     </.modal>
 
@@ -130,7 +130,7 @@ defmodule ElswisserWeb.RoundLive.Round do
     />
 
     <div id="pair-share" class="mt-11 bg-white">
-      <.header class="text-center mb-6">Round <%= @round.number %> Games</.header>
+      <.header class="text-center mb-6">Round {@round.number} Games</.header>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
         <ElswisserWeb.PairShare.share_card :for={game <- @games} game={game} />
       </div>
@@ -283,7 +283,7 @@ defmodule ElswisserWeb.RoundLive.Round do
       <.icon :if={@win} name="hero-trophy" />
       <.icon :if={@draw} name="hero-scale" />
     </span>
-    <%= @player.name %>
+    {@player.name}
     """
   end
 

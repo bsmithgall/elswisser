@@ -299,6 +299,7 @@ defmodule Elswisser.Tournaments do
   def get_roster(tournament_id) when is_nil(tournament_id) do
     Elswisser.Players.list_players()
     |> Enum.map(fn p -> Map.merge(p, %{in_tournament: false}) end)
+    |> Enum.sort_by(& &1.name)
     |> Enum.split(0)
   end
 
@@ -318,6 +319,7 @@ defmodule Elswisser.Tournaments do
     )
     |> Repo.all()
     |> Enum.map(fn {p, tid} -> Map.merge(p, %{in_tournament: !is_nil(tid)}) end)
+    |> Enum.sort_by(& &1.name)
     |> Enum.split_with(fn p -> p.in_tournament end)
   end
 

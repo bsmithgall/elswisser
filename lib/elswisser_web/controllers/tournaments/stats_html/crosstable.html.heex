@@ -15,7 +15,7 @@
           <th class="w-12 py-2 border-r border-zinc-200"></th>
           <%= @scores |> Enum.with_index() |> Enum.map(fn {_player, idx} -> %>
             <th class="border-r border-zinc-200 w-8 py-2">
-              <%= idx + 1 %>
+              {idx + 1}
             </th>
           <% end) %>
         </tr>
@@ -24,7 +24,7 @@
         <%= @scores |> Enum.with_index() |> Enum.map(fn {outer, idx} -> %>
           <tr class={["group", Integer.is_even(idx) && "bg-zinc-100"]}>
             <td class="text-sm text-zinc-500 border border-zinc-200 w-8 font-bold">
-              <%= idx + 1 %>
+              {idx + 1}
             </td>
             <td class="text-zinc-800 border  border-zinc-200 break-words text-left pl-4">
               <.player_link player={outer.player} />

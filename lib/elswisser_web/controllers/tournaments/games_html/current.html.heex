@@ -10,14 +10,14 @@
         Generate Pairing SVG
       </.success_button>
       <%= if not is_nil(@current_user) and @slack_enabled do %>
-        <%= live_render(@conn, ElswisserWeb.LiveComponents.SlackNotify,
+        {live_render(@conn, ElswisserWeb.LiveComponents.SlackNotify,
           session: %{
             "tournament_id" => @tournament.id,
             "tournament_name" => @tournament.name,
             "type" => :current
           },
           container: {:div, class: "contents"}
-        ) %>
+        )}
       <% end %>
     </div>
   </:actions>
@@ -25,7 +25,7 @@
 
 <div id="pair-share" class="mt-11 bg-white">
   <div :for={{rnd_name, games} <- @active_games}>
-    <.section_title><%= rnd_name %></.section_title>
+    <.section_title>{rnd_name}</.section_title>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
       <ElswisserWeb.PairShare.share_card :for={game <- games} game={game} />
     </div>

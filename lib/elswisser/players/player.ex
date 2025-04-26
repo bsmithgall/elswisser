@@ -81,6 +81,12 @@ defmodule Elswisser.Players.Player do
     query |> with_white_games() |> with_black_games()
   end
 
+  def order_by_name(query) do
+    from([player: p] in query,
+      order_by: p.name
+    )
+  end
+
   defp with_white_games(query) do
     from(p in query,
       left_join: w in assoc(p, :white_games),
