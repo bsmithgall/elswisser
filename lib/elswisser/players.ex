@@ -21,7 +21,7 @@ defmodule Elswisser.Players do
 
   """
   def list_players do
-    Player.from() |> Player.excluding_bye_player() |> Repo.all()
+    Player.from() |> Player.excluding_bye_player() |> Player.order_by_name() |> Repo.all()
   end
 
   def list_by_id(nil), do: list_by_id([])
