@@ -113,6 +113,16 @@ defmodule Elchesser.PgnTest do
     assert length(game.moves) == 39
   end
 
+  test "works as expected with annoying explicit whitespace characters in random places" do
+    {:ok, game} =
+      Elchesser.Pgn.parse(
+        "[Event \"Let\\'s Play!\"]\n[Site \"Chess.com\"]\n[Date \"2025.04.27\"]\n[Round \"?\"]\n[White \"gregg_76\"]\n[Black \"BillaudPPP\"]\n[Result \"0-1\"]\n[TimeControl \"1/86400\"]\n[WhiteElo \"321\"]\n[BlackElo \"758\"]\n[Termination \"BillaudPPP won by checkmate\"]\n[ECO \"A45\"]\n[EndDate \"2025.04.27\"]\n[Link \"https://www.chess.com/game/daily/807002428?move=0\"]\n\n1. e3 Nf6 2. d4 d6 3. Nf3 g6 4. Be2 Bg7 5. O-O O-O 6. Nc3 a6 7. a4 c6 8. e4 Nbd7\n9. Bf4 Re8 10. Nh4 e5 11. dxe5 dxe5 12. Bxe5 Nxe5 13. f4 Qxd1 14. Rfxd1 Neg4 15.\nRf1 Nxe4 16. Rf2 Nexf2 17. Nf5 Bxf5 18. Bxg4 Nxg4 19. Nd5 Bd4+ 20. Kh1 Nf2+ 21.\nKg1 Bxc2 22. Rf1 Nh3+ 23. Kh1 Be4 24. Re1 Bxd5 25. Rxe8+ Rxe8 26. f5 Re1#\n{[%c_effect\ng8;square;g8;type;Winner;animated;true;keyPressed;undefined;persistent;true,h1;square;h1;type;CheckmateWhite;animated;true;keyPressed;undefined;persistent;true]}\n0-1\n"
+      )
+
+    assert game.result == :black
+    assert length(game.moves) == 52
+  end
+
   test "works as expected with Lichess annotations" do
     {:ok, game} =
       Elchesser.Pgn.parse("""

@@ -11,9 +11,7 @@ defmodule Elchesser.Pgn.ParserHelpers do
     |> ignore(repeat(ascii_char([?\s])))
     |> ignore(ascii_char(~c'"'))
     |> concat(tag_value())
-    |> ignore(string("\""))
-    |> ignore(repeat(ascii_char([?\s])))
-    |> ignore(string("]"))
+    |> ignore(eventually(ascii_char(~c"]")))
     |> wrap
   end
 
@@ -52,15 +50,15 @@ defmodule Elchesser.Pgn.ParserHelpers do
     do: optional(whitespace()) |> concat(string("$")) |> concat(ascii_char([?0..?9]))
 
   def move do
-    ignore(repeat(whitespace()))
+    optional(ignore(repeat(whitespace())))
     |> optional(ignore(move_number()))
-    |> optional(ignore(whitespace()))
+    |> optional(ignore(repeat(whitespace())))
     |> concat(move_text())
     |> optional(ignore(weird_chesscom_errata()))
     |> optional(ignore(repeat(annotation())))
     |> optional(ignore(repeat(comments())))
     |> optional(ignore(repeat(alternates())))
-    |> optional(ignore(concat(whitespace(), termination_marker())))
+    |> optional(ignore(concat(repeat(whitespace()), termination_marker())))
   end
 
   def tag_pairs, do: tag() |> times(min: 7) |> ignore(repeat(ascii_char(~c"\r\n")))

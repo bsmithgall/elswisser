@@ -204,7 +204,7 @@ defmodule ElswisserWeb.RoundLive.Round do
   end
 
   @impl true
-  def handle_event("unpair-players", %{"game_id" => id}, socket) do
+  def handle_event("unpair-players", %{"game-id" => id}, socket) do
     game = find_game(socket, id)
 
     with {:ok, _} <- Matches.delete_from_game(game),
@@ -365,7 +365,7 @@ defmodule ElswisserWeb.RoundLive.Round do
     <button
       :if={@signed_in && @swiss}
       phx-click="unpair-players"
-      phx-value-id={@game.id}
+      phx-value-game-id={@game.id}
       disabled={!is_nil(@game.result) && !@bye}
       class="disabled:text-zinc-400 disabled:cursor-not-allowed"
       title="Unpair players"
