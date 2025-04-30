@@ -23,7 +23,7 @@ defmodule Elchesser.Game do
           active: :w | :b,
           check: boolean(),
           castling: %MapSet{},
-          en_passant: Square.t() | nil,
+          en_passant: {number(), number()} | nil,
           half_moves: number(),
           full_moves: number(),
           moves: [Move.t()],

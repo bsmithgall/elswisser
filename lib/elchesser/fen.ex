@@ -77,9 +77,7 @@ defmodule Elchesser.Fen do
   end
 
   defp parse_en_passant("-"), do: {:ok, nil}
-
-  defp parse_en_passant(<<file, rank::8>>),
-    do: {:ok, Square.from(file, rank - 48, nil)}
+  defp parse_en_passant(<<file, rank::8>>), do: {:ok, {file, rank - 48}}
 
   defp parse_half_moves(h) do
     case Integer.parse(h) do

@@ -214,4 +214,66 @@ defmodule Elchesser.BoardTest do
       assert Move.san(move) == "Qb4d2#"
     end
   end
+
+  describe "en-passant" do
+    test "works properly with the white pieces" do
+      #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
+      # 8 │ ♜ │   │ ♝ │ ♛ │ ♜ │   │ ♚ │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 7 │ ♟ │ ♟ │ ♟ │   │ ♞ │ ♟ │ ♝ │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 6 │   │   │ ♞ │   │   │   │   │ ♟ │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 5 │   │   │   │ ♟ │ ♙ │   │ ♟ │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 4 │   │   │ ♗ │ ♙ │ ♕ │ ♟ │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 3 │   │   │ ♙ │   │   │ ♘ │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 2 │ ♙ │ ♙ │   │   │   │   │ ♙ │ ♙ │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 1 │ ♖ │ ♘ │ ♗ │   │   │ ♖ │ ♔ │   │
+      #   └───┴───┴───┴───┴───┴───┴───┴───┘
+      #     a   b   c   d   e   f   g   h
+      game = Elchesser.Fen.parse("r1bqr1k/ppp1npb/2n4p/3pP1p/2BPQp/2P2N/PP4PP/RNB2RK w - d6 0 11")
+
+      {:ok, m} = Move.SanParser.parse("exd6", game)
+      {:ok, {move, game}} = Board.move(game, m)
+
+      assert move.capture == :p
+      assert Map.get(game.board, {?d, 5}).piece == nil
+      assert Map.get(game.board, {?e, 5}).piece == nil
+      assert Map.get(game.board, {?d, 6}).piece == :P
+    end
+
+    test "works properly with the black pieces" do
+      #   ┌───┬───┬───┬───┬───┬───┬───┬───┐
+      # 8 │ ♜ │ ♞ │ ♝ │ ♛ │ ♚ │ ♝ │ ♞ │ ♜ │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 7 │ ♟ │ ♟ │ ♟ │   │ ♟ │ ♟ │ ♟ │ ♟ │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 6 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 5 │   │   │   │   │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 4 │   │   │ ♙ │ ♟ │   │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 3 │   │   │   │ ♙ │ ♙ │   │   │   │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 2 │ ♙ │ ♙ │   │   │   │ ♙ │ ♙ │ ♙ │
+      #   ├───┼───┼───┼───┼───┼───┼───┼───┤
+      # 1 │ ♖ │ ♘ │ ♗ │ ♕ │ ♔ │ ♗ │ ♘ │ ♖ │
+      #   └───┴───┴───┴───┴───┴───┴───┴───┘
+      #     a   b   c   d   e   f   g   h
+      game = Elchesser.Fen.parse("rnbqkbnr/ppp1pppp/8/8/2Pp4/3PP3/PP3PPP/RNBQKBNR b KQkq c3 0 3")
+
+      {:ok, m} = Move.SanParser.parse("dxc3", game)
+      {:ok, {move, game}} = Board.move(game, m)
+
+      assert move.capture == :P
+      assert Map.get(game.board, {?c, 4}).piece == nil
+      assert Map.get(game.board, {?d, 4}).piece == nil
+      assert Map.get(game.board, {?c, 3}).piece == :p
+    end
+  end
 end

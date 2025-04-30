@@ -20,7 +20,7 @@ defmodule Elchesser.Board do
           {:ok, {Move.t(), Game.t()}} | {:error, :atom}
   def raw_move(%Game{} = game, %Move{} = move) do
     with {:ok, {piece, game}} <- move_from(game, move.from),
-         {:ok, {capture, game}} <- move_to(game, move.to, piece) do
+         {:ok, {capture, game}} <- move_to(game, move, piece) do
       {:ok, {%{move | capture: capture, piece: piece}, game}}
     end
   end
@@ -94,13 +94,37 @@ defmodule Elchesser.Board do
     end
   end
 
-  @spec move_to(Game.t(), {number(), number()}, Piece.t()) ::
+  @spec move_to(Game.t(), Move.t(), Piece.t()) ::
           {:ok, {Piece.t?(), Game.t()}} | {:error, atom()}
-  def move_to(%Game{board: board} = game, loc, piece) do
+  def move_to(%Game{board: board, en_passant: en_passant} = game, %Move{to: {f, r} = loc}, :P)
+      when loc == en_passant do
+    {_, board} =
+      Map.get_and_update(board, loc, fn current -> {current, %Square{current | piece: :P}} end)
+
     {%Square{piece: capture}, board} =
-      Map.get_and_update(board, loc, fn current ->
-        {current, %Square{current | piece: piece}}
+      Map.get_and_update(board, {f, r - 1}, fn current ->
+        {current, %Square{current | piece: nil}}
       end)
+
+    {:ok, {capture, %Game{game | board: board}}}
+  end
+
+  def move_to(%Game{board: board, en_passant: en_passant} = game, %Move{to: {f, r} = loc}, :p)
+      when loc == en_passant do
+    {_, board} =
+      Map.get_and_update(board, loc, fn current -> {current, %Square{current | piece: :p}} end)
+
+    {%Square{piece: capture}, board} =
+      Map.get_and_update(board, {f, r + 1}, fn current ->
+        {current, %Square{current | piece: nil}}
+      end)
+
+    {:ok, {capture, %Game{game | board: board}}}
+  end
+
+  def move_to(%Game{board: board} = game, %Move{to: loc}, piece) do
+    {%Square{piece: capture}, board} =
+      Map.get_and_update(board, loc, fn current -> {current, %Square{current | piece: piece}} end)
 
     case Piece.friendly?(piece, capture) do
       true -> {:error, :invalid_to_color}
