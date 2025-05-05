@@ -7,6 +7,7 @@ defmodule Elswisser.GamesTest do
     import Elswisser.GamesFixtures
     import Elswisser.PlayersFixtures
     import Elswisser.RoundsFixtures
+    import Elswisser.OpeningsFixture
 
     test "get_game!/1 returns the game with the given id" do
       game = game_fixture()
@@ -39,6 +40,16 @@ defmodule Elswisser.GamesTest do
 
     test "add_pgn/2 properly returns an error when no game is found" do
       assert Games.add_pgn(-1, "TEST PGN", "link") == {:error, "Could not find game!"}
+    end
+
+    test "update_game/2 properly updates if there is a PGN attached but otherwise no opening" do
+      opening = opening_fixture()
+      game = game_fixture()
+
+      {:ok, game} = Games.update_game(game, %{"pgn" => "1. e4 f6 2. d4 g5 3. Qh5# 1-0"})
+
+      game = Games.get_game_with_players_and_opening!(game.id)
+      assert game.opening == opening
     end
   end
 end

@@ -61,7 +61,7 @@ defmodule Elchesser.Pgn.ParserHelpers do
     |> optional(ignore(concat(repeat(whitespace()), termination_marker())))
   end
 
-  def tag_pairs, do: tag() |> times(min: 7) |> ignore(repeat(ascii_char(~c"\r\n")))
+  def tag_pairs, do: tag() |> times(min: 7) |> ignore(repeat(ascii_char(~c"\r\n"))) |> optional()
 
   def moves do
     move()

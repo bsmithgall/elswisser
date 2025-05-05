@@ -6,6 +6,8 @@ defmodule Elswisser.Games.Game do
   require Elswisser.Pairings.Bye
   alias Elswisser.Pairings.Bye
   alias Elswisser.Games.PgnProvider
+  alias Elswisser.Games.PgnTagParser
+  alias Elswisser.Openings
   alias Elswisser.Games.Game
   alias Elswisser.Players.Player
 
@@ -292,6 +294,18 @@ defmodule Elswisser.Games.Game do
           {:error, _} -> [game_link: "Invalid game link"]
         end
     end)
+  end
+
+  def opening_from_pgn(nil), do: nil
+
+  def opening_from_pgn(pgn) do
+    with {eco, name} <- PgnTagParser.parse_eco(pgn),
+         {:ok, opening} <- Openings.find_from_game(pgn) do
+      {:ok, {eco, name, opening}}
+    else
+      nil -> nil
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   defp validate_different_players(changeset) do

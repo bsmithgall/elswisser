@@ -1,11 +1,9 @@
 defmodule Elswisser.Games do
   import Ecto.Query, warn: false
-  alias Elswisser.Openings
-  alias Elswisser.Games.PgnTagParser
-  alias Elswisser.Games.PgnProvider
   alias Elswisser.Repo
 
   alias Elswisser.Games.Game
+  alias Elswisser.Games.PgnProvider
   alias Elswisser.Rounds.Round
   alias Elswisser.Tournaments.Tournament
 
@@ -88,6 +86,24 @@ defmodule Elswisser.Games do
     |> Repo.transaction()
   end
 
+  def update_game(%Game{opening_id: nil} = game, %{"pgn" => pgn} = attrs) do
+    case Game.opening_from_pgn(pgn) do
+      {:ok, {eco, opening_name, opening}} ->
+        with_opening_details =
+          attrs
+          |> Enum.into(%{
+            "eco" => eco,
+            "opening_name" => opening_name,
+            "opening_id" => opening.id
+          })
+
+        game |> Game.changeset(with_opening_details) |> Repo.update()
+
+      _ ->
+        game |> Game.changeset(attrs) |> Repo.update()
+    end
+  end
+
   def update_game(%Game{} = game, attrs) do
     game |> Game.changeset(attrs) |> Repo.update()
   end
@@ -102,8 +118,7 @@ defmodule Elswisser.Games do
 
   def add_pgn(id, pgn, game_link) do
     with game when not is_nil(game) <- get_game(id),
-         {eco, opening_name} = PgnTagParser.parse_eco(pgn),
-         {:ok, opening} <- Openings.find_from_game(pgn) do
+         {:ok, {eco, opening_name, opening}} <- Game.opening_from_pgn(pgn) do
       opening_id = if is_nil(opening), do: nil, else: opening.id
 
       update_game(game, %{
