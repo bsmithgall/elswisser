@@ -3,6 +3,7 @@ defmodule ElswisserWeb.Tournaments.TournamentController do
 
   import Phoenix.Controller
 
+  alias Elswisser.Rounds
   alias Elswisser.Tournaments
   alias Elswisser.Tournaments.Tournament
   alias ElswisserWeb.Plugs.EnsureTournament
@@ -32,12 +33,25 @@ defmodule ElswisserWeb.Tournaments.TournamentController do
   end
 
   def show(conn, _params) do
-    conn
-    |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
-    |> render("show_#{conn.assigns[:tournament].type}.html",
-      tournament: conn.assigns[:tournament],
-      current_round: conn.assigns[:current_round]
-    )
+    active_round =
+      conn.assigns[:tournament].rounds
+      |> Enum.find(&Enum.member?([:playing, :pairing], &1.status))
+
+    case active_round do
+      nil ->
+        conn
+        |> put_layout(html: {ElswisserWeb.TournamentLayouts, :tournament})
+        |> render("show_#{conn.assigns[:tournament].type}.html",
+          tournament: conn.assigns[:tournament],
+          current_round: conn.assigns[:current_round]
+        )
+
+      %Rounds.Round{id: id, tournament_id: tournament_id, status: :pairing} ->
+        conn |> redirect(to: ~p"/tournaments/#{tournament_id}/rounds/#{id}/pairings")
+
+      %Rounds.Round{id: id, tournament_id: tournament_id, status: :playing} ->
+        conn |> redirect(to: ~p"/tournaments/#{tournament_id}/rounds/#{id}")
+    end
   end
 
   def edit(conn, _params) do

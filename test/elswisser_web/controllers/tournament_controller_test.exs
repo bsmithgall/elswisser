@@ -24,6 +24,48 @@ defmodule ElswisserWeb.TournamentControllerTest do
     end
   end
 
+  describe "show" do
+    setup [:register_and_log_in_user, :create_tournament_with_players]
+
+    test "goes to tournament detail page when no active round", %{
+      conn: conn,
+      tournament: tournament
+    } do
+      conn = get(conn, ~p"/tournaments/#{tournament}")
+      assert html_response(conn, 200) =~ "#{tournament.name}"
+    end
+
+    test "goes to pairing page when active round is :pairing", %{
+      conn: conn,
+      tournament: tournament
+    } do
+      Elswisser.Tournaments.create_next_round(tournament, 0)
+      tournament = Elswisser.Tournaments.get_tournament_with_rounds(tournament.id)
+      current_round = Elswisser.Tournaments.current_round(tournament)
+
+      conn = get(conn, ~p"/tournaments/#{tournament}")
+
+      assert redirected_to(conn) ==
+               ~p"/tournaments/#{tournament.id}/rounds/#{current_round}/pairings"
+    end
+
+    test "goes to playing page when active round is :playing", %{
+      conn: conn,
+      tournament: tournament
+    } do
+      Elswisser.Tournaments.create_next_round(tournament, 0)
+      tournament = Elswisser.Tournaments.get_tournament_with_rounds(tournament.id)
+
+      {:ok, current_round} =
+        Elswisser.Tournaments.current_round(tournament) |> Elswisser.Rounds.set_playing()
+
+      conn = get(conn, ~p"/tournaments/#{tournament}")
+
+      assert redirected_to(conn) ==
+               ~p"/tournaments/#{tournament.id}/rounds/#{current_round}"
+    end
+  end
+
   describe "create tournament" do
     setup :register_and_log_in_user
 
@@ -89,6 +131,11 @@ defmodule ElswisserWeb.TournamentControllerTest do
 
   defp create_tournament(_) do
     tournament = tournament_fixture()
+    %{tournament: tournament}
+  end
+
+  defp create_tournament_with_players(_) do
+    tournament = tournament_with_players_fixture()
     %{tournament: tournament}
   end
 end
