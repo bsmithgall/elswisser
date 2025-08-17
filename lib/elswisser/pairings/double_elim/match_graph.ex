@@ -22,7 +22,7 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
      (2 ^ log₂(n)) - 2 matches.
   5. Link the winner edge of the loser bracket, e.g. advancing
      through the loser bracket. The loser's bracket progression can be
-     understood as proceeding 2^(n-2), 2^(n-2), ..., 2^1, 2^1, 2^0 matches.
+     understood as proceeding 2^(n-2), 2^(n-2), ..., 2^0, 2^0 matches.
      This is because there are two separate halves to each loser's round:
      a "merge" half where players drop from the winner's bracket, and
      "reduction" half. These each have the same number of matches. The
@@ -38,26 +38,31 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
   """
 
   defstruct id: -1,
+            round: -1,
             type: :unknown,
             w: nil,
             l: nil
 
   @type t :: %MatchGraph{
           id: number(),
+          round: number(),
           type: :w | :lm | :lr | :c | :unknown,
           w: number() | nil,
           l: number() | nil
         }
 
+  @spec generate(number()) :: list(MatchGraph.t())
   def generate(size) do
-    championships = make_championships(size)
-    losers = losers_half(size) |> link_losers()
-    winners = winners_half(size) |> link_winners() |> pair_down_winners(losers)
+    winner_rounds = winners_half(size) |> link_winners()
+    losers = losers_half(size) |> link_losers(length(winner_rounds))
+    championships = make_championships(size, length(winner_rounds) + length(losers))
+
+    winners = pair_down_winners(winner_rounds, losers)
 
     (winners ++ losers ++ championships) |> List.flatten() |> Enum.sort_by(& &1.id)
   end
 
-  @spec winners_half(number()) :: List[MatchGraph.t()]
+  @spec winners_half(number()) :: MatchGraph.t()
   def winners_half(size) do
     count = winner_count(size)
 
@@ -72,7 +77,7 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
     end)
   end
 
-  @spec link_winners(List[MatchGraph.t()]) :: List[MatchGraph.t()]
+  @spec link_winners(list(MatchGraph.t())) :: list(MatchGraph.t())
   def link_winners(matches) do
     partition = partition_winners(matches)
 
@@ -80,47 +85,51 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
     |> Enum.with_index()
     |> Enum.map(fn {match_set, idr} ->
       if idr >= length(partition) - 1 do
-        match_set
+        match_set |> Enum.map(&struct(&1, %{round: idr + 1}))
       else
         Enum.with_index(match_set)
         |> Enum.map(fn {m, idx} ->
           w = partition |> Enum.at(idr + 1) |> Enum.at(floor(idx / 2))
-          struct(m, %{w: w.id})
+          struct(m, %{w: w.id, round: idr + 1})
         end)
       end
     end)
   end
 
+  @doc """
+  Chunk into pieces by decreasing powers of two.
+  """
+  @spec partition_winners(list(MatchGraph.t())) :: list(list(MatchGraph.t()))
   def partition_winners(matches) do
     matches
-    |> Enum.with_index()
-    |> Enum.reduce({ceil(length(matches) / 2), []}, fn {m, idx}, {breakpoint, acc} ->
-      case idx do
-        0 ->
-          {breakpoint, [[m]]}
+    |> Enum.chunk_while(
+      {[], matches, length(matches)},
+      fn _, {acc, left, size} ->
+        take_amt = ceil(size / 2)
 
-        x when x >= breakpoint ->
-          {breakpoint + (length(matches) - breakpoint) / 2, [[m] | acc]}
-
-        _ ->
-          [head | cons] = acc
-          {breakpoint, [[m | head] | cons]}
-      end
-    end)
-    |> elem(1)
-    |> reverse_all()
+        if take_amt == 1 do
+          {:halt, acc ++ left}
+        else
+          {take, left} = Enum.split(left, take_amt)
+          {:cont, take, {[], left, take_amt}}
+        end
+      end,
+      # there will always be one left over
+      fn acc -> {:cont, acc, []} end
+    )
   end
 
-  @spec make_championships(number()) :: List[MatchGraph.t()]
-  def make_championships(size) do
+  @spec make_championships(number(), number()) :: list(MatchGraph.t())
+  def make_championships(size, start_round) do
     next = winner_count(size) + loser_count(size) - 1
 
     [
-      %MatchGraph{id: next + 1, type: :c, w: next + 2, l: next + 2},
-      %MatchGraph{id: next + 2, type: :c}
+      %MatchGraph{id: next + 1, type: :c, w: next + 2, l: next + 2, round: start_round + 1},
+      %MatchGraph{id: next + 2, type: :c, round: start_round + 2}
     ]
   end
 
+  @spec losers_half(number()) :: list(MatchGraph.t())
   def losers_half(size) do
     count = loser_count(size)
     w_count = winner_count(size)
@@ -136,7 +145,8 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
     end)
   end
 
-  def link_losers(matches) do
+  @spec link_losers(list(MatchGraph.t()), number()) :: list(MatchGraph.t())
+  def link_losers(matches, start_round) do
     partition = partition_losers(matches)
 
     partition
@@ -144,14 +154,14 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
     |> Enum.map(fn {match_set, idr} ->
       cond do
         idr >= length(partition) - 1 ->
-          match_set
+          match_set |> Enum.map(&struct(&1, %{round: idr + 1 + start_round}))
 
         # "merge" pairing: next round will accept candidates from winner bracket
         rem(idr, 2) == 0 ->
           Enum.with_index(match_set)
           |> Enum.map(fn {m, idx} ->
             w = partition |> Enum.at(idr + 1) |> Enum.at(idx)
-            struct(m, %{w: w.id})
+            struct(m, %{w: w.id, round: idr + 1 + start_round})
           end)
 
         # "reduction" pairing: works same as winner's bracket
@@ -159,15 +169,15 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
           Enum.with_index(match_set)
           |> Enum.map(fn {m, idx} ->
             w = partition |> Enum.at(idr + 1) |> Enum.at(floor(idx / 2))
-            struct(m, %{w: w.id})
+            struct(m, %{w: w.id, round: idr + 1 + start_round})
           end)
       end
     end)
   end
 
+  @spec partition_losers(list(MatchGraph.t())) :: list(list(MatchGraph.t()))
   def partition_losers(matches) do
-    # going sicko mode
-    start_size = length(matches) |> Math.log(2) |> ceil() |> Kernel.-(2)
+    start_size = ceil(Math.log(length(matches), 2)) - 2
 
     matches
     |> Enum.chunk_while(
@@ -195,8 +205,7 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
     )
   end
 
-  @spec pair_down_winners(List[MatchGraph.t()], List[MatchGraph.t()]) ::
-          {List[MatchGraph.t()], List[MatchGraph.t()]}
+  @spec pair_down_winners(list(MatchGraph.t()), list(MatchGraph.t())) :: list(MatchGraph.t())
   def pair_down_winners(winners, losers) do
     merges = losers |> Enum.filter(&(hd(&1).type == :lm))
 
@@ -231,7 +240,7 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
 
   # visible for testing
 
-  @spec next_pattern(number(), number()) :: List[number()]
+  @spec next_pattern(number(), number()) :: list(number())
   def next_pattern(num, p) when rem(p, 4) == 0 do
     l = floor((num - 1) / 2)..0//-1 |> Enum.map(& &1)
     r = (num - 1)..ceil((num - 1) / 2)//-1 |> Enum.map(& &1)
@@ -245,18 +254,15 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
   end
 
   def next_pattern(num, p) when rem(p, 2) == 0 do
-    (num - 1)..0//-1 |> Enum.map(& &1)
+    (num - 1)..0//-1 |> Enum.to_list()
   end
 
   def next_pattern(num, _) do
-    0..(num - 1) |> Enum.map(& &1)
+    0..(num - 1) |> Enum.to_list()
   end
 
-  defp next_pow2(size), do: Math.pow(2, ceil(Math.log(size, 2)))
+  def next_pow2(size), do: Math.pow(2, ceil(Math.log(size, 2)))
+
   defp winner_count(size), do: next_pow2(size) - 1
   defp loser_count(size), do: next_pow2(size) - 2
-
-  defp reverse_all(iterable) do
-    iterable |> Enum.map(&Enum.reverse(&1)) |> Enum.reverse()
-  end
 end
