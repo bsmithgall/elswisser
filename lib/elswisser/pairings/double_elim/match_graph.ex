@@ -29,7 +29,7 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
      first round is a special case as it is sort of a "self-merge."
      Following this, each "merge" half takes players from prior loser rounds
      and then winner rounds.
-  6. Link the loser edge of tahe winner bracket. In order to prevent
+  6. Link the loser edge of the winner bracket. In order to prevent
      players from matching up too closely to each other, we will
      want to rotate through different linkage patterns (forward,
      reverse, rotated, reverse rotated).
