@@ -1,4 +1,6 @@
-defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
+defmodule Elswisser.Pairings.DoubleElimination.MatchGraph do
+  alias Elswisser.Tournaments.Tournament
+  alias Elswisser.Pairings.BracketPairing
   alias __MODULE__
 
   @moduledoc """
@@ -14,7 +16,7 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
   2. Create the two championship rounds. Note that there need to be
      two because of a "grand final reset" possibility.
   3. Make winner's bracket winners edges. This works by noticing that
-     each round of the winner's brakcet proceeds as
+     each round of the winner's bracket proceeds as
      2^(n-1), 2^(n-2), ..., 2^1, 2^0 matches. So we partition based on
      decreasing powers of two and then link forwards partition-by-partition.
   4. Make all loser's bracket nodes. Each part of the loser's bracket
@@ -29,7 +31,7 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
      first round is a special case as it is sort of a "self-merge."
      Following this, each "merge" half takes players from prior loser rounds
      and then winner rounds.
-  6. Link the loser edge of tahe winner bracket. In order to prevent
+  6. Link the loser edge of the winner bracket. In order to prevent
      players from matching up too closely to each other, we will
      want to rotate through different linkage patterns (forward,
      reverse, rotated, reverse rotated).
@@ -41,17 +43,24 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
             round: -1,
             type: :unknown,
             w: nil,
-            l: nil
+            l: nil,
+            pairing: %BracketPairing{}
 
   @type t :: %MatchGraph{
           id: number(),
           round: number(),
           type: :w | :lm | :lr | :c | :unknown,
           w: number() | nil,
-          l: number() | nil
+          l: number() | nil,
+          pairing: %BracketPairing{}
         }
 
-  @spec generate(number()) :: list(MatchGraph.t())
+  @doc """
+  Generates the full bracket graph structure. See moduledoc for algorithm details.
+  """
+  @spec generate(number() | list()) :: list(MatchGraph.t())
+  def generate(items) when is_list(items), do: generate(length(items))
+
   def generate(size) do
     winner_rounds = winners_half(size) |> link_winners()
     losers = losers_half(size) |> link_losers(length(winner_rounds))
@@ -60,6 +69,30 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
     winners = pair_down_winners(winner_rounds, losers)
 
     (winners ++ losers ++ championships) |> List.flatten() |> Enum.sort_by(& &1.id)
+  end
+
+  @doc """
+  Assigns players to first-round matches using rating-based seeding.
+  Sets display_order for all other matches.
+  """
+  @spec with_players(list(MatchGraph.t()), %Tournament{}) :: list(MatchGraph.t())
+  def with_players(match_graph, tournament) do
+    pairings = BracketPairing.rating_based_pairings(tournament)
+    [first_round | rest] = match_graph |> Enum.chunk_by(& &1.round)
+
+    Enum.zip(first_round, pairings)
+    |> Enum.map(fn {node, pairing} -> Map.merge(node, %{pairing: pairing}) end)
+    |> Enum.concat(
+      rest
+      |> Enum.map(fn rnd ->
+        rnd
+        |> Enum.with_index(1)
+        |> Enum.map(fn {%MatchGraph{} = match, idx} ->
+          put_in(match.pairing.display_order, idx)
+        end)
+      end)
+      |> List.flatten()
+    )
   end
 
   @spec winners_half(number()) :: MatchGraph.t()
@@ -176,6 +209,10 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
   end
 
   @spec partition_losers(list(MatchGraph.t())) :: list(list(MatchGraph.t()))
+  def partition_losers([first, second]) do
+    [[struct(first, %{type: :lm})], [struct(second, %{type: :lm})]]
+  end
+
   def partition_losers(matches) do
     start_size = ceil(Math.log(length(matches), 2)) - 2
 
@@ -240,25 +277,33 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
 
   # visible for testing
 
+  @doc """
+  As per step six above, `next_pattern` rotates through the four different ways of
+  sending winners down to the losers section, preventing repeat matchups as much as possible.
+  """
   @spec next_pattern(number(), number()) :: list(number())
-  def next_pattern(num, p) when rem(p, 4) == 0 do
-    l = floor((num - 1) / 2)..0//-1 |> Enum.map(& &1)
-    r = (num - 1)..ceil((num - 1) / 2)//-1 |> Enum.map(& &1)
-    l ++ r
+  # Normal/forward pattern: [0, 1, 2, 3]
+  def next_pattern(num, p) when rem(p, 4) == 1 do
+    0..(num - 1) |> Enum.to_list()
   end
 
-  def next_pattern(num, p) when rem(p, 3) == 0 do
+  # Reverse pattern: [3, 2, 1, 0]
+  def next_pattern(num, p) when rem(p, 4) == 2 do
+    (num - 1)..0//-1 |> Enum.to_list()
+  end
+
+  # Rotate pattern: [2, 3, 0, 1]
+  def next_pattern(num, p) when rem(p, 4) == 3 do
     l = ceil((num - 1) / 2)..(num - 1) |> Enum.map(& &1)
     r = 0..floor((num - 1) / 2) |> Enum.map(& &1)
     l ++ r
   end
 
-  def next_pattern(num, p) when rem(p, 2) == 0 do
-    (num - 1)..0//-1 |> Enum.to_list()
-  end
-
+  # Reverse-rotate pattern: [1, 0, 3, 2]
   def next_pattern(num, _) do
-    0..(num - 1) |> Enum.to_list()
+    l = floor((num - 1) / 2)..0//-1 |> Enum.map(& &1)
+    r = (num - 1)..ceil((num - 1) / 2)//-1 |> Enum.map(& &1)
+    l ++ r
   end
 
   def next_pow2(size), do: Math.pow(2, ceil(Math.log(size, 2)))

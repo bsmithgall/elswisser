@@ -1,4 +1,4 @@
-defmodule Elswisser.Pairings.DoubleEliminationTest do
+defmodule Elswisser.Pairings.DoubleElimination.CreateTest do
   alias Elswisser.Tournaments
   alias Elswisser.Pairings.DoubleElimination
   use Elswisser.DataCase
@@ -12,14 +12,14 @@ defmodule Elswisser.Pairings.DoubleEliminationTest do
 
     tournament = Tournaments.get_tournament_with_all(id)
 
-    assert length(tournament.rounds) == 5
+    assert length(tournament.rounds) == 6
 
     assert tournament.rounds |> Enum.frequencies_by(& &1.type) == %{
-             championship: 1,
+             championship: 2,
              loser: 2,
              winner: 2
            }
 
-    assert Enum.flat_map(tournament.rounds, fn r -> r.matches end) |> length() == 6
+    assert Enum.flat_map(tournament.rounds, fn r -> r.matches end) |> length() == 7
   end
 end
