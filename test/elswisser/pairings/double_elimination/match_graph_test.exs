@@ -1,10 +1,11 @@
-defmodule Elswisser.Pairings.DoubleElim.MatchGraphTest do
+defmodule Elswisser.Pairings.DoubleElimination.MatchGraphTest do
   use ExUnit.Case, async: true
 
-  alias Elswisser.Pairings.DoubleElim.MatchGraph
+  alias Elswisser.Pairings.DoubleElimination.MatchGraph
 
   describe "winners half" do
     for {name, params} <- %{
+          "4 players" => %{size: 4, matches: [2, 1]},
           "8 players" => %{size: 8, matches: [4, 2, 1]},
           "12 players" => %{size: 12, matches: [8, 4, 2, 1]},
           "16 players" => %{size: 16, matches: [8, 4, 2, 1]}
@@ -74,6 +75,18 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraphTest do
 
   describe "generate/1" do
     for {name, params} <- %{
+          "4 players" => %{
+            size: 4,
+            res: [
+              %MatchGraph{id: 0, type: :w, round: 1, w: 2, l: 3},
+              %MatchGraph{id: 1, type: :w, round: 1, w: 2, l: 3},
+              %MatchGraph{id: 2, type: :w, round: 2, w: 5, l: 4},
+              %MatchGraph{id: 3, type: :lm, round: 3, w: 4, l: nil},
+              %MatchGraph{id: 4, type: :lm, round: 4, w: 5, l: nil},
+              %MatchGraph{id: 5, type: :c, round: 5, w: 6, l: 6},
+              %MatchGraph{id: 6, type: :c, round: 6, w: nil, l: nil}
+            ]
+          },
           "8 players" => %{
             size: 8,
             res: [

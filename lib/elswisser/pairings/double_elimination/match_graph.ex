@@ -1,4 +1,6 @@
-defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
+defmodule Elswisser.Pairings.DoubleElimination.MatchGraph do
+  alias Elswisser.Tournaments.Tournament
+  alias Elswisser.Pairings.BracketPairing
   alias __MODULE__
 
   @moduledoc """
@@ -14,7 +16,7 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
   2. Create the two championship rounds. Note that there need to be
      two because of a "grand final reset" possibility.
   3. Make winner's bracket winners edges. This works by noticing that
-     each round of the winner's brakcet proceeds as
+     each round of the winner's bracket proceeds as
      2^(n-1), 2^(n-2), ..., 2^1, 2^0 matches. So we partition based on
      decreasing powers of two and then link forwards partition-by-partition.
   4. Make all loser's bracket nodes. Each part of the loser's bracket
@@ -41,17 +43,21 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
             round: -1,
             type: :unknown,
             w: nil,
-            l: nil
+            l: nil,
+            pairing: %BracketPairing{}
 
   @type t :: %MatchGraph{
           id: number(),
           round: number(),
           type: :w | :lm | :lr | :c | :unknown,
           w: number() | nil,
-          l: number() | nil
+          l: number() | nil,
+          pairing: %BracketPairing{}
         }
 
-  @spec generate(number()) :: list(MatchGraph.t())
+  @spec generate(number() | list()) :: list(MatchGraph.t())
+  def generate(items) when is_list(items), do: generate(length(items))
+
   def generate(size) do
     winner_rounds = winners_half(size) |> link_winners()
     losers = losers_half(size) |> link_losers(length(winner_rounds))
@@ -60,6 +66,26 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
     winners = pair_down_winners(winner_rounds, losers)
 
     (winners ++ losers ++ championships) |> List.flatten() |> Enum.sort_by(& &1.id)
+  end
+
+  @spec with_players(list(MatchGraph.t()), %Tournament{}) :: list(MatchGraph.t())
+  def with_players(match_graph, tournament) do
+    pairings = BracketPairing.rating_based_pairings(tournament)
+    [first_round | rest] = match_graph |> Enum.chunk_by(& &1.round)
+
+    Enum.zip(first_round, pairings)
+    |> Enum.map(fn {node, pairing} -> Map.merge(node, %{pairing: pairing}) end)
+    |> Enum.concat(
+      rest
+      |> Enum.map(fn rnd ->
+        rnd
+        |> Enum.with_index(1)
+        |> Enum.map(fn {%MatchGraph{} = match, idx} ->
+          put_in(match.pairing.display_order, idx)
+        end)
+      end)
+      |> List.flatten()
+    )
   end
 
   @spec winners_half(number()) :: MatchGraph.t()
@@ -176,6 +202,10 @@ defmodule Elswisser.Pairings.DoubleElim.MatchGraph do
   end
 
   @spec partition_losers(list(MatchGraph.t())) :: list(list(MatchGraph.t()))
+  def partition_losers([first, second] = matches) when length(matches) == 2 do
+    [[struct(first, %{type: :lm})], [struct(second, %{type: :lm})]]
+  end
+
   def partition_losers(matches) do
     start_size = ceil(Math.log(length(matches), 2)) - 2
 
