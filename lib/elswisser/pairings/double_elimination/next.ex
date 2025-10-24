@@ -5,6 +5,13 @@ defmodule Elswisser.Pairings.DoubleElimination.Next do
   alias Elswisser.Games.Game
   alias Elswisser.Repo
 
+  @doc """
+  Advances winners and losers from a completed round to their linked matches.
+
+  Groups players by their destination match (winner_to_id/loser_to_id), then creates
+  or updates games in those matches. Multiple matches can feed into the same destination,
+  so players are collected as lists and passed to `to_changeset/4`.
+  """
   def next_pairings(%Round{} = rnd) do
     linked_matches =
       rnd.matches
@@ -22,13 +29,13 @@ defmodule Elswisser.Pairings.DoubleElimination.Next do
             winners_acc,
             match.winner_to_id,
             [Match.winner(match)],
-            &[Match.winner(match) | &1]
+            &(&1 ++ [Match.winner(match)])
           ),
           Map.update(
             losers_acc,
             match.loser_to_id,
             [Match.loser(match)],
-            &[Match.loser(match) | &1]
+            &(&1 ++ [Match.loser(match)])
           )
         }
       end)
@@ -54,6 +61,16 @@ defmodule Elswisser.Pairings.DoubleElimination.Next do
     Ecto.Multi.append(winners_changeset, losers_changeset) |> Repo.transaction()
   end
 
+  @doc """
+  Generates changesets for advancing players to their next match.
+
+  Handles five cases:
+  1. Two players advancing, match has no game yet -> insert new game
+  2. Two players advancing, match has existing game -> update existing game
+  3. One player advancing, match has no game yet -> insert new game
+  4. One player advancing, match has existing game -> update existing game
+  5. Match is nil (final match with no onward linkage) -> return empty Multi
+  """
   @spec to_changeset(:winner | :loser, %Match{} | nil, list({number(), number()}), number()) ::
           Ecto.Multi.t()
 

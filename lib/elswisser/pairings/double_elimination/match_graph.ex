@@ -55,6 +55,9 @@ defmodule Elswisser.Pairings.DoubleElimination.MatchGraph do
           pairing: %BracketPairing{}
         }
 
+  @doc """
+  Generates the full bracket graph structure. See moduledoc for algorithm details.
+  """
   @spec generate(number() | list()) :: list(MatchGraph.t())
   def generate(items) when is_list(items), do: generate(length(items))
 
@@ -68,6 +71,10 @@ defmodule Elswisser.Pairings.DoubleElimination.MatchGraph do
     (winners ++ losers ++ championships) |> List.flatten() |> Enum.sort_by(& &1.id)
   end
 
+  @doc """
+  Assigns players to first-round matches using rating-based seeding.
+  Sets display_order for all other matches.
+  """
   @spec with_players(list(MatchGraph.t()), %Tournament{}) :: list(MatchGraph.t())
   def with_players(match_graph, tournament) do
     pairings = BracketPairing.rating_based_pairings(tournament)
@@ -202,7 +209,7 @@ defmodule Elswisser.Pairings.DoubleElimination.MatchGraph do
   end
 
   @spec partition_losers(list(MatchGraph.t())) :: list(list(MatchGraph.t()))
-  def partition_losers([first, second] = matches) when length(matches) == 2 do
+  def partition_losers([first, second]) do
     [[struct(first, %{type: :lm})], [struct(second, %{type: :lm})]]
   end
 
@@ -270,25 +277,33 @@ defmodule Elswisser.Pairings.DoubleElimination.MatchGraph do
 
   # visible for testing
 
+  @doc """
+  As per step six above, `next_pattern` rotates through the four different ways of
+  sending winners down to the losers section, preventing repeat matchups as much as possible.
+  """
   @spec next_pattern(number(), number()) :: list(number())
-  def next_pattern(num, p) when rem(p, 4) == 0 do
-    l = floor((num - 1) / 2)..0//-1 |> Enum.map(& &1)
-    r = (num - 1)..ceil((num - 1) / 2)//-1 |> Enum.map(& &1)
-    l ++ r
+  # Normal/forward pattern: [0, 1, 2, 3]
+  def next_pattern(num, p) when rem(p, 4) == 1 do
+    0..(num - 1) |> Enum.to_list()
   end
 
-  def next_pattern(num, p) when rem(p, 3) == 0 do
+  # Reverse pattern: [3, 2, 1, 0]
+  def next_pattern(num, p) when rem(p, 4) == 2 do
+    (num - 1)..0//-1 |> Enum.to_list()
+  end
+
+  # Rotate pattern: [2, 3, 0, 1]
+  def next_pattern(num, p) when rem(p, 4) == 3 do
     l = ceil((num - 1) / 2)..(num - 1) |> Enum.map(& &1)
     r = 0..floor((num - 1) / 2) |> Enum.map(& &1)
     l ++ r
   end
 
-  def next_pattern(num, p) when rem(p, 2) == 0 do
-    (num - 1)..0//-1 |> Enum.to_list()
-  end
-
+  # Reverse-rotate pattern: [1, 0, 3, 2]
   def next_pattern(num, _) do
-    0..(num - 1) |> Enum.to_list()
+    l = floor((num - 1) / 2)..0//-1 |> Enum.map(& &1)
+    r = (num - 1)..ceil((num - 1) / 2)//-1 |> Enum.map(& &1)
+    l ++ r
   end
 
   def next_pow2(size), do: Math.pow(2, ceil(Math.log(size, 2)))

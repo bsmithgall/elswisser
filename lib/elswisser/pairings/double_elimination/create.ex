@@ -8,7 +8,12 @@ defmodule Elswisser.Pairings.DoubleElimination.Create do
   alias Elswisser.Pairings.DoubleElimination.MatchGraph
 
   @doc """
-  Turn a MatchGraph into something the database understands.
+  Turns a MatchGraph into database records: rounds, matches, games, and linkages.
+
+  Executes three sequential transactions:
+  1. `make_round_multi` - creates Round records
+  2. `make_game_match_multi` - creates Match and Game records
+  3. `link_matches` - updates Matches with relevant winner_to_id/loser_to_id
   """
   def create_all(%Tournament{} = tournament) do
     with matches <-
@@ -25,6 +30,9 @@ defmodule Elswisser.Pairings.DoubleElimination.Create do
     end
   end
 
+  @doc """
+  Creates all rounds from the match graph with their labels and types.
+  """
   @spec make_round_multi(list(MatchGraph.t()), %{number() => {String.t(), String.t()}}, number()) ::
           Ecto.Multi.t()
   def make_round_multi(match_graph, labels, tournament_id) do
@@ -51,6 +59,13 @@ defmodule Elswisser.Pairings.DoubleElimination.Create do
     end)
   end
 
+  @doc """
+  Creates all matches and their initial games (if both players are present).
+
+  Uses Multi.merge to conditionally create Games only when `has_game?/1` returns true
+  (i.e., when at least one player is assigned). This handles byes where matches exist
+  but games are created later when opponents are determined.
+  """
   def make_game_match_multi(match_graph, rounds_multi) do
     Enum.reduce(match_graph, Ecto.Multi.new(), fn %MatchGraph{} = match, acc ->
       round_id = Map.get(rounds_multi, match.round).id
@@ -82,6 +97,12 @@ defmodule Elswisser.Pairings.DoubleElimination.Create do
     end)
   end
 
+  @doc """
+  Links matches together via winner_to_id and loser_to_id fields.
+
+  Uses the graph's `w` and `l` integer IDs to look up the corresponding database Match
+  records. Returns nil for terminal matches (championship finals).
+  """
   def link_matches(match_graph, game_multi) do
     Enum.reduce(match_graph, Ecto.Multi.new(), fn %MatchGraph{} = match, acc ->
       db_match = Map.get(game_multi, match.id)
