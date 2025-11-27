@@ -243,17 +243,26 @@ defmodule Elswisser.Rounds do
   end
 
   @doc """
+  Ensure that the bye game actually has a result
+  """
+  def ensure_bye_set(id) do
+    case Game.from() |> Game.where_round_id(id) |> Game.where_bye() |> Repo.one() do
+      nil -> {:ok, nil}
+      game -> Game.changeset(game, %{result: 0}) |> Repo.update()
+    end
+  end
+
+  @doc """
   Finalize a round by
 
   1. Ensuring that all games have been finished for the round
   2. Update all of the ELOs for each player based on the game results
   3. Set the round as complete
   4. Create the next round of the tournament.
-
-
   """
   def finalize_round(%Round{} = rnd, %Tournament{} = tournament) do
-    with {:ok, _} <- ensure_games_finished(rnd.id),
+    with {:ok, _} <- ensure_bye_set(rnd.id),
+         {:ok, _} <- ensure_games_finished(rnd.id),
          {:ok, _update} <- update_ratings_after_round(rnd.id),
          {:ok, rnd} <- set_complete(rnd),
          {:ok, next_round} <- Tournaments.create_next_round(tournament, rnd.number) do
