@@ -13,7 +13,8 @@ defmodule Elswisser.Games.Chesscom do
   @behaviour PgnProvider
 
   @impl PgnProvider
-  def provides_for, do: ~r/^https?:\/\/(www\.)?chess\.com\/\w+\/\w+\/(\w+\/)?(?<id>\d+)[^\s]*?$/
+  def provides_for,
+    do: ~r/^https?:\/\/(www\.)?chess\.com\/\w+\/(\w+\/)?(\w+\/)?(?<id>\d+)[^\s]*?$/
 
   @impl PgnProvider
   def extract_id(game_link) do

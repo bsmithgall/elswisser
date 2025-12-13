@@ -3,6 +3,10 @@ defmodule Elswisser.Games.ChesscomTest do
 
   alias Elswisser.Games.Chesscom
 
+  test "extract_id/1 works for game format" do
+    assert Chesscom.extract_id("https://www.chess.com/game/1234") == {:ok, "1234"}
+  end
+
   test "extract_id/1 works for game/live format" do
     assert Chesscom.extract_id("https://www.chess.com/game/live/1234") == {:ok, "1234"}
   end
