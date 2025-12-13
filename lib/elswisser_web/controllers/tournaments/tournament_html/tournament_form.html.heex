@@ -12,6 +12,27 @@
     label="Type"
   />
 
+  <div>
+    <h3 class="block text-sm font-semibold leading-6 text-zinc-800 mb-4">Match Format</h3>
+    <div class="grid grid-cols-3 gap-4">
+      <div>
+        <.input field={f[:match_format]} type="radio" options={match_format_opts()} />
+      </div>
+
+      <.input
+        field={f[:points_to_win]}
+        type="number"
+        min="1"
+        label="Points to Win"
+        label_class="sr-only"
+      />
+
+      <div class="flex items-center justify-end h-full">
+        <.input field={f[:allow_draws]} type="checkbox" label="Allow Draws" />
+      </div>
+    </div>
+  </div>
+
   <.input
     field={f[:player_ids]}
     type="multicheckbox"

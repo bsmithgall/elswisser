@@ -382,6 +382,12 @@ defmodule ElswisserWeb.CoreComponents do
   attr(:wrapper_class, :string, default: nil)
   attr(:name, :any)
   attr(:label, :string, default: nil)
+
+  attr(:label_class, :string,
+    default: nil,
+    doc: "additional classes for the label, e.g., 'sr-only'"
+  )
+
   attr(:value, :any)
 
   attr(:type, :string,
@@ -484,6 +490,33 @@ defmodule ElswisserWeb.CoreComponents do
     """
   end
 
+  def input(%{type: "radio"} = assigns) do
+    ~H"""
+    <div phx-feedback-for={@name}>
+      <.label :if={@label} for={@id}>{@label}</.label>
+      <.error :for={msg <- @errors}>{msg}</.error>
+      <div class="mt-2 space-y-2">
+        <label
+          :for={{label, value} <- @options}
+          for={"#{@id}-#{value}"}
+          class="flex items-center gap-3 text-sm leading-6 text-zinc-600"
+        >
+          <input
+            type="radio"
+            id={"#{@id}-#{value}"}
+            name={@name}
+            value={value}
+            checked={Phoenix.HTML.Form.normalize_value("radio", @value) == value}
+            class="rounded-full border-zinc-300 text-zinc-900 focus:ring-0"
+            {@rest}
+          />
+          {label}
+        </label>
+      </div>
+    </div>
+    """
+  end
+
   def input(%{type: "select"} = assigns) do
     ~H"""
     <div phx-feedback-for={@name}>
@@ -532,7 +565,7 @@ defmodule ElswisserWeb.CoreComponents do
   def input(assigns) do
     ~H"""
     <div class={@wrapper_class} phx-feedback-for={@name}>
-      <.label for={@id}>{@label}</.label>
+      <.label :if={@label} for={@id} class={@label_class}>{@label}</.label>
       <.error :for={msg <- @errors}>{msg}</.error>
       <input
         type={@type}
@@ -555,11 +588,12 @@ defmodule ElswisserWeb.CoreComponents do
   Renders a label.
   """
   attr(:for, :string, default: nil)
+  attr(:class, :string, default: nil)
   slot(:inner_block, required: true)
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800">
+    <label for={@for} class={["block text-sm font-semibold leading-6 text-zinc-800", @class]}>
       {render_slot(@inner_block)}
     </label>
     """

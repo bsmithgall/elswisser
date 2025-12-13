@@ -23,6 +23,11 @@ defmodule ElswisserWeb.Tournaments.TournamentHTML do
     |> Enum.map(&[key: Phoenix.Naming.humanize(&1), value: &1])
   end
 
+  def match_format_opts() do
+    Ecto.Enum.values(Tournament, :match_format)
+    |> Enum.map(&{Phoenix.Naming.humanize(&1), &1})
+  end
+
   @doc """
   Renders a tournament form.
   """
