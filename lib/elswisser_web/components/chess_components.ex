@@ -17,6 +17,7 @@ defmodule ElswisserWeb.ChessComponents do
   alias Elswisser.Players
 
   attr(:game, :map, default: nil)
+  attr(:match, :map, default: nil, doc: "Optional match to read seeds from instead of game")
   attr(:show_seeds, :boolean, default: false)
   attr(:highlight, :atom, values: [:white, :black, nil], default: nil)
   attr(:class, :string, default: nil)
@@ -38,6 +39,13 @@ defmodule ElswisserWeb.ChessComponents do
   end
 
   def game_result(assigns) do
+    {white_seed, black_seed} = Game.seeds(assigns.game, assigns[:match])
+
+    assigns =
+      assigns
+      |> assign(:white_seed, white_seed)
+      |> assign(:black_seed, black_seed)
+
     ~H"""
     <div class={[
       "grid grid-rows-2 gap-x-4 min-w-min divide-y text-sm text-zinc-700",
@@ -47,7 +55,7 @@ defmodule ElswisserWeb.ChessComponents do
         color={:white}
         player={@game.white}
         show_seed={@show_seeds}
-        seed={@game.white_seed}
+        seed={@white_seed}
         result={@game.result}
         rating={@ratings && @game.white_rating}
         bye={Game.bye?(@game)}
@@ -56,7 +64,7 @@ defmodule ElswisserWeb.ChessComponents do
         color={:black}
         player={@game.black}
         show_seed={@show_seeds}
-        seed={@game.black_seed}
+        seed={@black_seed}
         result={@game.result}
         rating={@ratings && @game.black_rating}
         bye={Game.bye?(@game)}

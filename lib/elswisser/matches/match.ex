@@ -15,6 +15,11 @@ defmodule Elswisser.Matches.Match do
   schema "matches" do
     field :board, :integer
     field :display_order, :integer
+    field :player_one_seed, :integer
+    field :player_two_seed, :integer
+
+    belongs_to(:player_one, Player)
+    belongs_to(:player_two, Player)
 
     belongs_to(:winner_to, Match)
     belongs_to(:loser_to, Match)
@@ -30,7 +35,17 @@ defmodule Elswisser.Matches.Match do
   @doc false
   def changeset(match, attrs \\ %{}) do
     match
-    |> cast(attrs, [:board, :display_order, :round_id, :loser_to_id, :winner_to_id])
+    |> cast(attrs, [
+      :board,
+      :display_order,
+      :round_id,
+      :loser_to_id,
+      :winner_to_id,
+      :player_one_id,
+      :player_two_id,
+      :player_one_seed,
+      :player_two_seed
+    ])
     |> validate_required([:board, :display_order, :round_id])
   end
 
@@ -80,6 +95,57 @@ defmodule Elswisser.Matches.Match do
     from([match: m] in query, where: m.round_id == ^round_id)
   end
 
+  def with_players(query) do
+    query |> with_player_one() |> with_player_two()
+  end
+
+  def with_player_one(query) do
+    from([match: m] in query, left_join: p1 in assoc(m, :player_one), as: :player_one)
+  end
+
+  def with_player_two(query) do
+    from([match: m] in query, left_join: p2 in assoc(m, :player_two), as: :player_two)
+  end
+
+  def preload_players(query) do
+    from([player_one: p1, player_two: p2] in query, preload: [player_one: p1, player_two: p2])
+  end
+
+  @doc """
+  Returns changeset attrs to seat a player in an available slot on the match.
+
+  Similar to Game.take_seat, but for match-level player assignments.
+  """
+  def take_seat(%Match{player_one_id: nil, player_two_id: nil}, %Player{} = player, seed) do
+    # Both slots empty - randomly assign to player_one or player_two
+    case Enum.random(0..1) do
+      0 -> %{player_one_id: player.id, player_one_seed: seed}
+      1 -> %{player_two_id: player.id, player_two_seed: seed}
+    end
+  end
+
+  def take_seat(%Match{player_one_id: nil, player_two_id: _}, %Player{} = player, seed) do
+    %{player_one_id: player.id, player_one_seed: seed}
+  end
+
+  def take_seat(%Match{player_one_id: _, player_two_id: nil}, %Player{} = player, seed) do
+    %{player_two_id: player.id, player_two_seed: seed}
+  end
+
+  def take_seat(
+        %Player{} = player_one,
+        player_one_seed,
+        %Player{} = player_two,
+        player_two_seed
+      ) do
+    %{
+      player_one_id: player_one.id,
+      player_one_seed: player_one_seed,
+      player_two_id: player_two.id,
+      player_two_seed: player_two_seed
+    }
+  end
+
   def first_game_or_nil(nil), do: nil
 
   def first_game_or_nil(%Match{} = match) do
@@ -117,25 +183,21 @@ defmodule Elswisser.Matches.Match do
     end
   end
 
-  defp calculate_result(%Match{games: games}, sum) when sum > 0 do
-    first_game = hd(games)
-    {{first_game.white, first_game.white_seed}, {first_game.black, first_game.black_seed}}
+  defp calculate_result(%Match{} = match, sum) when sum > 0 do
+    {{match.player_one, match.player_one_seed}, {match.player_two, match.player_two_seed}}
   end
 
-  defp calculate_result(%Match{games: games}, sum) when sum < 0 do
-    first_game = hd(games)
-    {{first_game.black, first_game.black_seed}, {first_game.white, first_game.white_seed}}
+  defp calculate_result(%Match{} = match, sum) when sum < 0 do
+    {{match.player_two, match.player_two_seed}, {match.player_one, match.player_one_seed}}
   end
 
-  defp calculate_result(%Match{games: games}, 0) do
-    first_game = hd(games)
-
+  defp calculate_result(%Match{} = match, 0) do
     cond do
-      Bye.bye_player?(first_game.white) ->
-        {{first_game.black, first_game.black_seed}, {first_game.white, first_game.white_seed}}
+      Bye.bye_player?(match.player_one) ->
+        {{match.player_two, match.player_two_seed}, {match.player_one, match.player_one_seed}}
 
-      Bye.bye_player?(first_game.black) ->
-        {{first_game.white, first_game.white_seed}, {first_game.black, first_game.black_seed}}
+      Bye.bye_player?(match.player_two) ->
+        {{match.player_one, match.player_one_seed}, {match.player_two, match.player_two_seed}}
 
       true ->
         {nil, nil}
@@ -165,33 +227,33 @@ defmodule Elswisser.Matches.Match do
   @spec complete?(t(), Tournament.t()) :: boolean()
   def complete?(%Match{games: []}, _), do: false
 
-  def complete?(%Match{games: games}, tournament) do
+  def complete?(%Match{games: games} = match, tournament) do
     results = Enum.map(games, & &1.result)
 
     case nil in results do
       true -> false
-      false -> check_completion(games, tournament)
+      false -> check_completion(match, tournament)
     end
   end
 
-  defp check_completion(games, %Tournament{
+  defp check_completion(%Match{} = match, %Tournament{
          match_format: :first_to,
          points_to_win: points_to_win,
          allow_draws: allow_draws
        }) do
-    {p1_score, p2_score} = calculate_player_scores(games)
+    {p1_score, p2_score} = calculate_player_scores(match)
 
     (p1_score >= points_to_win or p2_score >= points_to_win) and
       (allow_draws or p1_score != p2_score)
   end
 
-  defp check_completion(games, %Tournament{
+  defp check_completion(%Match{games: games} = match, %Tournament{
          match_format: :best_of,
          points_to_win: total_games,
          allow_draws: allow_draws
        }) do
     games_played = length(games)
-    {p1_score, p2_score} = calculate_player_scores(games)
+    {p1_score, p2_score} = calculate_player_scores(match)
 
     # Match is complete if all games played OR a player has clinched victory
     case games_played >= total_games do
@@ -212,19 +274,16 @@ defmodule Elswisser.Matches.Match do
     end
   end
 
-  defp calculate_player_scores(games) do
-    first_game = hd(games)
-    player_one_id = first_game.white.id
-
+  defp calculate_player_scores(%Match{games: games, player_one_id: player_one_id}) do
     Enum.reduce(games, {0, 0}, fn game, {p1_score, p2_score} ->
       white_pts = Game.white_score(game)
       black_pts = Game.black_score(game)
 
       cond do
-        game.white.id == player_one_id ->
+        game.white_id == player_one_id ->
           {p1_score + white_pts, p2_score + black_pts}
 
-        game.black.id == player_one_id ->
+        game.black_id == player_one_id ->
           {p1_score + black_pts, p2_score + white_pts}
 
         true ->

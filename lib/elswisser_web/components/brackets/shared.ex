@@ -52,7 +52,12 @@ defmodule ElswisserWeb.Brackets.Shared do
     ~H"""
     <div class="els__match flex flex-col justify-center grow relative py-4 mx-2 min-w-64">
       <div class="els__match-content border border-zinc-400 relative py-1 px-2 rounded-md">
-        <.game_result game={Match.first_game_or_nil(@match)} ratings={false} show_seeds={true} />
+        <.game_result
+          game={Match.first_game_or_nil(@match)}
+          match={@match}
+          ratings={false}
+          show_seeds={true}
+        />
       </div>
     </div>
     """

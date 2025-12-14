@@ -74,8 +74,13 @@ defmodule Elswisser.Pairings.DoubleElimination.Next do
   @spec to_changeset(:winner | :loser, %Match{} | nil, list({number(), number()}), number()) ::
           Ecto.Multi.t()
 
+  # Two players advancing, match has no game yet -> insert new game and update match
   def to_changeset(tag, %Match{games: []} = match, [{p1, p1_seed}, {p2, p2_seed}], tournament_id) do
     Ecto.Multi.new()
+    |> Ecto.Multi.update(
+      {tag, :match, match.id},
+      Match.changeset(match, Match.take_seat(p1, p1_seed, p2, p2_seed))
+    )
     |> Ecto.Multi.insert(
       {tag, :game, match.id},
       %Game{
@@ -87,14 +92,20 @@ defmodule Elswisser.Pairings.DoubleElimination.Next do
     )
   end
 
+  # Two players advancing, match has existing game -> update existing game and match
   def to_changeset(tag, %Match{games: games} = match, [{p1, p1_seed}, {p2, p2_seed}], _) do
     Ecto.Multi.new()
+    |> Ecto.Multi.update(
+      {tag, :match, match.id},
+      Match.changeset(match, Match.take_seat(p1, p1_seed, p2, p2_seed))
+    )
     |> Ecto.Multi.update(
       {tag, :game, match.id},
       hd(games) |> Game.changeset(Game.take_seat(p1, p1_seed, p2, p2_seed))
     )
   end
 
+  # One player advancing, match has no game yet -> insert new game and update match
   def to_changeset(tag, %Match{games: []} = match, [{player, seed}], tournament_id) do
     game = %Game{
       tournament_id: tournament_id,
@@ -103,18 +114,28 @@ defmodule Elswisser.Pairings.DoubleElimination.Next do
     }
 
     Ecto.Multi.new()
+    |> Ecto.Multi.update(
+      {tag, :match, match.id},
+      Match.changeset(match, Match.take_seat(match, player, seed))
+    )
     |> Ecto.Multi.insert(
       {tag, :game, match.id},
       Game.changeset(game, Game.take_seat(game, player, seed))
     )
   end
 
+  # One player advancing, match has existing game -> update existing game and match
   def to_changeset(tag, %Match{games: games} = match, [{player, seed}], _) do
+    game = hd(games)
+
     Ecto.Multi.new()
     |> Ecto.Multi.update(
+      {tag, :match, match.id},
+      Match.changeset(match, Match.take_seat(match, player, seed))
+    )
+    |> Ecto.Multi.update(
       {tag, :game, match.id},
-      hd(games)
-      |> then(fn %Game{} = game -> Game.changeset(game, Game.take_seat(game, player, seed)) end)
+      Game.changeset(game, Game.take_seat(game, player, seed))
     )
   end
 

@@ -149,14 +149,15 @@ defmodule Elswisser.Games do
   end
 
   def flip_players(%Game{} = game) do
+    # Swap player colors within the game. Note: seeds are NOT swapped here
+    # because seeds are match-level attributes (tournament seeding) and don't
+    # change when colors are swapped within a game.
     case update_game(game, %{
            white_id: game.black.id,
            white_rating: game.black_rating,
-           white_seed: game.black_seed,
            white_rating_change: game.black_rating_change,
            black_id: game.white.id,
            black_rating: game.white_rating,
-           black_seed: game.white_seed,
            black_rating_change: game.white_rating_change
          }) do
       {:ok, game} ->

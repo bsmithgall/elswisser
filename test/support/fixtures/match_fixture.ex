@@ -45,7 +45,11 @@ defmodule Elswisser.MatchFixture do
       Elswisser.Matches.create_match(%{
         board: 1,
         display_order: 1,
-        round_id: round.id
+        round_id: round.id,
+        player_one_id: player1.id,
+        player_two_id: player2.id,
+        player_one_seed: 1,
+        player_two_seed: 2
       })
 
     Enum.with_index(game_results)

@@ -6,6 +6,57 @@ defmodule Elswisser.Matches.MatchTest do
   alias Elswisser.Players.Player
   alias Elswisser.Tournaments.Tournament
 
+  # Shared test fixtures
+  defp p1, do: %Player{id: 1}
+  defp p1_seed, do: 1
+  defp p2, do: %Player{id: 2}
+  defp p2_seed, do: 2
+
+  defp match_with_games(results) do
+    games =
+      results
+      |> Enum.with_index()
+      |> Enum.map(fn {result, idx} ->
+        if rem(idx, 2) == 0 do
+          p1_white(result)
+        else
+          p1_black(result)
+        end
+      end)
+
+    %Match{
+      games: games,
+      player_one: p1(),
+      player_two: p2(),
+      player_one_id: p1().id,
+      player_two_id: p2().id,
+      player_one_seed: p1_seed(),
+      player_two_seed: p2_seed()
+    }
+  end
+
+  defp p1_white(result),
+    do: %Game{
+      white: p1(),
+      white_id: p1().id,
+      white_seed: p1_seed(),
+      black: p2(),
+      black_id: p2().id,
+      black_seed: p2_seed(),
+      result: result
+    }
+
+  defp p1_black(result),
+    do: %Game{
+      black: p1(),
+      black_id: p1().id,
+      black_seed: p1_seed(),
+      white: p2(),
+      white_id: p2().id,
+      white_seed: p2_seed(),
+      result: result
+    }
+
   describe "result/1 with multiple games" do
     test "returns nil for match with no games" do
       match = %Match{games: []}
@@ -46,44 +97,6 @@ defmodule Elswisser.Matches.MatchTest do
       match = match_with_games([1, 1, nil])
       assert {nil, nil} == Match.result(match)
     end
-
-    defp p1, do: %Player{id: 1}
-    defp p1_seed, do: 1
-    defp p2, do: %Player{id: 2}
-    defp p2_seed, do: 2
-
-    defp match_with_games(results) do
-      games =
-        results
-        |> Enum.with_index()
-        |> Enum.map(fn {result, idx} ->
-          if rem(idx, 2) == 0 do
-            p1_white(result)
-          else
-            p1_black(result)
-          end
-        end)
-
-      %Match{games: games}
-    end
-
-    defp p1_white(result),
-      do: %Game{
-        white: p1(),
-        white_seed: p1_seed(),
-        black: p2(),
-        black_seed: p2_seed(),
-        result: result
-      }
-
-    defp p1_black(result),
-      do: %Game{
-        black: p1(),
-        black_seed: p1_seed(),
-        white: p2(),
-        white_seed: p2_seed(),
-        result: result
-      }
   end
 
   describe "complete?/2" do

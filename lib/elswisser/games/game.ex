@@ -279,6 +279,40 @@ defmodule Elswisser.Games.Game do
     not is_nil(game.white_id) and not is_nil(game.black_id)
   end
 
+  @doc """
+  Returns the seeds for a game's white and black players.
+
+  When a match is provided, seeds are derived from the match's player_one/player_two
+  seeds based on which player is white/black in the game. This is useful because
+  seeds are match-level attributes (tournament seeding) while colors can change
+  between games in a multi-game match.
+
+  When no match is provided (nil), falls back to the game's own seed fields.
+
+  Returns `{white_seed, black_seed}`.
+  """
+  def seeds(%Game{} = game, nil) do
+    {game.white_seed, game.black_seed}
+  end
+
+  def seeds(%Game{} = game, %Elswisser.Matches.Match{} = match) do
+    white_seed =
+      cond do
+        game.white_id == match.player_one_id -> match.player_one_seed
+        game.white_id == match.player_two_id -> match.player_two_seed
+        true -> nil
+      end
+
+    black_seed =
+      cond do
+        game.black_id == match.player_one_id -> match.player_one_seed
+        game.black_id == match.player_two_id -> match.player_two_seed
+        true -> nil
+      end
+
+    {white_seed, black_seed}
+  end
+
   def validate_game_link(changeset) do
     validate_change(changeset, :game_link, fn
       :game_link, nil ->

@@ -90,7 +90,11 @@ defmodule Elswisser.Pairings.BracketPairing do
     |> Match.changeset(%{
       display_order: display_order(board, pairing.display_order),
       board: board(board, pairing.display_order),
-      round_id: round_id
+      round_id: round_id,
+      player_one_id: if(pairing.player_one, do: pairing.player_one.id),
+      player_two_id: if(pairing.player_two, do: pairing.player_two.id),
+      player_one_seed: pairing.player_one_seed,
+      player_two_seed: pairing.player_two_seed
     })
   end
 

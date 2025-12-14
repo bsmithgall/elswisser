@@ -88,9 +88,17 @@ defmodule Elswisser.Matches do
     {display_order, game} = Map.pop(attrs, :display_order)
     display_order = if is_nil(display_order), do: board, else: display_order
 
-    {
-      %{display_order: display_order, board: board, round_id: game.round_id},
-      attrs
+    match_attrs = %{
+      display_order: display_order,
+      board: board,
+      round_id: game.round_id,
+      # Copy player/seed info from game to match
+      player_one_id: Map.get(attrs, :white_id),
+      player_two_id: Map.get(attrs, :black_id),
+      player_one_seed: Map.get(attrs, :white_seed),
+      player_two_seed: Map.get(attrs, :black_seed)
     }
+
+    {match_attrs, attrs}
   end
 end
