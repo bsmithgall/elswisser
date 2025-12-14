@@ -76,6 +76,10 @@ defmodule Elswisser.Matches.Match do
     from([match: m] in query, order_by: [asc: m.display_order])
   end
 
+  def where_round_id(query, round_id) do
+    from([match: m] in query, where: m.round_id == ^round_id)
+  end
+
   def first_game_or_nil(nil), do: nil
 
   def first_game_or_nil(%Match{} = match) do

@@ -2,13 +2,17 @@ defmodule Elswisser.RoundsTest do
   use Elswisser.DataCase
 
   alias Elswisser.Rounds
+  alias Elswisser.Rounds.Round
   alias Elswisser.Tournaments
+  alias Elswisser.Games
+  alias Elswisser.Matches
+
+  import Elswisser.RoundsFixtures
+  import Elswisser.PlayersFixtures
+  import Elswisser.MatchFixture
+  import Elswisser.TournamentsFixtures
 
   describe "rounds" do
-    alias Elswisser.Rounds.Round
-
-    import Elswisser.RoundsFixtures
-
     @invalid_attrs %{number: nil, tournament_id: nil}
 
     test "get_round!/1 returns the round with given id" do
@@ -55,6 +59,76 @@ defmodule Elswisser.RoundsTest do
 
       assert {:ok, %Round{} = round} = Rounds.set_complete(round.id)
       assert Rounds.get_round!(round.id).status == :complete
+    end
+  end
+
+  describe "ensure_matches_complete/2" do
+    test "returns ok when all matches complete in single-game tournament" do
+      {tournament, round} = tournament_and_round_fixture(:best_of, 1)
+      match_with_games_fixture(round, tournament, [1])
+
+      assert {:ok, 0} = Rounds.ensure_matches_complete(round.id, tournament)
+    end
+
+    test "returns error when match incomplete in single-game tournament" do
+      {tournament, round} = tournament_and_round_fixture(:best_of, 1)
+      match_with_games_fixture(round, tournament, [nil])
+
+      assert {:error, "1 match(es) not complete yet!"} =
+               Rounds.ensure_matches_complete(round.id, tournament)
+    end
+
+    test "returns ok when match complete in first_to tournament" do
+      {tournament, round} = tournament_and_round_fixture(:first_to, 2)
+      match_with_games_fixture(round, tournament, [1, -1])
+
+      assert {:ok, 0} = Rounds.ensure_matches_complete(round.id, tournament)
+    end
+
+    test "returns error when match incomplete in first_to tournament" do
+      {tournament, round} = tournament_and_round_fixture(:first_to, 2)
+      match_with_games_fixture(round, tournament, [1])
+
+      assert {:error, "1 match(es) not complete yet!"} =
+               Rounds.ensure_matches_complete(round.id, tournament)
+    end
+
+    test "returns error with correct count for multiple incomplete matches" do
+      {tournament, round} = tournament_and_round_fixture(:best_of, 3)
+
+      for i <- 1..2 do
+        p1 = player_fixture(%{name: "Player#{i}A"})
+        p2 = player_fixture(%{name: "Player#{i}B"})
+
+        {:ok, match} =
+          Matches.create_match(%{
+            board: i,
+            display_order: i,
+            round_id: round.id
+          })
+
+        {:ok, _} =
+          Games.create_game(%{
+            match_id: match.id,
+            round_id: round.id,
+            tournament_id: tournament.id,
+            white_id: p1.id,
+            black_id: p2.id,
+            white_seed: i * 2 - 1,
+            black_seed: i * 2,
+            result: 1
+          })
+      end
+
+      assert {:error, "2 match(es) not complete yet!"} =
+               Rounds.ensure_matches_complete(round.id, tournament)
+    end
+
+    test "handles best_of format with early clinch correctly" do
+      {tournament, round} = tournament_and_round_fixture(:best_of, 5)
+      match_with_games_fixture(round, tournament, [1, -1, 1])
+
+      assert {:ok, 0} = Rounds.ensure_matches_complete(round.id, tournament)
     end
   end
 end

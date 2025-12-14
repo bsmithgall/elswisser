@@ -227,18 +227,30 @@ defmodule Elswisser.Rounds do
   end
 
   @doc """
-  Mark all games associated with this round that do not currently have a result
-  as a draw.
+  Ensures all matches in a round are complete according to tournament rules.
+
+  For multi-game matches (best_of or first_to formats), this checks that each
+  match has reached its completion condition based on the tournament configuration.
+  For single-game matches (points_to_win: 1), this is equivalent to checking
+  all games are finished.
+
+  Returns `{:ok, 0}` if all matches are complete, or `{:error, message}` with
+  the count of incomplete matches.
   """
-  def ensure_games_finished(id) do
-    case Game.from()
-         |> Game.where_round_id(id)
-         |> Game.where_not_bye()
-         |> Game.where_unfinished()
-         |> Game.count()
-         |> Repo.one() do
+  def ensure_matches_complete(round_id, %Tournament{} = tournament) do
+    incomplete_count =
+      Match.from()
+      |> Match.where_round_id(round_id)
+      |> Match.with_games()
+      |> Game.with_both_players()
+      |> Match.preload_games_and_players()
+      |> Repo.all()
+      |> Enum.reject(&Match.complete?(&1, tournament))
+      |> length()
+
+    case incomplete_count do
       0 -> {:ok, 0}
-      n -> {:error, "#{n} game(s) not finished yet!"}
+      n -> {:error, "#{n} match(es) not complete yet!"}
     end
   end
 
@@ -255,14 +267,14 @@ defmodule Elswisser.Rounds do
   @doc """
   Finalize a round by
 
-  1. Ensuring that all games have been finished for the round
+  1. Ensuring that all matches are complete for the round according to tournament rules
   2. Update all of the ELOs for each player based on the game results
   3. Set the round as complete
   4. Create the next round of the tournament.
   """
   def finalize_round(%Round{} = rnd, %Tournament{} = tournament) do
     with {:ok, _} <- ensure_bye_set(rnd.id),
-         {:ok, _} <- ensure_games_finished(rnd.id),
+         {:ok, _} <- ensure_matches_complete(rnd.id, tournament),
          {:ok, _update} <- update_ratings_after_round(rnd.id),
          {:ok, rnd} <- set_complete(rnd),
          {:ok, next_round} <- Tournaments.create_next_round(tournament, rnd.number) do

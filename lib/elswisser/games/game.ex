@@ -62,8 +62,6 @@ defmodule Elswisser.Games.Game do
     |> validate_required([:round_id, :tournament_id, :match_id])
     |> validate_different_players()
     |> validate_game_link()
-    |> unique_constraint(:unique_white_players, name: :games_white_id_round_id_unique_idx)
-    |> unique_constraint(:unique_black_players, name: :games_black_id_round_id_unique_idx)
     |> prepare_changes(fn cs ->
       if get_change(cs, :white_id) == -1 or get_change(cs, :black_id) == -1 do
         put_change(cs, :result, 0)
