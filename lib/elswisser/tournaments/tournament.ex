@@ -7,6 +7,7 @@ defmodule Elswisser.Tournaments.Tournament do
   alias Elswisser.Rounds.Round
   alias Elswisser.Games.Game
 
+  @type t :: %__MODULE__{}
   alias __MODULE__
 
   @types ~w[swiss single_elimination double_elimination round_robin]a

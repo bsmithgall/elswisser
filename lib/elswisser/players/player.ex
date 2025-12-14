@@ -7,6 +7,8 @@ defmodule Elswisser.Players.Player do
   alias Elswisser.Tournaments.Tournament
   alias Elswisser.Tournaments.TournamentPlayer
 
+  @type t :: %__MODULE__{}
+
   schema "players" do
     field(:name, :string)
     field(:rating, :integer)
