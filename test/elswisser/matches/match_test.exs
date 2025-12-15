@@ -39,10 +39,8 @@ defmodule Elswisser.Matches.MatchTest do
     do: %Game{
       white: p1(),
       white_id: p1().id,
-      white_seed: p1_seed(),
       black: p2(),
       black_id: p2().id,
-      black_seed: p2_seed(),
       result: result
     }
 
@@ -50,10 +48,8 @@ defmodule Elswisser.Matches.MatchTest do
     do: %Game{
       black: p1(),
       black_id: p1().id,
-      black_seed: p1_seed(),
       white: p2(),
       white_id: p2().id,
-      white_seed: p2_seed(),
       result: result
     }
 
@@ -83,13 +79,15 @@ defmodule Elswisser.Matches.MatchTest do
       assert {nil, nil} == Match.result(match)
     end
 
-    test "works for comeback victory for white" do
-      match = match_with_games([-1, 1, 1])
+    test "works for comeback victory for player one" do
+      # p1 loses game 0 as white, wins game 1 as black, wins game 2 as white
+      match = match_with_games([-1, -1, 1])
       assert {{p1(), p1_seed()}, {p2(), p2_seed()}} == Match.result(match)
     end
 
-    test "works for comeback victory for black" do
-      match = match_with_games([1, -1, -1])
+    test "works for comeback victory for player two" do
+      # p2 loses game 0 as black, wins game 1 as white, wins game 2 as black
+      match = match_with_games([1, 1, -1])
       assert {{p2(), p2_seed()}, {p1(), p1_seed()}} == Match.result(match)
     end
 

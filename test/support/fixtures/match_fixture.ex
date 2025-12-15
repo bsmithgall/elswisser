@@ -61,8 +61,6 @@ defmodule Elswisser.MatchFixture do
           tournament_id: tournament.id,
           white_id: if(rem(idx, 2) == 0, do: player1.id, else: player2.id),
           black_id: if(rem(idx, 2) == 0, do: player2.id, else: player1.id),
-          white_seed: if(rem(idx, 2) == 0, do: 1, else: 2),
-          black_seed: if(rem(idx, 2) == 0, do: 2, else: 1),
           result: result
         })
     end)

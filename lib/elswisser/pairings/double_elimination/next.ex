@@ -88,7 +88,7 @@ defmodule Elswisser.Pairings.DoubleElimination.Next do
         round_id: match.round_id,
         match_id: match.id
       }
-      |> Game.changeset(Game.take_seat(p1, p1_seed, p2, p2_seed))
+      |> Game.changeset(Game.take_seat(p1, p2))
     )
   end
 
@@ -101,7 +101,7 @@ defmodule Elswisser.Pairings.DoubleElimination.Next do
     )
     |> Ecto.Multi.update(
       {tag, :game, match.id},
-      hd(games) |> Game.changeset(Game.take_seat(p1, p1_seed, p2, p2_seed))
+      hd(games) |> Game.changeset(Game.take_seat(p1, p2))
     )
   end
 
@@ -120,7 +120,7 @@ defmodule Elswisser.Pairings.DoubleElimination.Next do
     )
     |> Ecto.Multi.insert(
       {tag, :game, match.id},
-      Game.changeset(game, Game.take_seat(game, player, seed))
+      Game.changeset(game, Game.take_seat(game, player))
     )
   end
 
@@ -135,7 +135,7 @@ defmodule Elswisser.Pairings.DoubleElimination.Next do
     )
     |> Ecto.Multi.update(
       {tag, :game, match.id},
-      Game.changeset(game, Game.take_seat(game, player, seed))
+      Game.changeset(game, Game.take_seat(game, player))
     )
   end
 

@@ -114,8 +114,6 @@ defmodule Elswisser.RoundsTest do
             tournament_id: tournament.id,
             white_id: p1.id,
             black_id: p2.id,
-            white_seed: i * 2 - 1,
-            black_seed: i * 2,
             result: 1
           })
       end

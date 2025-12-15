@@ -103,10 +103,8 @@ defmodule Elswisser.Pairings.BracketPairing do
     |> Game.changeset(%{
       white_id: pairing.player_one.id,
       white_rating: pairing.player_one.rating,
-      white_seed: pairing.player_one_seed,
       black_id: pairing.player_two.id,
       black_rating: pairing.player_two.rating,
-      black_seed: pairing.player_two_seed,
       tournament_id: pairing.tournament_id,
       round_id: round_id
     })
@@ -116,10 +114,8 @@ defmodule Elswisser.Pairings.BracketPairing do
     base = %{
       white_id: if(pairing.player_one, do: pairing.player_one.id),
       white_rating: if(pairing.player_one, do: pairing.player_one.rating),
-      white_seed: pairing.player_one_seed,
       black_id: if(pairing.player_two, do: pairing.player_two.id),
       black_rating: if(pairing.player_two, do: pairing.player_two.rating),
-      black_seed: pairing.player_two_seed,
       tournament_id: pairing.tournament_id,
       round_id: round_id
     }

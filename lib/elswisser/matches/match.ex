@@ -179,19 +179,20 @@ defmodule Elswisser.Matches.Match do
     if nil in results do
       {nil, nil}
     else
-      calculate_result(match, Enum.sum(results))
+      {p1_score, p2_score} = calculate_player_scores(match)
+      calculate_result(match, p1_score, p2_score)
     end
   end
 
-  defp calculate_result(%Match{} = match, sum) when sum > 0 do
+  defp calculate_result(%Match{} = match, p1_score, p2_score) when p1_score > p2_score do
     {{match.player_one, match.player_one_seed}, {match.player_two, match.player_two_seed}}
   end
 
-  defp calculate_result(%Match{} = match, sum) when sum < 0 do
+  defp calculate_result(%Match{} = match, p1_score, p2_score) when p1_score < p2_score do
     {{match.player_two, match.player_two_seed}, {match.player_one, match.player_one_seed}}
   end
 
-  defp calculate_result(%Match{} = match, 0) do
+  defp calculate_result(%Match{} = match, _, _) do
     cond do
       Bye.bye_player?(match.player_one) ->
         {{match.player_two, match.player_two_seed}, {match.player_one, match.player_one_seed}}
@@ -312,7 +313,7 @@ defmodule Elswisser.Matches.Match do
 
     def select_into(query) do
       from([match: m, round: r, game: g, white: w, black: b] in query,
-        select: %Match{
+        select: %Mini{
           id: m.id,
           round_id: r.id,
           round_display_name: r.display_name,
