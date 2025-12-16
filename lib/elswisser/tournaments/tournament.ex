@@ -7,16 +7,21 @@ defmodule Elswisser.Tournaments.Tournament do
   alias Elswisser.Rounds.Round
   alias Elswisser.Games.Game
 
+  @type t :: %__MODULE__{}
   alias __MODULE__
 
   @types ~w[swiss single_elimination double_elimination round_robin]a
   @knockouts ~w[single_elimination double_elimination]a
+  @match_formats ~w[best_of first_to]a
 
   schema "tournaments" do
     field(:name, :string)
     field(:length, :integer)
 
     field(:type, Ecto.Enum, values: @types)
+    field(:match_format, Ecto.Enum, values: @match_formats, default: :best_of)
+    field(:points_to_win, :integer, default: 1)
+    field(:allow_draws, :boolean, default: true)
 
     has_many(:tournament_players, TournamentPlayer, on_replace: :delete)
     has_many(:players, through: [:tournament_players, :player])
@@ -30,9 +35,11 @@ defmodule Elswisser.Tournaments.Tournament do
   @doc false
   def changeset(tournament, attrs) do
     tournament
-    |> cast(attrs, [:name, :length, :type])
-    |> validate_required([:name, :length, :type])
+    |> cast(attrs, [:name, :length, :type, :match_format, :points_to_win, :allow_draws])
+    |> validate_required([:name, :length, :type, :match_format, :points_to_win, :allow_draws])
     |> validate_inclusion(:type, @types)
+    |> validate_inclusion(:match_format, @match_formats)
+    |> validate_number(:points_to_win, greater_than: 0)
     |> validate_tournament_type_unchaged()
   end
 

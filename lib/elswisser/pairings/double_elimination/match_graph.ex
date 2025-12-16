@@ -95,7 +95,7 @@ defmodule Elswisser.Pairings.DoubleElimination.MatchGraph do
     )
   end
 
-  @spec winners_half(number()) :: MatchGraph.t()
+  @spec winners_half(number()) :: list(MatchGraph.t())
   def winners_half(size) do
     count = winner_count(size)
 

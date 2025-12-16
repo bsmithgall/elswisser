@@ -88,9 +88,9 @@ defmodule Elswisser.Rounds.Round do
   end
 
   def preload_all(query) do
-    from([match: m, game: g, white: w, black: b] in query,
+    from([match: m, player_one: p1, player_two: p2, game: g, white: w, black: b] in query,
       preload: [
-        matches: {m, games: {g, white: w, black: b}},
+        matches: {m, player_one: p1, player_two: p2, games: {g, white: w, black: b}},
         games: {g, white: w, black: b}
       ]
     )

@@ -4,19 +4,16 @@ defmodule Elswisser.Rounds do
   """
 
   import Ecto.Query, warn: false
+  alias Elswisser.Games
+  alias Elswisser.Games.Game
   alias Elswisser.Matches.Match
-  alias Ecto.Multi
+  alias Elswisser.Pairings.Bye
+  alias Elswisser.Players.Player
   alias Elswisser.Repo
-
-  alias Elswisser.Tournaments
-  alias Elswisser.Tournaments.Tournament
   alias Elswisser.Rounds.Round
   alias Elswisser.Rounds.Stats
-  alias Elswisser.Games.Game
-  alias Elswisser.Players
-  alias Elswisser.Players.Player
-  alias Elswisser.Players.ELO
-  alias Elswisser.Pairings.Bye
+  alias Elswisser.Tournaments
+  alias Elswisser.Tournaments.Tournament
 
   @doc """
   Gets a single round.
@@ -59,6 +56,7 @@ defmodule Elswisser.Rounds do
     Round.from()
     |> Round.where_id(id)
     |> Round.with_matches()
+    |> Match.with_players()
     |> Match.with_games()
     |> Game.with_white_player()
     |> Game.with_black_player()
@@ -71,6 +69,7 @@ defmodule Elswisser.Rounds do
     |> Round.where_tournament_id(tournament_id)
     |> Round.where_round_number(number)
     |> Round.with_matches()
+    |> Match.with_players()
     |> Match.order_by_display_number()
     |> Match.with_games()
     |> Game.with_white_player()
@@ -131,36 +130,26 @@ defmodule Elswisser.Rounds do
   def update_ratings_after_round(id) do
     rnd_with_games = get_round_with_games(id)
 
-    player_ids =
-      Enum.reduce(rnd_with_games.games, MapSet.new(), fn g, acc ->
-        put_id(acc, g.white_id) |> put_id(g.black_id)
-      end)
-      |> MapSet.to_list()
-
-    with_k_factors = Players.with_k_factor(player_ids)
-
     rnd_with_games.games
-    |> Enum.filter(fn g ->
-      g.white_id != Bye.bye_player_id() and g.black_id != Bye.bye_player_id()
+    |> Enum.filter(&needs_rating_update?/1)
+    |> Enum.reduce({:ok, []}, fn game, acc ->
+      case acc do
+        {:ok, results} ->
+          case Games.update_player_ratings(game) do
+            {:ok, result} -> {:ok, [result | results]}
+            {:error, _} = err -> err
+          end
+
+        err ->
+          err
+      end
     end)
-    |> Enum.reduce(Multi.new(), fn g, multi ->
-      {white, white_recalcs} = with_k_factors[g.white_id]
-      {black, black_recalcs} = with_k_factors[g.black_id]
+  end
 
-      {{new_white, white_change}, {new_black, black_change}} =
-        ELO.recalculate(white_recalcs, black_recalcs, g.result)
-
-      white_changeset = Player.changeset(white, %{rating: new_white})
-      black_changeset = Player.changeset(black, %{rating: new_black})
-
-      game_changeset =
-        Game.changeset(g, %{white_rating_change: white_change, black_rating_change: black_change})
-
-      Multi.update(multi, {:rating, g.white_id}, white_changeset)
-      |> Multi.update({:rating, g.black_id}, black_changeset)
-      |> Multi.update({:game_rating_change, g.id}, game_changeset)
-    end)
-    |> Repo.transaction()
+  defp needs_rating_update?(%Game{} = game) do
+    not_bye = game.white_id != Bye.bye_player_id() and game.black_id != Bye.bye_player_id()
+    not_already_updated = is_nil(game.white_rating_change) or game.white_rating_change == 0
+    not_bye and not_already_updated
   end
 
   @doc """
@@ -227,18 +216,30 @@ defmodule Elswisser.Rounds do
   end
 
   @doc """
-  Mark all games associated with this round that do not currently have a result
-  as a draw.
+  Ensures all matches in a round are complete according to tournament rules.
+
+  For multi-game matches (best_of or first_to formats), this checks that each
+  match has reached its completion condition based on the tournament configuration.
+  For single-game matches (points_to_win: 1), this is equivalent to checking
+  all games are finished.
+
+  Returns `{:ok, 0}` if all matches are complete, or `{:error, message}` with
+  the count of incomplete matches.
   """
-  def ensure_games_finished(id) do
-    case Game.from()
-         |> Game.where_round_id(id)
-         |> Game.where_not_bye()
-         |> Game.where_unfinished()
-         |> Game.count()
-         |> Repo.one() do
+  def ensure_matches_complete(round_id, %Tournament{} = tournament) do
+    incomplete_count =
+      Match.from()
+      |> Match.where_round_id(round_id)
+      |> Match.with_games()
+      |> Game.with_both_players()
+      |> Match.preload_games_and_players()
+      |> Repo.all()
+      |> Enum.reject(&Match.complete?(&1, tournament))
+      |> length()
+
+    case incomplete_count do
       0 -> {:ok, 0}
-      n -> {:error, "#{n} game(s) not finished yet!"}
+      n -> {:error, "#{n} match(es) not complete yet!"}
     end
   end
 
@@ -255,14 +256,14 @@ defmodule Elswisser.Rounds do
   @doc """
   Finalize a round by
 
-  1. Ensuring that all games have been finished for the round
+  1. Ensuring that all matches are complete for the round according to tournament rules
   2. Update all of the ELOs for each player based on the game results
   3. Set the round as complete
   4. Create the next round of the tournament.
   """
   def finalize_round(%Round{} = rnd, %Tournament{} = tournament) do
     with {:ok, _} <- ensure_bye_set(rnd.id),
-         {:ok, _} <- ensure_games_finished(rnd.id),
+         {:ok, _} <- ensure_matches_complete(rnd.id, tournament),
          {:ok, _update} <- update_ratings_after_round(rnd.id),
          {:ok, rnd} <- set_complete(rnd),
          {:ok, next_round} <- Tournaments.create_next_round(tournament, rnd.number) do
@@ -272,7 +273,4 @@ defmodule Elswisser.Rounds do
       {:error, reason} -> {:error, reason}
     end
   end
-
-  defp put_id(set, -1), do: set
-  defp put_id(set, player_id), do: MapSet.put(set, player_id)
 end

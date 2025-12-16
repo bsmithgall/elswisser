@@ -1,6 +1,7 @@
 defmodule Elswisser.GamesTest do
   use Elswisser.DataCase
 
+  alias Elswisser.Players
   alias Elswisser.Games
 
   describe "games" do
@@ -9,6 +10,7 @@ defmodule Elswisser.GamesTest do
     import Elswisser.RoundsFixtures
     import Elswisser.OpeningsFixture
 
+    @tag :only
     test "get_game!/1 returns the game with the given id" do
       game = game_fixture()
       assert Games.get_game!(game.id) == game
@@ -50,6 +52,19 @@ defmodule Elswisser.GamesTest do
 
       game = Games.get_game_with_players_and_opening!(game.id)
       assert game.opening == opening
+    end
+
+    test "update_ratings/1 properly updates the ratings of the attached players" do
+      white = player_fixture(%{rating: 800})
+      black = player_fixture(%{rating: 1200})
+      game = game_for_players_fixture(white, black, %{result: 1})
+
+      {:ok, _} = Games.update_player_ratings(game)
+      updated_white = Players.get_player!(white.id)
+      updated_black = Players.get_player!(black.id)
+
+      assert white.rating != updated_white.rating
+      assert black.rating != updated_black.rating
     end
   end
 end

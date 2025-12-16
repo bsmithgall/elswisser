@@ -11,6 +11,9 @@ defmodule Elswisser.Games.Game do
   alias Elswisser.Games.Game
   alias Elswisser.Players.Player
 
+  @type t :: %__MODULE__{}
+  alias __MODULE__
+
   schema "games" do
     field(:game_link, :string)
     field(:pgn, :string)
@@ -22,8 +25,6 @@ defmodule Elswisser.Games.Game do
     field(:black_rating, :integer, default: 0)
     field(:white_rating_change, :integer, default: 0)
     field(:black_rating_change, :integer, default: 0)
-    field(:white_seed, :integer)
-    field(:black_seed, :integer)
 
     belongs_to(:round, Elswisser.Rounds.Round)
     belongs_to(:match, Elswisser.Matches.Match)
@@ -43,7 +44,6 @@ defmodule Elswisser.Games.Game do
       :black_id,
       :black_rating,
       :black_rating_change,
-      :black_seed,
       :finished_at,
       :game_link,
       :match_id,
@@ -56,14 +56,11 @@ defmodule Elswisser.Games.Game do
       :white_id,
       :white_rating,
       :white_rating_change,
-      :white_seed,
       :opening_id
     ])
     |> validate_required([:round_id, :tournament_id, :match_id])
     |> validate_different_players()
     |> validate_game_link()
-    |> unique_constraint(:unique_white_players, name: :games_white_id_round_id_unique_idx)
-    |> unique_constraint(:unique_black_players, name: :games_black_id_round_id_unique_idx)
     |> prepare_changes(fn cs ->
       if get_change(cs, :white_id) == -1 or get_change(cs, :black_id) == -1 do
         put_change(cs, :result, 0)
@@ -236,37 +233,27 @@ defmodule Elswisser.Games.Game do
     !(is_nil(game.result) and is_nil(game.finished_at))
   end
 
-  def take_seat(%Game{white_id: nil, black_id: nil}, %Player{} = player, player_seed) do
+  def take_seat(%Game{white_id: nil, black_id: nil}, %Player{} = player) do
     case Enum.random(0..1) do
-      0 ->
-        %{black_id: player.id, black_rating: player.rating, black_seed: player_seed}
-
-      1 ->
-        %{white_id: player.id, white_rating: player.rating, white_seed: player_seed}
+      0 -> %{black_id: player.id, black_rating: player.rating}
+      1 -> %{white_id: player.id, white_rating: player.rating}
     end
   end
 
-  def take_seat(%Game{black_id: nil, white_id: _}, %Player{} = player, player_seed) do
-    %{black_id: player.id, black_rating: player.rating, black_seed: player_seed}
+  def take_seat(%Game{black_id: nil, white_id: _}, %Player{} = player) do
+    %{black_id: player.id, black_rating: player.rating}
   end
 
-  def take_seat(%Game{white_id: nil, black_id: _}, %Player{} = player, player_seed) do
-    %{white_id: player.id, white_rating: player.rating, white_seed: player_seed}
+  def take_seat(%Game{white_id: nil, black_id: _}, %Player{} = player) do
+    %{white_id: player.id, white_rating: player.rating}
   end
 
-  def take_seat(
-        %Player{} = player_one,
-        player_one_seed,
-        %Player{} = player_two,
-        player_two_seed
-      ) do
+  def take_seat(%Player{} = player_one, %Player{} = player_two) do
     %{
       black_id: player_one.id,
       black_rating: player_one.rating,
-      black_seed: player_one_seed,
       white_id: player_two.id,
-      white_rating: player_two.rating,
-      white_seed: player_two_seed
+      white_rating: player_two.rating
     }
   end
 
@@ -279,6 +266,36 @@ defmodule Elswisser.Games.Game do
 
   def playable?(%Game{} = game) do
     not is_nil(game.white_id) and not is_nil(game.black_id)
+  end
+
+  @doc """
+  Returns the seeds for a game's white and black players.
+
+  Seeds are derived from the match's player_one/player_two seeds based on which
+  player is white/black in the game. This is necessary because seeds are
+  match-level attributes (tournament seeding) while colors can change between
+  games in a multi-game match.
+
+  Returns `{white_seed, black_seed}`.
+  """
+  def seeds(%Game{}, nil), do: {nil, nil}
+
+  def seeds(%Game{} = game, %Elswisser.Matches.Match{} = match) do
+    white_seed =
+      cond do
+        game.white_id == match.player_one_id -> match.player_one_seed
+        game.white_id == match.player_two_id -> match.player_two_seed
+        true -> nil
+      end
+
+    black_seed =
+      cond do
+        game.black_id == match.player_one_id -> match.player_one_seed
+        game.black_id == match.player_two_id -> match.player_two_seed
+        true -> nil
+      end
+
+    {white_seed, black_seed}
   end
 
   def validate_game_link(changeset) do

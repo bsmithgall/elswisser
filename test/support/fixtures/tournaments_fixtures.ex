@@ -51,4 +51,28 @@ defmodule Elswisser.TournamentsFixtures do
 
     Elswisser.Tournaments.get_tournament_with_players!(tournament.id)
   end
+
+  @doc """
+  Create a tournament with specific match format configuration and a round.
+  Returns {tournament, round} tuple.
+  """
+  def tournament_and_round_fixture(match_format, points_to_win, allow_draws \\ true) do
+    {:ok, tournament} =
+      Elswisser.Tournaments.create_tournament(%{
+        name: "test",
+        type: :swiss,
+        match_format: match_format,
+        points_to_win: points_to_win,
+        allow_draws: allow_draws
+      })
+
+    {:ok, round} =
+      Elswisser.Rounds.create_round(%{
+        number: 1,
+        tournament_id: tournament.id,
+        status: :playing
+      })
+
+    {tournament, round}
+  end
 end
