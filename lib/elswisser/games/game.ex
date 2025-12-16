@@ -11,6 +11,9 @@ defmodule Elswisser.Games.Game do
   alias Elswisser.Games.Game
   alias Elswisser.Players.Player
 
+  @type t :: %__MODULE__{}
+  alias __MODULE__
+
   schema "games" do
     field(:game_link, :string)
     field(:pgn, :string)

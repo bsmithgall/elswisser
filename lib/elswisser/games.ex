@@ -1,9 +1,13 @@
 defmodule Elswisser.Games do
   import Ecto.Query, warn: false
-  alias Elswisser.Repo
 
+  alias Ecto.Multi
   alias Elswisser.Games.Game
   alias Elswisser.Games.PgnProvider
+  alias Elswisser.Players
+  alias Elswisser.Players.ELO
+  alias Elswisser.Players.Player
+  alias Elswisser.Repo
   alias Elswisser.Rounds.Round
   alias Elswisser.Tournaments.Tournament
 
@@ -166,5 +170,27 @@ defmodule Elswisser.Games do
       {:error, changeset} ->
         {:error, changeset}
     end
+  end
+
+  def update_player_ratings(%Game{} = game) do
+    with_k_factors = Players.with_k_factor([game.white_id, game.black_id])
+
+    {white, white_recalcs} = with_k_factors[game.white_id]
+    {black, black_recalcs} = with_k_factors[game.black_id]
+
+    {{new_white, white_change}, {new_black, black_change}} =
+      ELO.recalculate(white_recalcs, black_recalcs, game.result)
+
+    white_changeset = Player.changeset(white, %{rating: new_white})
+    black_changeset = Player.changeset(black, %{rating: new_black})
+
+    game_changeset =
+      Game.changeset(game, %{white_rating_change: white_change, black_rating_change: black_change})
+
+    Multi.new()
+    |> Multi.update(:white_rating, white_changeset)
+    |> Multi.update(:black_rating, black_changeset)
+    |> Multi.update(:game_rating_change, game_changeset)
+    |> Repo.transaction()
   end
 end

@@ -153,6 +153,26 @@ defmodule Elswisser.Matches.Match do
   end
 
   @doc """
+  Determines the colors for the next game in a match based on color alternation.
+
+  Returns `{white_id, black_id}` where colors are swapped from the last game.
+  Returns `nil` if the match has no games.
+  """
+  @spec next_game_colors(t()) :: {integer(), integer()} | nil
+  def next_game_colors(%Match{games: []}), do: nil
+
+  def next_game_colors(%Match{games: games, player_one_id: p1_id, player_two_id: p2_id}) do
+    last_game = games |> Enum.sort_by(& &1.inserted_at, :asc) |> List.last()
+
+    # Alternate colors from the last game
+    cond do
+      last_game.white_id == p1_id -> {p2_id, p1_id}
+      last_game.white_id == p2_id -> {p1_id, p2_id}
+      true -> nil
+    end
+  end
+
+  @doc """
   Calculates the result of a match across all games.
 
   Returns a tuple of `{{winner, winner_seed}, {loser, loser_seed}}` if the match

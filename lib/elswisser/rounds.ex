@@ -4,19 +4,16 @@ defmodule Elswisser.Rounds do
   """
 
   import Ecto.Query, warn: false
+  alias Elswisser.Games
+  alias Elswisser.Games.Game
   alias Elswisser.Matches.Match
-  alias Ecto.Multi
+  alias Elswisser.Pairings.Bye
+  alias Elswisser.Players.Player
   alias Elswisser.Repo
-
-  alias Elswisser.Tournaments
-  alias Elswisser.Tournaments.Tournament
   alias Elswisser.Rounds.Round
   alias Elswisser.Rounds.Stats
-  alias Elswisser.Games.Game
-  alias Elswisser.Players
-  alias Elswisser.Players.Player
-  alias Elswisser.Players.ELO
-  alias Elswisser.Pairings.Bye
+  alias Elswisser.Tournaments
+  alias Elswisser.Tournaments.Tournament
 
   @doc """
   Gets a single round.
@@ -133,36 +130,26 @@ defmodule Elswisser.Rounds do
   def update_ratings_after_round(id) do
     rnd_with_games = get_round_with_games(id)
 
-    player_ids =
-      Enum.reduce(rnd_with_games.games, MapSet.new(), fn g, acc ->
-        put_id(acc, g.white_id) |> put_id(g.black_id)
-      end)
-      |> MapSet.to_list()
-
-    with_k_factors = Players.with_k_factor(player_ids)
-
     rnd_with_games.games
-    |> Enum.filter(fn g ->
-      g.white_id != Bye.bye_player_id() and g.black_id != Bye.bye_player_id()
+    |> Enum.filter(&needs_rating_update?/1)
+    |> Enum.reduce({:ok, []}, fn game, acc ->
+      case acc do
+        {:ok, results} ->
+          case Games.update_player_ratings(game) do
+            {:ok, result} -> {:ok, [result | results]}
+            {:error, _} = err -> err
+          end
+
+        err ->
+          err
+      end
     end)
-    |> Enum.reduce(Multi.new(), fn g, multi ->
-      {white, white_recalcs} = with_k_factors[g.white_id]
-      {black, black_recalcs} = with_k_factors[g.black_id]
+  end
 
-      {{new_white, white_change}, {new_black, black_change}} =
-        ELO.recalculate(white_recalcs, black_recalcs, g.result)
-
-      white_changeset = Player.changeset(white, %{rating: new_white})
-      black_changeset = Player.changeset(black, %{rating: new_black})
-
-      game_changeset =
-        Game.changeset(g, %{white_rating_change: white_change, black_rating_change: black_change})
-
-      Multi.update(multi, {:rating, g.white_id}, white_changeset)
-      |> Multi.update({:rating, g.black_id}, black_changeset)
-      |> Multi.update({:game_rating_change, g.id}, game_changeset)
-    end)
-    |> Repo.transaction()
+  defp needs_rating_update?(%Game{} = game) do
+    not_bye = game.white_id != Bye.bye_player_id() and game.black_id != Bye.bye_player_id()
+    not_already_updated = is_nil(game.white_rating_change) or game.white_rating_change == 0
+    not_bye and not_already_updated
   end
 
   @doc """
@@ -286,7 +273,4 @@ defmodule Elswisser.Rounds do
       {:error, reason} -> {:error, reason}
     end
   end
-
-  defp put_id(set, -1), do: set
-  defp put_id(set, player_id), do: MapSet.put(set, player_id)
 end
