@@ -7,7 +7,7 @@
 | 1 | ✅ Complete | Graph & Validation | `max_weight_matching.ex`, `graph.ex`, `validation.ex` |
 | 2 | ✅ Complete | Blossom Structs & Context | `blossom.ex`, `blossom/trivial.ex`, `blossom/non_trivial.ex`, `context.ex` |
 | 3 | ✅ Complete | Slack & Edge Tracking | `slack.ex`, `least_slack.ex` |
-| 4 | Pending | Labeling | `label.ex` |
+| 4 | ✅ Complete | Labeling | `label.ex` |
 | 5 | Pending | Delta Mechanics | `stage.ex` (partial) |
 | 6 | Pending | Paths & Augmentation | `alternating_path.ex`, `augment.ex` |
 | 7 | Pending | Stage Integration | `stage.ex` - **Bipartite graphs work** |
