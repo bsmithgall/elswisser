@@ -59,13 +59,13 @@ defmodule Blossom.MaxWeightMatching.Validation do
 
   # Private helpers
 
-  defp validate_edges([]), do: :ok
-
-  defp validate_edges([edge | rest]) do
-    case validate_edge(edge) do
-      :ok -> validate_edges(rest)
-      error -> error
-    end
+  defp validate_edges(edges) do
+    Enum.reduce_while(edges, :ok, fn edge, :ok ->
+      case validate_edge(edge) do
+        :ok -> {:cont, :ok}
+        error -> {:halt, error}
+      end
+    end)
   end
 
   defp validate_edge(edge) when not is_tuple(edge) or tuple_size(edge) != 3 do

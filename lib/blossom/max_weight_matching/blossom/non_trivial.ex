@@ -75,24 +75,23 @@ defmodule Blossom.MaxWeightMatching.Blossom.NonTrivial do
       when is_list(subblossom_ids) and is_list(edges) and is_integer(base_vertex) do
     n = length(subblossom_ids)
 
-    # Sanity checks matching Python implementation
-    if length(edges) != n do
-      raise ArgumentError, "edges length must equal subblossoms length"
-    end
+    cond do
+      length(edges) != n ->
+        raise ArgumentError, "edges length must equal subblossoms length"
 
-    if n < 3 do
-      raise ArgumentError, "non-trivial blossom must have at least 3 sub-blossoms"
-    end
+      n < 3 ->
+        raise ArgumentError, "non-trivial blossom must have at least 3 sub-blossoms"
 
-    if rem(n, 2) != 1 do
-      raise ArgumentError, "non-trivial blossom must have odd number of sub-blossoms"
-    end
+      rem(n, 2) != 1 ->
+        raise ArgumentError, "non-trivial blossom must have odd number of sub-blossoms"
 
-    %__MODULE__{
-      id: make_ref(),
-      base_vertex: base_vertex,
-      subblossom_ids: subblossom_ids,
-      edges: edges
-    }
+      true ->
+        %__MODULE__{
+          id: make_ref(),
+          base_vertex: base_vertex,
+          subblossom_ids: subblossom_ids,
+          edges: edges
+        }
+    end
   end
 end

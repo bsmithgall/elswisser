@@ -60,22 +60,20 @@ defmodule Blossom.MaxWeightMatching.Label do
     y = Map.fetch!(ctx.vertex_mate, x)
 
     tree_edge =
-      if y == -1 do
-        if bx.base_vertex != x do
+      cond do
+        y == -1 and bx.base_vertex != x ->
           raise ArgumentError,
                 "assign_label_s: unmatched vertex #{x} must be base vertex, got #{bx.base_vertex}"
-        end
 
-        nil
-      else
-        by = Context.get_vertex_blossom(ctx, y)
+        y == -1 ->
+          nil
 
-        if by.label != :t do
+        Context.get_vertex_blossom(ctx, y).label != :t ->
           raise ArgumentError,
-                "assign_label_s: mate's blossom must be T-labeled, got #{inspect(by.label)}"
-        end
+                "assign_label_s: mate's blossom must be T-labeled, got #{inspect(Context.get_vertex_blossom(ctx, y).label)}"
 
-        {y, x}
+        true ->
+          {y, x}
       end
 
     ctx = Context.update_blossom(ctx, bx_id, label: :s, tree_edge: tree_edge)

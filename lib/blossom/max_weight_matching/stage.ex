@@ -14,6 +14,7 @@ defmodule Blossom.MaxWeightMatching.Stage do
 
   alias Blossom.MaxWeightMatching.Context
   alias Blossom.MaxWeightMatching.LeastSlack
+  alias Blossom.MaxWeightMatching.AlternatingPath
 
   alias Blossom.MaxWeightMatching.Blossom.NonTrivial
 
@@ -90,14 +91,10 @@ defmodule Blossom.MaxWeightMatching.Stage do
     {e3, slack3_raw} = LeastSlack.get_best_blossom_edge(ctx)
 
     slack3 =
-      if e3 != -1 do
-        if ctx.graph.integer_weights do
-          div(slack3_raw, 2)
-        else
-          slack3_raw / 2
-        end
-      else
-        slack3_raw
+      cond do
+        e3 == -1 -> slack3_raw
+        ctx.graph.integer_weights -> div(slack3_raw, 2)
+        true -> slack3_raw / 2
       end
 
     {delta4, blossom4_id} = calc_delta4(ctx)
@@ -133,46 +130,65 @@ defmodule Blossom.MaxWeightMatching.Stage do
     }
   end
 
-  # --- Private Helper Functions ---
+  @doc """
+  Add the edge between S-vertices `x` and `y`.
 
-  # Calculate delta1: minimum dual variable of any S-vertex
-  defp calc_delta1(%Context{} = ctx) do
-    0..(ctx.graph.num_vertex - 1)
-    |> Enum.reduce(nil, fn x, min_dual ->
-      blossom = Context.get_vertex_blossom(ctx, x)
+  If the edge connects blossoms that are part of the same alternating tree,
+  a new S-blossom should be created (handled by Phase 8).
 
-      if blossom.label == :s do
-        dual = Map.fetch!(ctx.vertex_dual_2x, x)
+  If the edge connects two different alternating trees, an augmenting path
+  has been discovered.
 
-        if is_nil(min_dual) or dual < min_dual do
-          dual
-        else
-          min_dual
-        end
-      else
-        min_dual
-      end
-    end)
+  ## Parameters
+
+  - `ctx` - The current matching context
+  - `x` - First S-vertex
+  - `y` - Second S-vertex
+
+  ## Returns
+
+  - `{:augmenting_path, path, ctx}` if an augmenting path was found
+  - `{:blossom, ctx}` if a blossom cycle was detected (blossom creation
+    will be implemented in Phase 8)
+  """
+  @spec add_s_to_s_edge(Context.t(), non_neg_integer(), non_neg_integer()) ::
+          {:augmenting_path, AlternatingPath.t(), Context.t()} | {:blossom, Context.t()}
+  def add_s_to_s_edge(%Context{} = ctx, x, y) do
+    # Trace back through the alternating trees from x and y
+    {path, ctx} = AlternatingPath.trace_alternating_paths(ctx, x, y)
+
+    # Check if the path is a cycle (starts and ends in same blossom)
+    [{p, _} | _] = path.edges
+    {_, q} = List.last(path.edges)
+
+    if Context.same_blossom?(ctx, p, q) do
+      # Path forms a cycle - a new blossom should be created (Phase 8)
+      {:blossom, ctx}
+    else
+      # Path connects different trees - augmenting path found
+      {:augmenting_path, path, ctx}
+    end
   end
 
-  # Calculate delta4: minimum dual_var of any top-level T-blossom
-  # Returns {min_dual_var, blossom_id} or {nil, nil} if no T-blossoms
+  defp calc_delta1(%Context{} = ctx) do
+    0..(ctx.graph.num_vertex - 1)
+    |> Enum.filter(fn x -> Context.get_vertex_blossom(ctx, x).label == :s end)
+    |> Enum.map(fn x -> Map.fetch!(ctx.vertex_dual_2x, x) end)
+    |> Enum.min(fn -> nil end)
+  end
+
   defp calc_delta4(%Context{} = ctx) do
     ctx.blossoms
     |> Map.values()
-    |> Enum.reduce({nil, nil}, fn blossom, {min_dual, min_id} ->
-      case blossom do
-        %NonTrivial{label: :t, parent_id: nil, dual_var: dual_var, id: id} ->
-          if is_nil(min_dual) or dual_var < min_dual do
-            {dual_var, id}
-          else
-            {min_dual, min_id}
-          end
-
-        _ ->
-          {min_dual, min_id}
-      end
+    |> Enum.filter(fn
+      %NonTrivial{label: :t, parent_id: nil} -> true
+      _ -> false
     end)
+    |> Enum.min_by(& &1.dual_var, fn -> nil end)
+    |> case do
+      nil -> {nil, nil}
+      blossom -> {blossom.dual_var, blossom.id}
+    end
   end
 
   defp find_minimum_delta(delta1, {e2, slack2}, {e3, slack3}, {delta4, blossom4_id}) do
@@ -195,7 +211,6 @@ defmodule Blossom.MaxWeightMatching.Stage do
     if delta <= current_delta, do: {4, delta, -1, blossom_id}, else: current
   end
 
-  # Update vertex duals based on labels
   defp update_vertex_duals(%Context{} = ctx, delta_2x) do
     Map.new(0..(ctx.graph.num_vertex - 1), fn x ->
       blossom = Context.get_vertex_blossom(ctx, x)
@@ -212,7 +227,6 @@ defmodule Blossom.MaxWeightMatching.Stage do
     end)
   end
 
-  # Update blossom duals for top-level non-trivial blossoms
   defp update_blossom_duals(%Context{} = ctx, delta_2x) do
     Map.new(ctx.blossoms, fn {id, blossom} ->
       updated =

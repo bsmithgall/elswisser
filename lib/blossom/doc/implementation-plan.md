@@ -9,7 +9,7 @@
 | 3 | ✅ Complete | Slack & Edge Tracking | `slack.ex`, `least_slack.ex` |
 | 4 | ✅ Complete | Labeling | `label.ex` |
 | 5 | ✅ Complete | Delta Mechanics | `stage.ex` |
-| 6 | Pending | Paths & Augmentation | `alternating_path.ex`, `augment.ex` |
+| 6 | ✅ Complete | Paths & Augmentation | `alternating_path.ex`, `augment.ex` |
 | 7 | Pending | Stage Integration | `stage.ex` - **Bipartite graphs work** |
 | 8 | Pending | Blossom Creation | `blossom_ops.ex` |
 | 9 | Pending | Blossom Expansion | `blossom_ops.ex`, `augment.ex` - **All graphs work** |

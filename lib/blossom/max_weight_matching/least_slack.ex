@@ -90,12 +90,7 @@ defmodule Blossom.MaxWeightMatching.LeastSlack do
     best_edge = Map.fetch!(ctx.vertex_best_edge, y)
 
     should_update =
-      if best_edge == -1 do
-        true
-      else
-        best_slack = Slack.edge_slack_2x(ctx, best_edge)
-        slack < best_slack
-      end
+      best_edge == -1 or slack < Slack.edge_slack_2x(ctx, best_edge)
 
     if should_update do
       %{ctx | vertex_best_edge: Map.put(ctx.vertex_best_edge, y, e)}
@@ -123,25 +118,23 @@ defmodule Blossom.MaxWeightMatching.LeastSlack do
   @spec get_best_vertex_edge(Context.t()) :: {integer(), number()}
   def get_best_vertex_edge(%Context{} = ctx) do
     0..(ctx.graph.num_vertex - 1)
-    |> Enum.reduce({-1, 0}, fn x, {best_index, best_slack} ->
+    |> Enum.reduce({-1, 0}, fn x, {best_index, best_slack} = acc ->
       blossom = Context.get_vertex_blossom(ctx, x)
+      e = Map.fetch!(ctx.vertex_best_edge, x)
 
-      if blossom.label == :none do
-        e = Map.fetch!(ctx.vertex_best_edge, x)
+      cond do
+        blossom.label != :none ->
+          acc
 
-        if e != -1 do
+        e == -1 ->
+          acc
+
+        best_index == -1 ->
+          {e, Slack.edge_slack_2x(ctx, e)}
+
+        true ->
           slack = Slack.edge_slack_2x(ctx, e)
-
-          if best_index == -1 or slack < best_slack do
-            {e, slack}
-          else
-            {best_index, best_slack}
-          end
-        else
-          {best_index, best_slack}
-        end
-      else
-        {best_index, best_slack}
+          if slack < best_slack, do: {e, slack}, else: acc
       end
     end)
   end
@@ -165,22 +158,19 @@ defmodule Blossom.MaxWeightMatching.LeastSlack do
   def new_blossom(%Context{} = ctx, blossom_id) when is_reference(blossom_id) do
     blossom = Context.get_blossom(ctx, blossom_id)
 
-    # Assert preconditions
     if blossom.best_edge != -1 do
       raise ArgumentError, "new_blossom: best_edge must be -1, got #{blossom.best_edge}"
     end
 
     case blossom do
       %Trivial{} ->
-        # Nothing to do for trivial blossoms
         ctx
 
-      %NonTrivial{best_edge_set: best_edge_set} ->
-        if best_edge_set != nil do
-          raise ArgumentError, "new_blossom: best_edge_set must be nil for new blossom"
-        end
-
+      %NonTrivial{best_edge_set: nil} ->
         Context.update_blossom(ctx, blossom_id, best_edge_set: [])
+
+      %NonTrivial{} ->
+        raise ArgumentError, "new_blossom: best_edge_set must be nil for new blossom"
     end
   end
 
@@ -207,36 +197,24 @@ defmodule Blossom.MaxWeightMatching.LeastSlack do
       when is_reference(blossom_id) and is_integer(e) and e >= 0 do
     blossom = Context.get_blossom(ctx, blossom_id)
 
-    # Determine if we should update best_edge
-    {should_update_best, _} =
-      if blossom.best_edge == -1 do
-        {true, slack}
-      else
-        best_slack = Slack.edge_slack_2x(ctx, blossom.best_edge)
-        {slack < best_slack, best_slack}
-      end
+    should_update_best =
+      blossom.best_edge == -1 or slack < Slack.edge_slack_2x(ctx, blossom.best_edge)
 
-    # Build the updates
-    updates =
-      case blossom do
-        %Trivial{} ->
-          if should_update_best, do: [best_edge: e], else: []
+    case blossom do
+      %Trivial{} when should_update_best ->
+        Context.update_blossom(ctx, blossom_id, best_edge: e)
 
-        %NonTrivial{best_edge_set: best_edge_set} ->
-          # Always append to best_edge_set for non-trivial blossoms
-          base_updates = [best_edge_set: [e | best_edge_set]]
+      %Trivial{} ->
+        ctx
 
-          if should_update_best do
-            [{:best_edge, e} | base_updates]
-          else
-            base_updates
-          end
-      end
+      %NonTrivial{best_edge_set: best_edge_set} when should_update_best ->
+        Context.update_blossom(ctx, blossom_id,
+          best_edge: e,
+          best_edge_set: [e | best_edge_set]
+        )
 
-    if updates == [] do
-      ctx
-    else
-      Context.update_blossom(ctx, blossom_id, updates)
+      %NonTrivial{best_edge_set: best_edge_set} ->
+        Context.update_blossom(ctx, blossom_id, best_edge_set: [e | best_edge_set])
     end
   end
 
@@ -260,22 +238,20 @@ defmodule Blossom.MaxWeightMatching.LeastSlack do
   def get_best_blossom_edge(%Context{} = ctx) do
     ctx.blossoms
     |> Map.values()
-    |> Enum.filter(fn blossom ->
-      blossom.label == :s and blossom.parent_id == nil
-    end)
-    |> Enum.reduce({-1, 0}, fn blossom, {best_index, best_slack} ->
+    |> Enum.filter(&(&1.label == :s and &1.parent_id == nil))
+    |> Enum.reduce({-1, 0}, fn blossom, {best_index, best_slack} = acc ->
       e = blossom.best_edge
 
-      if e != -1 do
-        slack = Slack.edge_slack_2x(ctx, e)
+      cond do
+        e == -1 ->
+          acc
 
-        if best_index == -1 or slack < best_slack do
-          {e, slack}
-        else
-          {best_index, best_slack}
-        end
-      else
-        {best_index, best_slack}
+        best_index == -1 ->
+          {e, Slack.edge_slack_2x(ctx, e)}
+
+        true ->
+          slack = Slack.edge_slack_2x(ctx, e)
+          if slack < best_slack, do: {e, slack}, else: acc
       end
     end)
   end

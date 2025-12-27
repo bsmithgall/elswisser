@@ -71,49 +71,44 @@ defmodule Blossom.MaxWeightMatching.Context do
       10
   """
   @spec new(Graph.t()) :: t()
-  def new(%Graph{} = graph) do
-    num_vertex = graph.num_vertex
+  def new(%Graph{num_vertex: 0} = graph) do
+    %__MODULE__{
+      graph: graph,
+      vertex_mate: %{},
+      blossoms: %{},
+      vertex_top_blossom_id: %{},
+      vertex_dual_2x: %{},
+      vertex_best_edge: %{},
+      queue: :queue.new()
+    }
+  end
 
-    if num_vertex == 0 do
-      %__MODULE__{
-        graph: graph,
-        vertex_mate: %{},
-        blossoms: %{},
-        vertex_top_blossom_id: %{},
-        vertex_dual_2x: %{},
-        vertex_best_edge: %{},
-        queue: :queue.new()
-      }
-    else
-      # Create trivial blossoms for each vertex
-      trivial_blossoms =
-        for v <- 0..(num_vertex - 1), into: %{} do
-          blossom = Trivial.new(v)
-          {blossom.id, blossom}
-        end
+  def new(%Graph{num_vertex: num_vertex} = graph) do
+    trivial_blossoms =
+      for v <- 0..(num_vertex - 1), into: %{} do
+        blossom = Trivial.new(v)
+        {blossom.id, blossom}
+      end
 
-      # Map vertices to their trivial blossom IDs
-      vertex_to_blossom_id =
-        for {id, blossom} <- trivial_blossoms, into: %{} do
-          {blossom.base_vertex, id}
-        end
+    vertex_to_blossom_id =
+      for {id, blossom} <- trivial_blossoms, into: %{} do
+        {blossom.base_vertex, id}
+      end
 
-      # Get max weight for initial dual values
-      max_weight =
-        graph.edges
-        |> Enum.map(fn {_x, _y, w} -> w end)
-        |> Enum.max()
+    max_weight =
+      graph.edges
+      |> Enum.map(fn {_x, _y, w} -> w end)
+      |> Enum.max()
 
-      %__MODULE__{
-        graph: graph,
-        vertex_mate: Map.new(0..(num_vertex - 1), fn v -> {v, -1} end),
-        blossoms: trivial_blossoms,
-        vertex_top_blossom_id: vertex_to_blossom_id,
-        vertex_dual_2x: Map.new(0..(num_vertex - 1), fn v -> {v, max_weight} end),
-        vertex_best_edge: Map.new(0..(num_vertex - 1), fn v -> {v, -1} end),
-        queue: :queue.new()
-      }
-    end
+    %__MODULE__{
+      graph: graph,
+      vertex_mate: Map.new(0..(num_vertex - 1), fn v -> {v, -1} end),
+      blossoms: trivial_blossoms,
+      vertex_top_blossom_id: vertex_to_blossom_id,
+      vertex_dual_2x: Map.new(0..(num_vertex - 1), fn v -> {v, max_weight} end),
+      vertex_best_edge: Map.new(0..(num_vertex - 1), fn v -> {v, -1} end),
+      queue: :queue.new()
+    }
   end
 
   @doc """
