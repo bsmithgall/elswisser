@@ -329,7 +329,7 @@ defmodule Blossom.MaxWeightMatching.Stage do
         {path, ctx}
 
       {nil, ctx} ->
-        {delta_type, delta_2x, delta_edge, _delta_blossom_id} = substage_calc_dual_delta(ctx)
+        {delta_type, delta_2x, delta_edge, delta_blossom_id} = substage_calc_dual_delta(ctx)
         ctx = substage_apply_delta_step(ctx, delta_2x)
 
         case delta_type do
@@ -354,7 +354,8 @@ defmodule Blossom.MaxWeightMatching.Stage do
             end
 
           4 ->
-            # T-blossom expansion (Phase 9)
+            # T-blossom dual reached zero, expand it
+            ctx = BlossomOps.expand_t_blossom(ctx, delta_blossom_id)
             run_substages(ctx)
         end
     end

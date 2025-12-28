@@ -470,4 +470,232 @@ defmodule Blossom.MaxWeightMatchingTest do
       assert length(result) == 2
     end
   end
+
+  describe "blossom expansion (Phase 9)" do
+    test "augmenting path through blossom" do
+      # A triangle connected to external vertices that require augmentation
+      # through the blossom.
+      #
+      #      (3)
+      #       |  10
+      #      (0)----(1)
+      #        \    /
+      #      5  \  / 5
+      #          \/
+      #         (2)
+      #          |  10
+      #         (4)
+      #
+      # Triangle 0-1-2 with external edges to 3 and 4.
+      # The augmenting path 3-0-...-2-4 goes through the blossom.
+      edges = [
+        {0, 1, 5},
+        {1, 2, 5},
+        {0, 2, 5},
+        {0, 3, 10},
+        {2, 4, 10}
+      ]
+
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      # Optimal: match 3-0 and 4-2, leaving 1 unmatched
+      assert total_weight(edges, result) == 20
+    end
+
+    test "nested blossoms - two triangles connected" do
+      # Two triangles connected by an edge, creating opportunity for nested
+      # blossom structures.
+      #
+      #     (1)         (4)
+      #    /   \       /   \
+      #  (0)----(2)---(3)----(5)
+      #
+      # Triangle 0-1-2 and triangle 3-4-5 connected by edge 2-3.
+      edges = [
+        {0, 1, 1},
+        {1, 2, 1},
+        {0, 2, 1},
+        {2, 3, 1},
+        {3, 4, 1},
+        {4, 5, 1},
+        {3, 5, 1}
+      ]
+
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      # Maximum matching: 3 edges
+      assert length(result) == 3
+    end
+
+    test "nested blossom with external matching" do
+      # A blossom that needs to be expanded during augmentation.
+      #
+      #         (1)
+      #        / | \
+      #      (0)-+-(2)
+      #        \ | /
+      #         (3)----(4)
+      #
+      # Complete graph K4 on vertices 0-3, plus edge to 4.
+      # This requires blossom creation and expansion.
+      edges = [
+        {0, 1, 1},
+        {0, 2, 1},
+        {0, 3, 1},
+        {1, 2, 1},
+        {1, 3, 1},
+        {2, 3, 1},
+        {3, 4, 10}
+      ]
+
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      # Optimal: match 3-4 (weight 10) and one edge from remaining triangle
+      assert total_weight(edges, result) == 11
+    end
+
+    test "complex graph with multiple blossoms" do
+      # Two triangles sharing a vertex, with external edges.
+      #
+      #  (0)     (2)     (4)
+      #   |\   /  |  \   /|
+      #   | \ /   |   \ / |
+      #   |  X    |    X  |
+      #   | / \   |   / \ |
+      #   |/   \  |  /   \|
+      #  (1)----(3)-----(5)
+      #
+      # Triangle 0-1-3, triangle 2-3-5, triangle 3-4-5
+      edges = [
+        # Triangle 0-1-3
+        {0, 1, 1},
+        {0, 3, 1},
+        {1, 3, 1},
+        # Connection 2-3
+        {2, 3, 1},
+        # Triangle 3-4-5
+        {3, 4, 1},
+        {3, 5, 1},
+        {4, 5, 1}
+      ]
+
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      # 7 vertices, maximum matching has 3 edges
+      assert length(result) == 3
+    end
+
+    test "blossom with weighted preference" do
+      # Triangle where expansion affects weight optimization.
+      #
+      #        (1)
+      #       /   \
+      #    20/     \5
+      #     /       \
+      #   (0)---5---(2)
+      #    |         |
+      #   1|         |1
+      #    |         |
+      #   (3)       (4)
+      #
+      # The 0-1 edge is heaviest inside the triangle.
+      edges = [
+        {0, 1, 20},
+        {1, 2, 5},
+        {0, 2, 5},
+        {0, 3, 1},
+        {2, 4, 1}
+      ]
+
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      # Optimal: match 0-1 (weight 20) and 2-4 (weight 1) = 21
+      # vs 0-3 + 1-2 = 1 + 5 = 6
+      assert total_weight(edges, result) == 21
+    end
+
+    test "9-cycle - large odd cycle" do
+      # Odd cycle of length 9 vertices.
+      # Maximum matching: 4 edges (one vertex unmatched).
+      edges =
+        for i <- 0..8 do
+          {i, rem(i + 1, 9), 1}
+        end
+
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      assert length(result) == 4
+      assert total_weight(edges, result) == 4
+    end
+
+    test "complete graph K5" do
+      # Complete graph on 5 vertices.
+      # All edges weight 1.
+      # Maximum matching: 2 edges (5 is odd, one vertex unmatched).
+      edges =
+        for i <- 0..3, j <- (i + 1)..4 do
+          {i, j, 1}
+        end
+
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      assert length(result) == 2
+    end
+
+    test "complete graph K6" do
+      # Complete graph on 6 vertices.
+      # All edges weight 1.
+      # Maximum matching: 3 edges (perfect matching).
+      edges =
+        for i <- 0..4, j <- (i + 1)..5 do
+          {i, j, 1}
+        end
+
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      assert length(result) == 3
+    end
+
+    test "deeply nested blossoms" do
+      # A structure that creates nested blossoms.
+      # Three triangles in a chain.
+      #
+      #  (0)---(1)---(3)---(4)---(6)---(7)
+      #    \   /       \   /       \   /
+      #     (2)         (5)         (8)
+      #
+      edges = [
+        # Triangle 0-1-2
+        {0, 1, 1},
+        {1, 2, 1},
+        {0, 2, 1},
+        # Edge 1-3
+        {1, 3, 1},
+        # Triangle 3-4-5
+        {3, 4, 1},
+        {4, 5, 1},
+        {3, 5, 1},
+        # Edge 4-6
+        {4, 6, 1},
+        # Triangle 6-7-8
+        {6, 7, 1},
+        {7, 8, 1},
+        {6, 8, 1}
+      ]
+
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      # 9 vertices, maximum 4 edges
+      assert length(result) == 4
+    end
+  end
 end

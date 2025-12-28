@@ -15,6 +15,7 @@ defmodule Blossom.MaxWeightMatching.Label do
   # Alias sibling modules BEFORE aliasing Blossom (to avoid path shadowing)
   alias Blossom.MaxWeightMatching.Context
   alias Blossom.MaxWeightMatching.LeastSlack
+  alias Blossom.MaxWeightMatching.BlossomOps
 
   # Alias child modules FIRST, then parent (per Elixir gotcha #1)
   alias Blossom.MaxWeightMatching.Blossom.Trivial
@@ -114,10 +115,8 @@ defmodule Blossom.MaxWeightMatching.Label do
             "assign_label_t: vertex #{x} must be in S-blossom, got #{inspect(bx.label)}"
     end
 
-    by = Context.get_vertex_blossom(ctx, y)
-    by_id = Context.get_vertex_blossom_id(ctx, y)
-
-    # Zero-dual blossom expansion is deferred to Phase 9
+    # Expand zero-dual blossoms before assigning T label
+    {ctx, by, by_id} = expand_zero_dual_blossoms(ctx, y)
 
     if by.label != :none do
       raise ArgumentError,
@@ -136,5 +135,21 @@ defmodule Blossom.MaxWeightMatching.Label do
     end
 
     assign_label_s(ctx, z)
+  end
+
+  # Expand any zero-dual non-trivial blossoms containing vertex y
+  # Returns {updated_ctx, current_blossom, current_blossom_id}
+  defp expand_zero_dual_blossoms(ctx, y) do
+    by = Context.get_vertex_blossom(ctx, y)
+    by_id = Context.get_vertex_blossom_id(ctx, y)
+
+    case by do
+      %NonTrivial{dual_var: 0} ->
+        ctx = BlossomOps.expand_unlabeled_blossom(ctx, by_id)
+        expand_zero_dual_blossoms(ctx, y)
+
+      _ ->
+        {ctx, by, by_id}
+    end
   end
 end

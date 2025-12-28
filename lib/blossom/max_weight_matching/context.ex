@@ -14,6 +14,7 @@ defmodule Blossom.MaxWeightMatching.Context do
   - `vertex_top_blossom_id` - Map from vertex to its top-level blossom ID
   - `vertex_dual_2x` - Map from vertex to 2x its dual variable
   - `vertex_best_edge` - Map from vertex to index of least-slack edge to S-vertex
+  - `vertex_trivial_blossom_id` - Map from vertex to its trivial blossom ID (never changes)
   - `queue` - Queue of S-vertices to be scanned
 
   ## Design Notes
@@ -36,6 +37,7 @@ defmodule Blossom.MaxWeightMatching.Context do
           vertex_mate: %{non_neg_integer() => integer()},
           blossoms: %{reference() => Trivial.t() | NonTrivial.t()},
           vertex_top_blossom_id: %{non_neg_integer() => reference()},
+          vertex_trivial_blossom_id: %{non_neg_integer() => reference()},
           vertex_dual_2x: %{non_neg_integer() => number()},
           vertex_best_edge: %{non_neg_integer() => integer()},
           queue: :queue.queue(non_neg_integer())
@@ -46,6 +48,7 @@ defmodule Blossom.MaxWeightMatching.Context do
     :vertex_mate,
     :blossoms,
     :vertex_top_blossom_id,
+    :vertex_trivial_blossom_id,
     :vertex_dual_2x,
     :vertex_best_edge,
     :queue
@@ -77,6 +80,7 @@ defmodule Blossom.MaxWeightMatching.Context do
       vertex_mate: %{},
       blossoms: %{},
       vertex_top_blossom_id: %{},
+      vertex_trivial_blossom_id: %{},
       vertex_dual_2x: %{},
       vertex_best_edge: %{},
       queue: :queue.new()
@@ -105,6 +109,7 @@ defmodule Blossom.MaxWeightMatching.Context do
       vertex_mate: Map.new(0..(num_vertex - 1), fn v -> {v, -1} end),
       blossoms: trivial_blossoms,
       vertex_top_blossom_id: vertex_to_blossom_id,
+      vertex_trivial_blossom_id: vertex_to_blossom_id,
       vertex_dual_2x: Map.new(0..(num_vertex - 1), fn v -> {v, max_weight} end),
       vertex_best_edge: Map.new(0..(num_vertex - 1), fn v -> {v, -1} end),
       queue: :queue.new()
@@ -150,6 +155,22 @@ defmodule Blossom.MaxWeightMatching.Context do
   """
   @spec get_vertex_blossom_id(t(), non_neg_integer()) :: reference()
   def get_vertex_blossom_id(%__MODULE__{vertex_top_blossom_id: mapping}, vertex) do
+    Map.fetch!(mapping, vertex)
+  end
+
+  @doc """
+  Gets the ID of the trivial blossom for a vertex.
+
+  This ID never changes during the algorithm, unlike `get_vertex_blossom_id/2`
+  which returns the current top-level blossom.
+
+  ## Examples
+
+      iex> id = Context.get_trivial_blossom_id(ctx, 0)
+      #Reference<...>
+  """
+  @spec get_trivial_blossom_id(t(), non_neg_integer()) :: reference()
+  def get_trivial_blossom_id(%__MODULE__{vertex_trivial_blossom_id: mapping}, vertex) do
     Map.fetch!(mapping, vertex)
   end
 

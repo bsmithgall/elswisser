@@ -340,4 +340,204 @@ defmodule Blossom.MaxWeightMatching.BlossomOpsTest do
       end
     end
   end
+
+  describe "expand_unlabeled_blossom/2" do
+    test "converts sub-blossoms to top-level" do
+      graph = Graph.new([{0, 1, 10}, {1, 2, 10}, {2, 0, 10}])
+      ctx = Context.new(graph)
+
+      # Create a blossom first
+      ctx =
+        Enum.reduce(0..2, ctx, fn v, ctx ->
+          id = Context.get_vertex_blossom_id(ctx, v)
+          Context.update_blossom(ctx, id, label: :s)
+        end)
+
+      path = %AlternatingPath{edges: [{0, 1}, {1, 2}, {2, 0}]}
+      ctx = BlossomOps.make_blossom(ctx, path)
+
+      blossom = Context.get_vertex_blossom(ctx, 0)
+      sub_ids = blossom.subblossom_ids
+
+      # Clear label to make it unlabeled
+      ctx = Context.update_blossom(ctx, blossom.id, label: :none)
+
+      # Clear sub-blossom labels
+      ctx =
+        Enum.reduce(sub_ids, ctx, fn id, ctx ->
+          Context.update_blossom(ctx, id, label: :none)
+        end)
+
+      # Expand the blossom
+      ctx = BlossomOps.expand_unlabeled_blossom(ctx, blossom.id)
+
+      # Sub-blossoms should now be top-level
+      for sub_id <- sub_ids do
+        sub = Context.get_blossom(ctx, sub_id)
+        assert sub.parent_id == nil
+      end
+
+      # Vertices should point to their trivial blossoms
+      for v <- 0..2 do
+        trivial_id = Context.get_trivial_blossom_id(ctx, v)
+        assert Context.get_vertex_blossom_id(ctx, v) == trivial_id
+      end
+
+      # Original blossom should be removed
+      assert_raise KeyError, fn ->
+        Context.get_blossom(ctx, blossom.id)
+      end
+    end
+
+    test "raises when blossom has parent" do
+      graph = Graph.new([{0, 1, 10}, {1, 2, 10}, {2, 0, 10}])
+      ctx = Context.new(graph)
+
+      # Create a blossom
+      ctx =
+        Enum.reduce(0..2, ctx, fn v, ctx ->
+          id = Context.get_vertex_blossom_id(ctx, v)
+          Context.update_blossom(ctx, id, label: :s)
+        end)
+
+      path = %AlternatingPath{edges: [{0, 1}, {1, 2}, {2, 0}]}
+      ctx = BlossomOps.make_blossom(ctx, path)
+
+      blossom = Context.get_vertex_blossom(ctx, 0)
+
+      # Get a sub-blossom (which has parent_id set)
+      sub_id = hd(blossom.subblossom_ids)
+
+      assert_raise ArgumentError, ~r/must be top-level/, fn ->
+        BlossomOps.expand_unlabeled_blossom(ctx, sub_id)
+      end
+    end
+
+    test "raises when blossom is labeled" do
+      graph = Graph.new([{0, 1, 10}, {1, 2, 10}, {2, 0, 10}])
+      ctx = Context.new(graph)
+
+      ctx =
+        Enum.reduce(0..2, ctx, fn v, ctx ->
+          id = Context.get_vertex_blossom_id(ctx, v)
+          Context.update_blossom(ctx, id, label: :s)
+        end)
+
+      path = %AlternatingPath{edges: [{0, 1}, {1, 2}, {2, 0}]}
+      ctx = BlossomOps.make_blossom(ctx, path)
+
+      blossom = Context.get_vertex_blossom(ctx, 0)
+
+      # Blossom is labeled :s, should fail
+      assert_raise ArgumentError, ~r/must be unlabeled/, fn ->
+        BlossomOps.expand_unlabeled_blossom(ctx, blossom.id)
+      end
+    end
+  end
+
+  describe "expand_t_blossom/2" do
+    test "assigns alternating S/T labels to sub-blossoms" do
+      # Create a triangle graph with external connection
+      graph =
+        Graph.new([
+          {0, 1, 10},
+          {1, 2, 10},
+          {2, 0, 10},
+          {0, 3, 10}
+        ])
+
+      ctx = Context.new(graph)
+
+      # Label all as S, create blossom
+      ctx =
+        Enum.reduce(0..3, ctx, fn v, ctx ->
+          id = Context.get_vertex_blossom_id(ctx, v)
+          Context.update_blossom(ctx, id, label: :s)
+        end)
+
+      path = %AlternatingPath{edges: [{0, 1}, {1, 2}, {2, 0}]}
+      ctx = BlossomOps.make_blossom(ctx, path)
+
+      blossom = Context.get_vertex_blossom(ctx, 0)
+      sub_ids = blossom.subblossom_ids
+
+      # Set blossom to T with tree_edge from vertex 3
+      ctx = Context.update_blossom(ctx, blossom.id, label: :t, tree_edge: {3, 0})
+
+      # Clear sub-blossom labels
+      ctx =
+        Enum.reduce(sub_ids, ctx, fn id, ctx ->
+          Context.update_blossom(ctx, id, label: :none)
+        end)
+
+      # Expand the T-blossom
+      ctx = BlossomOps.expand_t_blossom(ctx, blossom.id)
+
+      # Check that sub-blossoms have alternating labels
+      # Entry point is vertex 0, so its blossom gets T
+      id0 = Context.get_trivial_blossom_id(ctx, 0)
+      b0 = Context.get_blossom(ctx, id0)
+      assert b0.label == :t
+      assert b0.tree_edge == {3, 0}
+    end
+
+    test "raises when blossom is not T-labeled" do
+      graph = Graph.new([{0, 1, 10}, {1, 2, 10}, {2, 0, 10}])
+      ctx = Context.new(graph)
+
+      ctx =
+        Enum.reduce(0..2, ctx, fn v, ctx ->
+          id = Context.get_vertex_blossom_id(ctx, v)
+          Context.update_blossom(ctx, id, label: :s)
+        end)
+
+      path = %AlternatingPath{edges: [{0, 1}, {1, 2}, {2, 0}]}
+      ctx = BlossomOps.make_blossom(ctx, path)
+
+      blossom = Context.get_vertex_blossom(ctx, 0)
+
+      # Blossom is labeled :s, should fail
+      assert_raise ArgumentError, ~r/must be T-labeled/, fn ->
+        BlossomOps.expand_t_blossom(ctx, blossom.id)
+      end
+    end
+
+    test "removes expanded blossom from context" do
+      graph =
+        Graph.new([
+          {0, 1, 10},
+          {1, 2, 10},
+          {2, 0, 10},
+          {0, 3, 10}
+        ])
+
+      ctx = Context.new(graph)
+
+      ctx =
+        Enum.reduce(0..3, ctx, fn v, ctx ->
+          id = Context.get_vertex_blossom_id(ctx, v)
+          Context.update_blossom(ctx, id, label: :s)
+        end)
+
+      path = %AlternatingPath{edges: [{0, 1}, {1, 2}, {2, 0}]}
+      ctx = BlossomOps.make_blossom(ctx, path)
+
+      blossom = Context.get_vertex_blossom(ctx, 0)
+      sub_ids = blossom.subblossom_ids
+
+      ctx = Context.update_blossom(ctx, blossom.id, label: :t, tree_edge: {3, 0})
+
+      ctx =
+        Enum.reduce(sub_ids, ctx, fn id, ctx ->
+          Context.update_blossom(ctx, id, label: :none)
+        end)
+
+      ctx = BlossomOps.expand_t_blossom(ctx, blossom.id)
+
+      # Blossom should be removed
+      assert_raise KeyError, fn ->
+        Context.get_blossom(ctx, blossom.id)
+      end
+    end
+  end
 end

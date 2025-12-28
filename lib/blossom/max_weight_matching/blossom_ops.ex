@@ -11,6 +11,7 @@ defmodule Blossom.MaxWeightMatching.BlossomOps do
   alias Blossom.MaxWeightMatching.Context
   alias Blossom.MaxWeightMatching.AlternatingPath
   alias Blossom.MaxWeightMatching.LeastSlack
+  alias Blossom.MaxWeightMatching.Label
 
   @doc """
   Construct a path through a blossom from sub-blossom to base.
@@ -158,5 +159,139 @@ defmodule Blossom.MaxWeightMatching.BlossomOps do
 
     # Merge least-slack edge tracking
     LeastSlack.merge_blossoms(ctx, blossom.id)
+  end
+
+  @doc """
+  Expand an unlabeled non-trivial blossom.
+
+  Converts the sub-blossoms into top-level blossoms and removes the
+  expanded blossom from the context.
+
+  This is used when a zero-dual blossom needs to be expanded before
+  assigning a T label.
+
+  Time: O(n)
+
+  ## Preconditions
+
+  - Blossom must have no parent (is top-level)
+  - Blossom must be unlabeled
+
+  ## Parameters
+
+  - `ctx` - The current matching context
+  - `blossom_id` - The ID of the blossom to expand
+
+  ## Returns
+
+  Updated context with the blossom expanded.
+  """
+  @spec expand_unlabeled_blossom(Context.t(), reference()) :: Context.t()
+  def expand_unlabeled_blossom(%Context{} = ctx, blossom_id) do
+    blossom = Context.get_blossom(ctx, blossom_id)
+
+    # Preconditions
+    if blossom.parent_id != nil do
+      raise ArgumentError,
+            "expand_unlabeled_blossom: blossom must be top-level (parent_id is nil)"
+    end
+
+    if blossom.label != :none do
+      raise ArgumentError,
+            "expand_unlabeled_blossom: blossom must be unlabeled, got #{inspect(blossom.label)}"
+    end
+
+    ctx =
+      Enum.reduce(blossom.subblossom_ids, ctx, fn sub_id, acc ->
+        sub = Context.get_blossom(acc, sub_id)
+
+        if sub.label != :none do
+          raise ArgumentError,
+                "expand_unlabeled_blossom: sub-blossom must be unlabeled, got #{inspect(sub.label)}"
+        end
+
+        acc = Context.update_blossom(acc, sub_id, parent_id: nil)
+        vertices = Context.blossom_vertices(acc, sub_id)
+        Context.set_vertices_blossom(acc, vertices, sub_id)
+      end)
+
+    Context.remove_blossom(ctx, blossom_id)
+  end
+
+  @doc """
+  Expand a T-labeled non-trivial blossom.
+
+  Converts the sub-blossoms into top-level blossoms, assigns alternating
+  S and T labels to reconstruct the alternating tree through the blossom,
+  and removes the expanded blossom from the context.
+
+  This is called when a T-blossom's dual variable reaches zero.
+
+  Time: O(n)
+
+  ## Preconditions
+
+  - Blossom must have no parent (is top-level)
+  - Blossom must be labeled T
+
+  ## Parameters
+
+  - `ctx` - The current matching context
+  - `blossom_id` - The ID of the blossom to expand
+
+  ## Returns
+
+  Updated context with the blossom expanded and alternating tree reconstructed.
+  """
+  @spec expand_t_blossom(Context.t(), reference()) :: Context.t()
+  def expand_t_blossom(%Context{} = ctx, blossom_id) do
+    blossom = Context.get_blossom(ctx, blossom_id)
+
+    # Preconditions
+    if blossom.parent_id != nil do
+      raise ArgumentError,
+            "expand_t_blossom: blossom must be top-level (parent_id is nil)"
+    end
+
+    if blossom.label != :t do
+      raise ArgumentError,
+            "expand_t_blossom: blossom must be T-labeled, got #{inspect(blossom.label)}"
+    end
+
+    ctx =
+      Enum.reduce(blossom.subblossom_ids, ctx, fn sub_id, acc ->
+        sub = Context.get_blossom(acc, sub_id)
+
+        if sub.label != :none do
+          raise ArgumentError,
+                "expand_t_blossom: sub-blossom must be unlabeled, got #{inspect(sub.label)}"
+        end
+
+        acc = Context.update_blossom(acc, sub_id, parent_id: nil)
+        vertices = Context.blossom_vertices(acc, sub_id)
+        Context.set_vertices_blossom(acc, vertices, sub_id)
+      end)
+
+    # Find entry sub-blossom and assign T label
+    {_x, y} = blossom.tree_edge
+    entry_sub_id = Context.get_vertex_blossom_id(ctx, y)
+    ctx = Context.update_blossom(ctx, entry_sub_id, label: :t, tree_edge: blossom.tree_edge)
+
+    # Walk from entry sub to base, assigning alternating S/T labels
+    # At step p: path_nodes[p] is T, path_nodes[p+1] becomes S, path_nodes[p+2] becomes T
+    {path_nodes, path_edges} = find_path_through_blossom(blossom, entry_sub_id)
+
+    ctx =
+      0..(length(path_edges) - 1)//2
+      |> Enum.reduce(ctx, fn p, acc ->
+        {_y, x} = Enum.at(path_edges, p)
+        acc = Label.assign_label_s(acc, x)
+
+        next_sub_id = Enum.at(path_nodes, p + 2)
+        next_tree_edge = Enum.at(path_edges, p + 1)
+        Context.update_blossom(acc, next_sub_id, label: :t, tree_edge: next_tree_edge)
+      end)
+
+    Context.remove_blossom(ctx, blossom_id)
   end
 end
