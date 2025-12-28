@@ -15,6 +15,9 @@ defmodule Blossom.MaxWeightMatching.Stage do
   alias Blossom.MaxWeightMatching.Context
   alias Blossom.MaxWeightMatching.LeastSlack
   alias Blossom.MaxWeightMatching.AlternatingPath
+  alias Blossom.MaxWeightMatching.Slack
+  alias Blossom.MaxWeightMatching.Label
+  alias Blossom.MaxWeightMatching.Augment
 
   alias Blossom.MaxWeightMatching.Blossom.NonTrivial
 
@@ -167,6 +170,188 @@ defmodule Blossom.MaxWeightMatching.Stage do
     else
       # Path connects different trees - augmenting path found
       {:augmenting_path, path, ctx}
+    end
+  end
+
+  @doc """
+  Scan queued S-vertices to expand the alternating trees.
+
+  The scan proceeds until either an augmenting path is found,
+  or the queue of S-vertices becomes empty.
+
+  New blossoms may be created during the scan (handled in Phase 8).
+
+  ## Parameters
+
+  - `ctx` - The current matching context
+
+  ## Returns
+
+  - `{:augmenting_path, path, ctx}` if an augmenting path was found
+  - `{nil, ctx}` if the queue was exhausted with no augmenting path
+  """
+  @spec substage_scan(Context.t()) ::
+          {:augmenting_path, AlternatingPath.t(), Context.t()} | {nil, Context.t()}
+  def substage_scan(%Context{} = ctx) do
+    do_substage_scan(ctx)
+  end
+
+  defp do_substage_scan(%Context{} = ctx) do
+    case Context.dequeue(ctx) do
+      :empty ->
+        {nil, ctx}
+
+      {x, ctx} ->
+        case scan_vertex_edges(ctx, x) do
+          {:augmenting_path, path, ctx} -> {:augmenting_path, path, ctx}
+          {:continue, ctx} -> do_substage_scan(ctx)
+        end
+    end
+  end
+
+  defp scan_vertex_edges(%Context{} = ctx, x) do
+    adjacent_edges = Map.fetch!(ctx.graph.adjacent_edges, x)
+
+    Enum.reduce_while(adjacent_edges, {:continue, ctx}, fn e, {:continue, ctx} ->
+      {p, q, _w} = Enum.at(ctx.graph.edges, e)
+      y = if p == x, do: q, else: p
+
+      # Blossom membership may change during iteration, so refresh for each edge
+      bx = Context.get_vertex_blossom(ctx, x)
+      by = Context.get_vertex_blossom(ctx, y)
+
+      if Context.same_blossom?(ctx, x, y) do
+        {:cont, {:continue, ctx}}
+      else
+        case process_edge(ctx, x, y, e, bx, by) do
+          {:augmenting_path, path, ctx} -> {:halt, {:augmenting_path, path, ctx}}
+          ctx -> {:cont, {:continue, ctx}}
+        end
+      end
+    end)
+  end
+
+  defp process_edge(ctx, x, y, e, bx, by) do
+    slack = Slack.edge_slack_2x(ctx, e)
+    ylabel = by.label
+
+    result =
+      if slack <= 0 do
+        case ylabel do
+          :none ->
+            Label.assign_label_t(ctx, x, y)
+
+          :s ->
+            case add_s_to_s_edge(ctx, x, y) do
+              {:augmenting_path, path, ctx} -> {:augmenting_path, path, ctx}
+              {:blossom, ctx} -> ctx
+            end
+
+          :t ->
+            ctx
+        end
+      else
+        if ylabel == :s do
+          LeastSlack.add_blossom_edge(ctx, bx.id, e, slack)
+        else
+          ctx
+        end
+      end
+
+    # Track least-slack edges from non-S vertices for delta2 calculations
+    case result do
+      {:augmenting_path, _, _} ->
+        result
+
+      ctx ->
+        if ylabel != :s do
+          LeastSlack.add_vertex_edge(ctx, y, e, slack)
+        else
+          ctx
+        end
+    end
+  end
+
+  @doc """
+  Run one stage of the matching algorithm.
+
+  The stage searches for a maximum-weight augmenting path.
+  If this path is found, it is used to augment the matching,
+  thereby increasing the number of matched edges by 1.
+  If no such path is found, the matching must already be optimal.
+
+  Time: O(n^2)
+
+  ## Parameters
+
+  - `ctx` - The current matching context
+
+  ## Returns
+
+  - `{true, ctx}` if the matching was successfully augmented
+  - `{false, ctx}` if no further improvement is possible
+  """
+  @spec run_stage(Context.t()) :: {boolean(), Context.t()}
+  def run_stage(%Context{} = ctx) do
+    ctx =
+      Enum.reduce(0..(ctx.graph.num_vertex - 1), ctx, fn x, ctx ->
+        if Map.fetch!(ctx.vertex_mate, x) == -1 do
+          Label.assign_label_s(ctx, x)
+        else
+          ctx
+        end
+      end)
+
+    if Context.queue_empty?(ctx) do
+      {false, ctx}
+    else
+      {augmenting_path, ctx} = run_substages(ctx)
+
+      ctx =
+        case augmenting_path do
+          nil -> ctx
+          path -> Augment.augment_matching(ctx, path)
+        end
+
+      ctx = reset_stage(ctx)
+      {augmenting_path != nil, ctx}
+    end
+  end
+
+  defp run_substages(%Context{} = ctx) do
+    case substage_scan(ctx) do
+      {:augmenting_path, path, ctx} ->
+        {path, ctx}
+
+      {nil, ctx} ->
+        {delta_type, delta_2x, delta_edge, _delta_blossom_id} = substage_calc_dual_delta(ctx)
+        ctx = substage_apply_delta_step(ctx, delta_2x)
+
+        case delta_type do
+          1 ->
+            # Minimum dual is zero; no further improvement possible
+            {nil, ctx}
+
+          2 ->
+            # S-to-unlabeled edge became tight
+            {x, y, _w} = Enum.at(ctx.graph.edges, delta_edge)
+            {x, y} = if Context.get_vertex_blossom(ctx, x).label != :s, do: {y, x}, else: {x, y}
+            ctx = Label.assign_label_t(ctx, x, y)
+            run_substages(ctx)
+
+          3 ->
+            # S-to-S edge became tight
+            {x, y, _w} = Enum.at(ctx.graph.edges, delta_edge)
+
+            case add_s_to_s_edge(ctx, x, y) do
+              {:augmenting_path, path, ctx} -> {path, ctx}
+              {:blossom, ctx} -> run_substages(ctx)
+            end
+
+          4 ->
+            # T-blossom expansion (Phase 9)
+            run_substages(ctx)
+        end
     end
   end
 

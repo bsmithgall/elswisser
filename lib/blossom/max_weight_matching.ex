@@ -32,7 +32,7 @@ defmodule Blossom.MaxWeightMatching do
   MIT License - Copyright (c) 2023 Joris van Rantwijk
   """
 
-  alias Blossom.MaxWeightMatching.{Graph, Validation}
+  alias Blossom.MaxWeightMatching.{Context, Graph, Stage, Validation}
 
   @type vertex :: non_neg_integer()
   @type weight :: number()
@@ -90,11 +90,22 @@ defmodule Blossom.MaxWeightMatching do
   defp do_matching([]), do: []
 
   defp do_matching(edges) do
-    # Build graph representation
-    _graph = Graph.new(edges)
+    graph = Graph.new(edges)
+    ctx = Context.new(graph)
+    ctx = run_stages(ctx)
+    extract_matching(edges, ctx)
+  end
 
-    # TODO: Implement algorithm in later phases
-    # For now, return empty matching
-    []
+  defp run_stages(ctx) do
+    case Stage.run_stage(ctx) do
+      {true, ctx} -> run_stages(ctx)
+      {false, ctx} -> ctx
+    end
+  end
+
+  defp extract_matching(edges, ctx) do
+    edges
+    |> Enum.filter(fn {x, y, _w} -> Map.fetch!(ctx.vertex_mate, x) == y end)
+    |> Enum.map(fn {x, y, _w} -> {x, y} end)
   end
 end
