@@ -314,4 +314,160 @@ defmodule Blossom.MaxWeightMatchingTest do
       assert total_weight(edges, result) == 2.5
     end
   end
+
+  describe "odd cycles (Phase 8 - blossom creation)" do
+    test "triangle - matches one edge" do
+      #      10
+      #   (0)----(1)
+      #    \    /
+      #  10 \  / 10
+      #      \/
+      #     (2)
+      #
+      # Triangle requires blossom to be formed.
+      # Only one edge can be matched (other vertex left unmatched).
+      edges = [{0, 1, 10}, {1, 2, 10}, {0, 2, 10}]
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      assert length(result) == 1
+      assert total_weight(edges, result) == 10
+    end
+
+    test "triangle with different weights" do
+      #      10
+      #   (0)====(1)
+      #    \    /
+      #   5 \  / 5
+      #      \/
+      #     (2)
+      #
+      # The heavier edge (0-1) should be chosen.
+      edges = [{0, 1, 10}, {1, 2, 5}, {0, 2, 5}]
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      assert length(result) == 1
+      assert total_weight(edges, result) == 10
+    end
+
+    test "pentagon (5-cycle) - matches two edges" do
+      #       (1)
+      #      /   \
+      #    (0)   (2)
+      #     |     |
+      #    (4)---(3)
+      #
+      # Pentagon (odd cycle) with all edges weight 1.
+      # Maximum matching: 2 edges (one vertex unmatched).
+      edges = [{0, 1, 1}, {1, 2, 1}, {2, 3, 1}, {3, 4, 1}, {4, 0, 1}]
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      assert length(result) == 2
+      assert total_weight(edges, result) == 2
+    end
+
+    test "triangle with tail" do
+      #     5       5
+      #  (0)----(1)----(2)
+      #           \    /
+      #          5 \  /
+      #             \/
+      #  (3)========(2)
+      #       10
+      #
+      # Triangle 1-2-0 plus edge 2-3.
+      # If we match inside triangle: weight 5
+      # If we match 2-3 (weight 10) and 0-1 (weight 5): weight 15
+      # Optimal: match {0,1} and {2,3} for weight 15
+      edges = [{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {2, 3, 10}]
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      assert total_weight(edges, result) == 15
+    end
+
+    test "two triangles sharing edge" do
+      #     (1)       (3)
+      #    /   \     /   \
+      #  (0)====(2)====(4)
+      #
+      # Two triangles sharing vertex 2.
+      # Vertices: 0,1,2 form one triangle; 2,3,4 form another.
+      # Maximum matching: 2 edges from the opposite ends.
+      edges = [
+        {0, 1, 1},
+        {1, 2, 1},
+        {0, 2, 1},
+        {2, 3, 1},
+        {3, 4, 1},
+        {2, 4, 1}
+      ]
+
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      assert length(result) == 2
+    end
+
+    test "7-cycle" do
+      # Odd cycle of length 7.
+      # Maximum matching: 3 edges (one vertex unmatched).
+      edges =
+        for i <- 0..6 do
+          {i, rem(i + 1, 7), 1}
+        end
+
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      assert length(result) == 3
+      assert total_weight(edges, result) == 3
+    end
+
+    test "complete graph K4" do
+      # Complete graph on 4 vertices.
+      # All edges weight 1.
+      # Maximum matching: 2 edges (perfect matching exists).
+      edges = [
+        {0, 1, 1},
+        {0, 2, 1},
+        {0, 3, 1},
+        {1, 2, 1},
+        {1, 3, 1},
+        {2, 3, 1}
+      ]
+
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      assert length(result) == 2
+      assert total_weight(edges, result) == 2
+    end
+
+    test "triangle connected to path" do
+      #     5       5       5
+      #  (0)----(1)----(2)----(3)
+      #          |     /
+      #        5 |    / 5
+      #          |   /
+      #          (4)
+      #
+      # Triangle 1-2-4 with paths extending to 0 and 3.
+      # Maximum matching should be 2 edges for weight 10.
+      edges = [
+        {0, 1, 5},
+        {1, 2, 5},
+        {2, 3, 5},
+        {1, 4, 5},
+        {2, 4, 5}
+      ]
+
+      result = MaxWeightMatching.maximum_weight_matching(edges)
+
+      assert valid_matching?(result)
+      assert length(result) == 2
+    end
+  end
 end

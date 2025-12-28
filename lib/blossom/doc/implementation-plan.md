@@ -11,7 +11,7 @@
 | 5 | ✅ Complete | Delta Mechanics | `stage.ex` |
 | 6 | ✅ Complete | Paths & Augmentation | `alternating_path.ex`, `augment.ex` |
 | 7 | ✅ Complete | Stage Integration | `stage.ex` - **Bipartite graphs work** |
-| 8 | Pending | Blossom Creation | `blossom_ops.ex` |
+| 8 | ✅ Complete | Blossom Creation | `blossom_ops.ex`, `least_slack.ex` - **Odd cycles work** |
 | 9 | Pending | Blossom Expansion | `blossom_ops.ex`, `augment.ex` - **All graphs work** |
 | 10 | Pending | Verification | `verification.ex` |
 

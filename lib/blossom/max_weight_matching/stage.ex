@@ -18,6 +18,7 @@ defmodule Blossom.MaxWeightMatching.Stage do
   alias Blossom.MaxWeightMatching.Slack
   alias Blossom.MaxWeightMatching.Label
   alias Blossom.MaxWeightMatching.Augment
+  alias Blossom.MaxWeightMatching.BlossomOps
 
   alias Blossom.MaxWeightMatching.Blossom.NonTrivial
 
@@ -157,19 +158,23 @@ defmodule Blossom.MaxWeightMatching.Stage do
   @spec add_s_to_s_edge(Context.t(), non_neg_integer(), non_neg_integer()) ::
           {:augmenting_path, AlternatingPath.t(), Context.t()} | {:blossom, Context.t()}
   def add_s_to_s_edge(%Context{} = ctx, x, y) do
-    # Trace back through the alternating trees from x and y
     {path, ctx} = AlternatingPath.trace_alternating_paths(ctx, x, y)
 
-    # Check if the path is a cycle (starts and ends in same blossom)
     [{p, _} | _] = path.edges
     {_, q} = List.last(path.edges)
+    is_cycle = Context.same_blossom?(ctx, p, q)
 
-    if Context.same_blossom?(ctx, p, q) do
-      # Path forms a cycle - a new blossom should be created (Phase 8)
-      {:blossom, ctx}
-    else
-      # Path connects different trees - augmenting path found
-      {:augmenting_path, path, ctx}
+    cond do
+      not is_cycle ->
+        {:augmenting_path, path, ctx}
+
+      length(path.edges) >= 3 ->
+        ctx = BlossomOps.make_blossom(ctx, path)
+        {:blossom, ctx}
+
+      true ->
+        # Short cycle (< 3 edges) means vertices already in same blossom
+        {:blossom, ctx}
     end
   end
 

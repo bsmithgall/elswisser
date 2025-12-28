@@ -255,4 +255,138 @@ defmodule Blossom.MaxWeightMatching.LeastSlack do
       end
     end)
   end
+
+  @doc """
+  Update least-slack edge tracking after merging sub-blossoms into a new S-blossom.
+
+  This function collects the least-slack edges from all S-labeled sub-blossoms,
+  filters out edges that are now internal to the new blossom, and computes the
+  new blossom's `best_edge` and `best_edge_set`.
+
+  For trivial S-sub-blossoms, we scan their adjacent edges directly (happens at
+  most once per vertex per stage, adding O(m) time per stage).
+
+  For non-trivial S-sub-blossoms, we pull their existing `best_edge_set` and
+  then clear it.
+
+  ## Parameters
+
+  - `ctx` - The current matching context (with new blossom already added)
+  - `blossom_id` - The ID of the newly created blossom
+
+  ## Returns
+
+  Updated context with the new blossom's edge tracking set up.
+  """
+  @spec merge_blossoms(Context.t(), reference()) :: Context.t()
+  def merge_blossoms(%Context{} = ctx, blossom_id) do
+    blossom = Context.get_blossom(ctx, blossom_id)
+    num_vertex = ctx.graph.num_vertex
+
+    # State structure for tracking edges during merge:
+    # - best_edge_to_blossom: Map from external blossom's base_vertex -> edge index
+    #   (keeps only the least-slack edge to each external S-blossom)
+    # - best_slack_to_blossom: Map from external blossom's base_vertex -> slack value
+    # - best_edge: Overall least-slack edge to any external S-blossom
+    # - best_slack: Slack of best_edge
+    # - ctx: Context (may be modified when clearing sub-blossom edge sets)
+    initial_state = %{
+      best_edge_to_blossom: Map.new(0..(num_vertex - 1), fn v -> {v, -1} end),
+      best_slack_to_blossom: Map.new(0..(num_vertex - 1), fn v -> {v, 0} end),
+      best_edge: -1,
+      best_slack: 0,
+      ctx: ctx
+    }
+
+    # Process each S-labeled sub-blossom
+    state =
+      Enum.reduce(blossom.subblossom_ids, initial_state, fn sub_id, state ->
+        sub = Context.get_blossom(state.ctx, sub_id)
+
+        if sub.label != :s do
+          state
+        else
+          {sub_edge_set, state} = get_sub_edge_set(state, sub)
+          process_sub_edges(state, blossom, sub_edge_set)
+        end
+      end)
+
+    # Extract compact best_edge_set list
+    best_edge_set =
+      state.best_edge_to_blossom
+      |> Map.values()
+      |> Enum.filter(&(&1 != -1))
+
+    # Update the new blossom with best_edge and best_edge_set
+    Context.update_blossom(state.ctx, blossom_id,
+      best_edge: state.best_edge,
+      best_edge_set: best_edge_set
+    )
+  end
+
+  # Get the edge set to process for a sub-blossom
+  defp get_sub_edge_set(state, %NonTrivial{best_edge_set: edge_set} = sub) when edge_set != nil do
+    # Pull edge set from non-trivial sub-blossom and clear it
+    ctx = Context.update_blossom(state.ctx, sub.id, best_edge_set: nil)
+    {edge_set, %{state | ctx: ctx}}
+  end
+
+  defp get_sub_edge_set(state, %Trivial{base_vertex: v}) do
+    # For trivial blossoms, use all adjacent edges
+    edge_set = Map.fetch!(state.ctx.graph.adjacent_edges, v)
+    {edge_set, state}
+  end
+
+  defp get_sub_edge_set(state, %NonTrivial{best_edge_set: nil} = sub) do
+    # NonTrivial with nil best_edge_set - use all adjacent edges of base vertex
+    edge_set = Map.fetch!(state.ctx.graph.adjacent_edges, sub.base_vertex)
+    {edge_set, state}
+  end
+
+  # Process all edges from a sub-blossom's edge set
+  defp process_sub_edges(state, blossom, edge_set) do
+    Enum.reduce(edge_set, state, fn e, state ->
+      {x, y, _w} = Enum.at(state.ctx.graph.edges, e)
+      bx = Context.get_vertex_blossom(state.ctx, x)
+      by = Context.get_vertex_blossom(state.ctx, y)
+
+      # Skip edges internal to the new blossom
+      if bx.id == by.id do
+        state
+      else
+        # Determine which blossom is external
+        other_blossom = if bx.id == blossom.id, do: by, else: bx
+
+        # Skip edges that don't link to an S-blossom
+        if other_blossom.label != :s do
+          state
+        else
+          slack = Slack.edge_slack_2x(state.ctx, e)
+          bx_base = other_blossom.base_vertex
+
+          # Update best edge to this external blossom
+          current_edge = Map.fetch!(state.best_edge_to_blossom, bx_base)
+          current_slack = Map.fetch!(state.best_slack_to_blossom, bx_base)
+
+          state =
+            if current_edge == -1 or slack < current_slack do
+              %{
+                state
+                | best_edge_to_blossom: Map.put(state.best_edge_to_blossom, bx_base, e),
+                  best_slack_to_blossom: Map.put(state.best_slack_to_blossom, bx_base, slack)
+              }
+            else
+              state
+            end
+
+          # Update overall best edge
+          if state.best_edge == -1 or slack < state.best_slack do
+            %{state | best_edge: e, best_slack: slack}
+          else
+            state
+          end
+        end
+      end
+    end)
+  end
 end
