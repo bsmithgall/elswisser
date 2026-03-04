@@ -20,7 +20,7 @@ defmodule MaxWeightMatching.Blossom.NonTrivial do
   - `tree_edge` - Edge attaching this to alternating tree, nil if root
   - `best_edge` - Index of least-slack edge to S-blossom, -1 if none
   - `marker` - Temporary flag used during path tracing
-  - `dual_var` - Dual variable value for LPP (always >= 0)
+  - `dual_var_2x` - Dual variable for LPP, stored at 2x scale like vertex duals (always >= 0)
   - `best_edge_set` - List of least-slack edges to other S-blossoms
   """
 
@@ -34,7 +34,7 @@ defmodule MaxWeightMatching.Blossom.NonTrivial do
           tree_edge: {non_neg_integer(), non_neg_integer()} | nil,
           best_edge: integer(),
           marker: boolean(),
-          dual_var: number(),
+          dual_var_2x: number(),
           best_edge_set: [non_neg_integer()] | nil
         }
 
@@ -48,7 +48,7 @@ defmodule MaxWeightMatching.Blossom.NonTrivial do
     tree_edge: nil,
     best_edge: -1,
     marker: false,
-    dual_var: 0,
+    dual_var_2x: 0,
     best_edge_set: nil
   ]
 

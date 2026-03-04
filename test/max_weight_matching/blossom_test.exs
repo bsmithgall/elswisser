@@ -85,7 +85,7 @@ defmodule MaxWeightMatching.BlossomTest do
       assert blossom.tree_edge == nil
       assert blossom.best_edge == -1
       assert blossom.marker == false
-      assert blossom.dual_var == 0
+      assert blossom.dual_var_2x == 0
       assert blossom.best_edge_set == nil
     end
 

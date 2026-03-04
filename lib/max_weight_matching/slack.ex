@@ -12,17 +12,29 @@ defmodule MaxWeightMatching.Slack do
   @doc """
   Calculate 2x the slack of the edge at index `e`.
 
-  The slack of an edge (x, y) with weight w is:
-    dual[x] + dual[y] - w
+  The full LP slack of an edge (x, y) with weight w is:
+    dual[x] + dual[y] + sum(z[B] for blossoms B containing both x and y) - w
 
-  We compute 2x this value to maintain integer arithmetic when all edge
-  weights are integers:
+  However, this function computes only the vertex dual contribution:
     2 * slack = vertex_dual_2x[x] + vertex_dual_2x[y] - 2 * w
+
+  This is correct for cross-blossom edges (the only case this function
+  handles) because vertex duals are adjusted in lockstep with blossom
+  duals during each delta step. When vertex x is inside an S-blossom,
+  both vertex_dual_2x[x] decreases and the blossom's dual_var_2x
+  increases by the same delta — so vertex duals implicitly absorb the
+  blossom dual contributions for edges that cross blossom boundaries.
+  The separate blossom dual (dual_var_2x) is only needed to know when
+  a T-blossom should be expanded (delta4).
+
+  We use 2x values throughout to maintain integer arithmetic when all
+  edge weights are integers.
 
   ## Preconditions
 
   The edge must not be between vertices in the same top-level blossom.
-  This is asserted in the function.
+  This is asserted in the function. (For blossom-internal edges, the
+  blossom z[B] terms would be needed and are not included here.)
 
   ## Parameters
 

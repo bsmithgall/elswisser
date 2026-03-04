@@ -105,8 +105,8 @@ defmodule TestSupport.Verification do
         blossoms
         |> Enum.reduce_while(:ok, fn {_id, blossom}, :ok ->
           case blossom do
-            %NonTrivial{dual_var: dual_var} when dual_var < 0 ->
-              {:halt, {:error, "negative blossom dual #{dual_var}"}}
+            %NonTrivial{dual_var_2x: dual_var_2x} when dual_var_2x < 0 ->
+              {:halt, {:error, "negative blossom dual #{dual_var_2x}"}}
 
             _ ->
               {:cont, :ok}
@@ -280,7 +280,7 @@ defmodule TestSupport.Verification do
 
       # Calculate the sum of blossom duals at the current depth
       parent_sum = Map.fetch!(path_sum_dual, depth - 1)
-      updated_path_sum_dual = Map.put(path_sum_dual, depth, parent_sum + blossom.dual_var)
+      updated_path_sum_dual = Map.put(path_sum_dual, depth, parent_sum + blossom.dual_var_2x)
 
       # Initialize the number of matched edges at current depth
       updated_path_num_matched = Map.put(path_num_matched, depth, 0)
@@ -377,10 +377,10 @@ defmodule TestSupport.Verification do
         blossom_num_matched = Map.fetch!(path_num_matched, depth)
 
         # Check that blossom is "full" (all but one vertex matched internally)
-        # Only check if dual_var != 0
-        if blossom.dual_var != 0 and blossom_num_vertex != 2 * blossom_num_matched + 1 do
+        # Only check if dual_var_2x != 0
+        if blossom.dual_var_2x != 0 and blossom_num_vertex != 2 * blossom_num_matched + 1 do
           {:error,
-           "blossom non-full dual=#{blossom.dual_var} nvertex=#{blossom_num_vertex} nmatched=#{blossom_num_matched}"}
+           "blossom non-full dual=#{blossom.dual_var_2x} nvertex=#{blossom_num_vertex} nmatched=#{blossom_num_matched}"}
         else
           # Update matched edges count in parent blossom
           updated_path_num_matched =

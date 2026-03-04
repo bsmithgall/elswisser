@@ -136,7 +136,7 @@ defmodule MaxWeightMatching.Label do
     by_id = Context.get_vertex_blossom_id(ctx, y)
 
     case by do
-      %NonTrivial{dual_var: 0} ->
+      %NonTrivial{dual_var_2x: 0} ->
         ctx = BlossomOps.expand_unlabeled_blossom(ctx, by_id)
         expand_zero_dual_blossoms(ctx, y)
 

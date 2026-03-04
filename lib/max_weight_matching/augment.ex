@@ -132,11 +132,14 @@ defmodule MaxWeightMatching.Augment do
     # At each step p:
     #   path_nodes[p] was matched to path_nodes[p+1] before
     #   After: path_nodes[p+1] matched to path_nodes[p+2] via edge at p+1
-    {ctx, new_stack_items} =
+    path_edges_t = List.to_tuple(path_edges)
+    path_nodes_t = List.to_tuple(path_nodes)
+
+    {ctx_after_mates, new_stack_items} =
       0..(length(path_edges) - 1)//2
       |> Enum.reduce({ctx, []}, fn p, {acc, stack_acc} ->
         # Pull edge at position p+1 into matching
-        {x, y} = Enum.at(path_edges, p + 1)
+        {x, y} = elem(path_edges_t, p + 1)
 
         vertex_mate =
           acc.vertex_mate
@@ -146,8 +149,8 @@ defmodule MaxWeightMatching.Augment do
         acc = %{acc | vertex_mate: vertex_mate}
 
         # Check if sub-blossoms are non-trivial and need augmentation
-        bx = Context.get_blossom(acc, Enum.at(path_nodes, p + 1))
-        by = Context.get_blossom(acc, Enum.at(path_nodes, p + 2))
+        bx = Context.get_blossom(acc, elem(path_nodes_t, p + 1))
+        by = Context.get_blossom(acc, elem(path_nodes_t, p + 2))
 
         stack_acc =
           case bx do
@@ -184,15 +187,15 @@ defmodule MaxWeightMatching.Augment do
 
     rotated_edges = Enum.slice(blossom.edges, p..-1//1) ++ Enum.take(blossom.edges, p)
 
-    sub = Context.get_blossom(ctx, sub_id)
+    sub = Context.get_blossom(ctx_after_mates, sub_id)
 
-    ctx =
-      Context.update_blossom(ctx, blossom_id,
+    ctx_rotated =
+      Context.update_blossom(ctx_after_mates, blossom_id,
         subblossom_ids: rotated_subblossoms,
         edges: rotated_edges,
         base_vertex: sub.base_vertex
       )
 
-    {ctx, new_stack_items}
+    {ctx_rotated, new_stack_items}
   end
 end

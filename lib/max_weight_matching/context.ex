@@ -103,7 +103,7 @@ defmodule MaxWeightMatching.Context do
       graph.edges
       |> Map.values()
       |> Enum.map(fn {_x, _y, w} -> w end)
-      |> Enum.max()
+      |> Enum.max(fn -> 0 end)
 
     %__MODULE__{
       graph: graph,

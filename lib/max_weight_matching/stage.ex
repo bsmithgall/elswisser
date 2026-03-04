@@ -114,8 +114,8 @@ defmodule MaxWeightMatching.Stage do
   based on their labels:
   - S-vertices: subtract delta from dual
   - T-vertices: add delta to dual
-  - S-blossoms: add delta to dual_var (2*delta in actual terms)
-  - T-blossoms: subtract delta from dual_var
+  - S-blossoms: add delta to dual_var_2x
+  - T-blossoms: subtract delta from dual_var_2x
 
   ## Parameters
 
@@ -384,10 +384,10 @@ defmodule MaxWeightMatching.Stage do
       %NonTrivial{label: :t, parent_id: nil} -> true
       _ -> false
     end)
-    |> Enum.min_by(& &1.dual_var, fn -> nil end)
+    |> Enum.min_by(& &1.dual_var_2x, fn -> nil end)
     |> case do
       nil -> {nil, nil}
-      blossom -> {blossom.dual_var, blossom.id}
+      blossom -> {blossom.dual_var_2x, blossom.id}
     end
   end
 
@@ -431,13 +431,13 @@ defmodule MaxWeightMatching.Stage do
     Map.new(ctx.blossoms, fn {id, blossom} ->
       updated =
         case blossom do
-          %NonTrivial{parent_id: nil, label: :s, dual_var: dual_var} ->
-            # S-blossom: add delta to dual_var
-            %{blossom | dual_var: dual_var + delta_2x}
+          %NonTrivial{parent_id: nil, label: :s, dual_var_2x: dual_var_2x} ->
+            # S-blossom: add delta to dual_var_2x
+            %{blossom | dual_var_2x: dual_var_2x + delta_2x}
 
-          %NonTrivial{parent_id: nil, label: :t, dual_var: dual_var} ->
-            # T-blossom: subtract delta from dual_var
-            %{blossom | dual_var: dual_var - delta_2x}
+          %NonTrivial{parent_id: nil, label: :t, dual_var_2x: dual_var_2x} ->
+            # T-blossom: subtract delta from dual_var_2x
+            %{blossom | dual_var_2x: dual_var_2x - delta_2x}
 
           _ ->
             # Trivial blossoms, nested blossoms, or unlabeled: no change

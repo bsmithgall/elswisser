@@ -182,7 +182,7 @@ defmodule MaxWeightMatching.StageTest do
           [{0, 1}, {1, 2}, {2, 0}],
           0
         )
-        |> then(&%{&1 | dual_var: 2, label: :t})
+        |> then(&%{&1 | dual_var_2x: 2, label: :t})
 
       ctx =
         ctx
@@ -304,7 +304,7 @@ defmodule MaxWeightMatching.StageTest do
       assert Map.fetch!(ctx.vertex_dual_2x, 2) == initial_dual
     end
 
-    test "increases S-blossom dual_var" do
+    test "increases S-blossom dual_var_2x" do
       graph = Graph.new([{0, 1, 10}, {1, 2, 10}, {2, 0, 10}])
 
       ctx =
@@ -322,7 +322,7 @@ defmodule MaxWeightMatching.StageTest do
           [{0, 1}, {1, 2}, {2, 0}],
           0
         )
-        |> then(&%{&1 | dual_var: 10, label: :s})
+        |> then(&%{&1 | dual_var_2x: 10, label: :s})
 
       ctx =
         ctx
@@ -334,10 +334,10 @@ defmodule MaxWeightMatching.StageTest do
         |> Stage.substage_apply_delta_step(4)
 
       updated_blossom = Context.get_blossom(ctx, nontrivial.id)
-      assert updated_blossom.dual_var == 14
+      assert updated_blossom.dual_var_2x == 14
     end
 
-    test "decreases T-blossom dual_var" do
+    test "decreases T-blossom dual_var_2x" do
       graph = Graph.new([{0, 1, 10}, {1, 2, 10}, {2, 0, 10}])
 
       ctx =
@@ -355,7 +355,7 @@ defmodule MaxWeightMatching.StageTest do
           [{0, 1}, {1, 2}, {2, 0}],
           0
         )
-        |> then(&%{&1 | dual_var: 10, label: :t})
+        |> then(&%{&1 | dual_var_2x: 10, label: :t})
 
       ctx =
         ctx
@@ -367,7 +367,7 @@ defmodule MaxWeightMatching.StageTest do
         |> Stage.substage_apply_delta_step(4)
 
       updated_blossom = Context.get_blossom(ctx, nontrivial.id)
-      assert updated_blossom.dual_var == 6
+      assert updated_blossom.dual_var_2x == 6
     end
 
     test "leaves nested blossom duals unchanged" do
@@ -388,7 +388,7 @@ defmodule MaxWeightMatching.StageTest do
           [{0, 1}, {1, 2}, {2, 0}],
           0
         )
-        |> then(&%{&1 | dual_var: 10, label: :s})
+        |> then(&%{&1 | dual_var_2x: 10, label: :s})
 
       ctx =
         ctx
@@ -400,9 +400,9 @@ defmodule MaxWeightMatching.StageTest do
         |> Stage.substage_apply_delta_step(4)
 
       # Only the top-level blossom should be updated
-      assert Context.get_blossom(ctx, nontrivial.id).dual_var == 14
+      assert Context.get_blossom(ctx, nontrivial.id).dual_var_2x == 14
 
-      # Trivial blossoms don't have dual_var, so just check they're unchanged
+      # Trivial blossoms don't have dual_var_2x, so just check they're unchanged
       # (no crash, no unexpected behavior)
     end
   end
