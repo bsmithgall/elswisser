@@ -58,7 +58,6 @@ defmodule Elswisser.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:math, "~> 0.7.0"},
       {:erlport, "~> 0.11.0"},
-      {:poolboy, "~> 1.5.2"},
       {:timex, "~> 3.7"},
       {:prom_ex, "~> 1.11.0"},
       {:nimble_parsec, "~> 1.4.0"},

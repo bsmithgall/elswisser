@@ -59,9 +59,6 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-# Use five python workers by default
-config :elswisser, pairing_pool_size: 5
-
 config :elswisser, Elswisser.PromEx,
   disabled: false,
   manual_metrics_start_delay: :no_delay,

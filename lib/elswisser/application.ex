@@ -19,8 +19,6 @@ defmodule Elswisser.Application do
       {Finch, name: Elswisser.Finch},
       # Start the Endpoint (http/https)
       ElswisserWeb.Endpoint,
-      # Start the worker pool for calculating pairings
-      :poolboy.child_spec(:worker, poolboy_config()),
       Elchesser.Engine.Server
     ]
 
@@ -36,14 +34,5 @@ defmodule Elswisser.Application do
   def config_change(changed, _new, removed) do
     ElswisserWeb.Endpoint.config_change(changed, removed)
     :ok
-  end
-
-  defp poolboy_config do
-    [
-      {:name, {:local, :pairing_worker}},
-      {:worker_module, Elswisser.Pairings.Worker},
-      {:size, Application.fetch_env!(:elswisser, :pairing_pool_size)},
-      {:max_overflow, 0}
-    ]
   end
 end

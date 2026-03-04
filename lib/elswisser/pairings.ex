@@ -2,7 +2,6 @@ defmodule Elswisser.Pairings do
   alias Elswisser.Scores.Score
   alias Elswisser.Pairings.Pairing
   alias Elswisser.Pairings.PairWeight
-  alias Elswisser.Pairings.Worker
 
   defguardp is_even(scores) when is_list(scores) and rem(length(scores), 2) == 0
 
@@ -39,11 +38,13 @@ defmodule Elswisser.Pairings do
   def pair(scores) when is_even(scores) do
     max_score = max_score(scores)
 
-    scores
-    |> partition()
-    |> unique_possible_pairs(max_score)
-    # |> MaxWeightMatching.maximum_weight_matching
-    |> Worker.pooled_call(:swiss)
+    result =
+      scores
+      |> partition()
+      |> unique_possible_pairs(max_score)
+      |> MaxWeightMatching.maximum_weight_matching()
+
+    {:ok, result}
   end
 
   def partition(scores) when is_list(scores) do

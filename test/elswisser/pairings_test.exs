@@ -3,7 +3,6 @@ defmodule Elswisser.PairingsTest do
 
   alias Elswisser.Pairings
   alias Elswisser.Pairings.PairWeight
-  alias Elswisser.Pairings.Worker
 
   import Elswisser.ScoresFixtures
 
@@ -89,26 +88,33 @@ defmodule Elswisser.PairingsTest do
     assert scores_fixture() |> Map.values() |> Pairings.max_score() == 3
   end
 
-  describe "pairing via matching worker algorithm" do
-    setup :start_worker
-
-    test "empty graph works as expected", %{pid: pid} do
-      assert Worker.direct_call(pid, []) == {:ok, []}
+  describe "pairing via matching algorithm" do
+    test "empty graph works as expected" do
+      assert MaxWeightMatching.maximum_weight_matching([]) == []
     end
 
-    test "simple graph works as expected", %{pid: pid} do
-      assert Worker.direct_call(pid, [{1, 2, 3.1415}, {2, 3, 2.7183}, {1, 3, 3.0}, {1, 4, 1.4142}]) ==
-               {:ok, [{2, 3}, {1, 4}]}
+    test "simple graph works as expected" do
+      assert MaxWeightMatching.maximum_weight_matching([
+               {1, 2, 3.1415},
+               {2, 3, 2.7183},
+               {1, 3, 3.0},
+               {1, 4, 1.4142}
+             ]) == [{2, 3}, {1, 4}]
     end
 
-    test "first round with known ratings matches as expected", %{pid: pid} do
+    test "first round with known ratings matches as expected" do
       first_round =
         scores_fixture_with_players_first_round()
         |> Elswisser.Scores.sort()
         |> Pairings.partition()
         |> Pairings.unique_possible_pairs()
 
-      assert Worker.direct_call(pid, first_round) == {:ok, [{5, 1}, {6, 2}, {7, 3}, {8, 4}]}
+      assert MaxWeightMatching.maximum_weight_matching(first_round) == [
+               {5, 1},
+               {6, 2},
+               {7, 3},
+               {8, 4}
+             ]
     end
   end
 
@@ -174,10 +180,5 @@ defmodule Elswisser.PairingsTest do
 
       assert Pairings.assign_bye_player(scores) == {Enum.at(scores, -1), Enum.take(scores, 6)}
     end
-  end
-
-  defp start_worker(_) do
-    {:ok, pid} = Worker.start_link()
-    %{pid: pid}
   end
 end
