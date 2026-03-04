@@ -76,9 +76,6 @@ config :phoenix, :plug_init_mode, :runtime
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
 
-# Use one python worker
-config :elswisser, pairing_pool_size: 1
-
 # Admin user admin/admin for local dev
 config :elswisser,
   admin_user: %{

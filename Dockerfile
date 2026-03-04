@@ -87,7 +87,7 @@ RUN set -uex \
   && apt-get install -y ca-certificates curl gnupg \
   && mkdir -p /etc/apt/keyrings \
   && apt-get update \
-  && apt-get install -y libstdc++6 openssl libncurses5 locales python3 \
+  && apt-get install -y libstdc++6 openssl libncurses5 locales \
   && rm -f /var/lib/apt/lists/*_*
 
 # Set the locale
