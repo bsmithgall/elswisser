@@ -19,11 +19,9 @@ defmodule Elswisser.Application do
       {Finch, name: Elswisser.Finch},
       # Start the Endpoint (http/https)
       ElswisserWeb.Endpoint,
-      # Start the python processes to calculate pairings
-      :poolboy.child_spec(:worker, python_poolboy_config()),
-      # Start a worker by calling: Elswisser.Worker.start_link(arg),
+      # Start the worker pool for calculating pairings
+      :poolboy.child_spec(:worker, poolboy_config()),
       Elchesser.Engine.Server
-      # {Elswisser.Worker, arg}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -40,7 +38,7 @@ defmodule Elswisser.Application do
     :ok
   end
 
-  defp python_poolboy_config do
+  defp poolboy_config do
     [
       {:name, {:local, :pairing_worker}},
       {:worker_module, Elswisser.Pairings.Worker},

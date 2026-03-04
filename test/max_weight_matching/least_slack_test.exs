@@ -16,13 +16,12 @@ defmodule MaxWeightMatching.LeastSlackTest do
 
   describe "reset/1" do
     test "resets vertex_best_edge to -1 for all vertices" do
-      graph = Graph.new([{0, 1, 5}, {1, 2, 3}])
-      ctx = Context.new(graph)
-
-      # Manually set some best edges
-      ctx = %{ctx | vertex_best_edge: %{0 => 0, 1 => 1, 2 => 0}}
-
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}, {1, 2, 3}]
+        |> Graph.new()
+        |> Context.new()
+        |> then(&%{&1 | vertex_best_edge: %{0 => 0, 1 => 1, 2 => 0}})
+        |> LeastSlack.reset()
 
       assert ctx.vertex_best_edge[0] == -1
       assert ctx.vertex_best_edge[1] == -1
@@ -32,12 +31,12 @@ defmodule MaxWeightMatching.LeastSlackTest do
     test "resets best_edge to -1 for trivial blossoms" do
       graph = Graph.new([{0, 1, 5}])
       ctx = Context.new(graph)
-
-      # Set a best_edge on a trivial blossom
       blossom_id = Context.get_vertex_blossom_id(ctx, 0)
-      ctx = Context.update_blossom(ctx, blossom_id, best_edge: 0)
 
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        ctx
+        |> Context.update_blossom(blossom_id, best_edge: 0)
+        |> LeastSlack.reset()
 
       blossom = Context.get_blossom(ctx, blossom_id)
       assert blossom.best_edge == -1
@@ -47,18 +46,21 @@ defmodule MaxWeightMatching.LeastSlackTest do
       graph = Graph.new([{0, 1, 5}, {1, 2, 5}, {0, 2, 5}])
       ctx = Context.new(graph)
 
-      # Create a non-trivial blossom containing vertices 0, 1, 2
       sub_ids = [
         Context.get_vertex_blossom_id(ctx, 0),
         Context.get_vertex_blossom_id(ctx, 1),
         Context.get_vertex_blossom_id(ctx, 2)
       ]
 
-      nt_blossom = NonTrivial.new(sub_ids, [{0, 1}, {1, 2}, {2, 0}], 0)
-      nt_blossom = %{nt_blossom | best_edge: 0, best_edge_set: [0, 1, 2]}
-      ctx = Context.add_blossom(ctx, nt_blossom)
+      nt_blossom =
+        sub_ids
+        |> NonTrivial.new([{0, 1}, {1, 2}, {2, 0}], 0)
+        |> then(&%{&1 | best_edge: 0, best_edge_set: [0, 1, 2]})
 
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        ctx
+        |> Context.add_blossom(nt_blossom)
+        |> LeastSlack.reset()
 
       blossom = Context.get_blossom(ctx, nt_blossom.id)
       assert blossom.best_edge == -1
@@ -68,9 +70,11 @@ defmodule MaxWeightMatching.LeastSlackTest do
 
   describe "add_vertex_edge/4" do
     test "stores first edge for vertex" do
-      graph = Graph.new([{0, 1, 5}, {0, 2, 3}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}, {0, 2, 3}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
 
       slack = Slack.edge_slack_2x(ctx, 0)
       ctx = LeastSlack.add_vertex_edge(ctx, 1, 0, slack)
@@ -82,9 +86,11 @@ defmodule MaxWeightMatching.LeastSlackTest do
       # Edge 0: {0, 1, 5} -> slack = 0
       # Edge 1: {0, 2, 3} -> slack = 4
       # Edge 2: {1, 2, 4} -> slack = 2
-      graph = Graph.new([{0, 1, 5}, {0, 2, 3}, {1, 2, 4}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}, {0, 2, 3}, {1, 2, 4}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
 
       # Add edge 1 (slack 4) first
       slack1 = Slack.edge_slack_2x(ctx, 1)
@@ -98,9 +104,11 @@ defmodule MaxWeightMatching.LeastSlackTest do
     end
 
     test "keeps current edge when new edge has more slack" do
-      graph = Graph.new([{0, 1, 5}, {0, 2, 3}, {1, 2, 4}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}, {0, 2, 3}, {1, 2, 4}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
 
       # Add edge 2 (slack 2) first
       slack2 = Slack.edge_slack_2x(ctx, 2)
@@ -115,15 +123,19 @@ defmodule MaxWeightMatching.LeastSlackTest do
 
   describe "get_best_vertex_edge/1" do
     test "returns best edge among unlabeled vertices" do
-      graph = Graph.new([{0, 1, 5}, {0, 2, 3}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}, {0, 2, 3}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
 
-      # Add edges to vertices 1 and 2
       slack0 = Slack.edge_slack_2x(ctx, 0)
       slack1 = Slack.edge_slack_2x(ctx, 1)
-      ctx = LeastSlack.add_vertex_edge(ctx, 1, 0, slack0)
-      ctx = LeastSlack.add_vertex_edge(ctx, 2, 1, slack1)
+
+      ctx =
+        ctx
+        |> LeastSlack.add_vertex_edge(1, 0, slack0)
+        |> LeastSlack.add_vertex_edge(2, 1, slack1)
 
       # Edge 0 has slack 0, edge 1 has slack 4
       {edge, slack} = LeastSlack.get_best_vertex_edge(ctx)
@@ -132,17 +144,20 @@ defmodule MaxWeightMatching.LeastSlackTest do
     end
 
     test "ignores S-labeled vertices" do
-      graph = Graph.new([{0, 1, 5}, {0, 2, 3}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}, {0, 2, 3}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
 
       slack0 = Slack.edge_slack_2x(ctx, 0)
       slack1 = Slack.edge_slack_2x(ctx, 1)
-      ctx = LeastSlack.add_vertex_edge(ctx, 1, 0, slack0)
-      ctx = LeastSlack.add_vertex_edge(ctx, 2, 1, slack1)
 
-      # Label vertex 1's blossom as S
-      ctx = label_blossom(ctx, 1, :s)
+      ctx =
+        ctx
+        |> LeastSlack.add_vertex_edge(1, 0, slack0)
+        |> LeastSlack.add_vertex_edge(2, 1, slack1)
+        |> label_blossom(1, :s)
 
       # Should only find edge 1 (to vertex 2)
       {edge, slack} = LeastSlack.get_best_vertex_edge(ctx)
@@ -151,38 +166,43 @@ defmodule MaxWeightMatching.LeastSlackTest do
     end
 
     test "ignores T-labeled vertices" do
-      graph = Graph.new([{0, 1, 5}, {0, 2, 3}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}, {0, 2, 3}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
 
       slack0 = Slack.edge_slack_2x(ctx, 0)
       slack1 = Slack.edge_slack_2x(ctx, 1)
-      ctx = LeastSlack.add_vertex_edge(ctx, 1, 0, slack0)
-      ctx = LeastSlack.add_vertex_edge(ctx, 2, 1, slack1)
 
-      # Label vertex 1's blossom as T
-      ctx = label_blossom(ctx, 1, :t)
+      ctx =
+        ctx
+        |> LeastSlack.add_vertex_edge(1, 0, slack0)
+        |> LeastSlack.add_vertex_edge(2, 1, slack1)
+        |> label_blossom(1, :t)
 
       {edge, _slack} = LeastSlack.get_best_vertex_edge(ctx)
       assert edge == 1
     end
 
     test "returns {-1, 0} when no unlabeled vertices have edges" do
-      graph = Graph.new([{0, 1, 5}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
-
-      # Label all vertices as S
-      ctx = label_blossom(ctx, 0, :s)
-      ctx = label_blossom(ctx, 1, :s)
+      ctx =
+        [{0, 1, 5}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
+        |> label_blossom(0, :s)
+        |> label_blossom(1, :s)
 
       assert LeastSlack.get_best_vertex_edge(ctx) == {-1, 0}
     end
 
     test "returns {-1, 0} when no edges tracked" do
-      graph = Graph.new([{0, 1, 5}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
 
       assert LeastSlack.get_best_vertex_edge(ctx) == {-1, 0}
     end
@@ -190,8 +210,10 @@ defmodule MaxWeightMatching.LeastSlackTest do
 
   describe "new_blossom/2" do
     test "does nothing for trivial blossom" do
-      graph = Graph.new([{0, 1, 5}])
-      ctx = Context.new(graph)
+      ctx =
+        [{0, 1, 5}]
+        |> Graph.new()
+        |> Context.new()
 
       blossom_id = Context.get_vertex_blossom_id(ctx, 0)
       ctx_after = LeastSlack.new_blossom(ctx, blossom_id)
@@ -202,8 +224,10 @@ defmodule MaxWeightMatching.LeastSlackTest do
     end
 
     test "initializes best_edge_set to empty list for non-trivial blossom" do
-      graph = Graph.new([{0, 1, 5}, {1, 2, 5}, {0, 2, 5}])
-      ctx = Context.new(graph)
+      ctx =
+        [{0, 1, 5}, {1, 2, 5}, {0, 2, 5}]
+        |> Graph.new()
+        |> Context.new()
 
       sub_ids = [
         Context.get_vertex_blossom_id(ctx, 0),
@@ -212,17 +236,21 @@ defmodule MaxWeightMatching.LeastSlackTest do
       ]
 
       nt_blossom = NonTrivial.new(sub_ids, [{0, 1}, {1, 2}, {2, 0}], 0)
-      ctx = Context.add_blossom(ctx, nt_blossom)
 
-      ctx = LeastSlack.new_blossom(ctx, nt_blossom.id)
+      ctx =
+        ctx
+        |> Context.add_blossom(nt_blossom)
+        |> LeastSlack.new_blossom(nt_blossom.id)
 
       blossom = Context.get_blossom(ctx, nt_blossom.id)
       assert blossom.best_edge_set == []
     end
 
     test "raises if best_edge is not -1" do
-      graph = Graph.new([{0, 1, 5}])
-      ctx = Context.new(graph)
+      ctx =
+        [{0, 1, 5}]
+        |> Graph.new()
+        |> Context.new()
 
       blossom_id = Context.get_vertex_blossom_id(ctx, 0)
       ctx = Context.update_blossom(ctx, blossom_id, best_edge: 0)
@@ -233,8 +261,10 @@ defmodule MaxWeightMatching.LeastSlackTest do
     end
 
     test "raises if best_edge_set is not nil for non-trivial blossom" do
-      graph = Graph.new([{0, 1, 5}, {1, 2, 5}, {0, 2, 5}])
-      ctx = Context.new(graph)
+      ctx =
+        [{0, 1, 5}, {1, 2, 5}, {0, 2, 5}]
+        |> Graph.new()
+        |> Context.new()
 
       sub_ids = [
         Context.get_vertex_blossom_id(ctx, 0),
@@ -242,8 +272,11 @@ defmodule MaxWeightMatching.LeastSlackTest do
         Context.get_vertex_blossom_id(ctx, 2)
       ]
 
-      nt_blossom = NonTrivial.new(sub_ids, [{0, 1}, {1, 2}, {2, 0}], 0)
-      nt_blossom = %{nt_blossom | best_edge_set: []}
+      nt_blossom =
+        sub_ids
+        |> NonTrivial.new([{0, 1}, {1, 2}, {2, 0}], 0)
+        |> then(&%{&1 | best_edge_set: []})
+
       ctx = Context.add_blossom(ctx, nt_blossom)
 
       assert_raise ArgumentError, ~r/best_edge_set must be nil/, fn ->
@@ -254,9 +287,11 @@ defmodule MaxWeightMatching.LeastSlackTest do
 
   describe "add_blossom_edge/4" do
     test "stores first edge for trivial blossom" do
-      graph = Graph.new([{0, 1, 5}, {0, 2, 3}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}, {0, 2, 3}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
 
       blossom_id = Context.get_vertex_blossom_id(ctx, 0)
       slack = Slack.edge_slack_2x(ctx, 0)
@@ -267,27 +302,31 @@ defmodule MaxWeightMatching.LeastSlackTest do
     end
 
     test "replaces edge with less slack for trivial blossom" do
-      graph = Graph.new([{0, 1, 5}, {0, 2, 3}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}, {0, 2, 3}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
 
       blossom_id = Context.get_vertex_blossom_id(ctx, 0)
-
-      # Add edge 1 (slack 4) first
       slack1 = Slack.edge_slack_2x(ctx, 1)
-      ctx = LeastSlack.add_blossom_edge(ctx, blossom_id, 1, slack1)
-
-      # Add edge 0 (slack 0) - should replace
       slack0 = Slack.edge_slack_2x(ctx, 0)
-      ctx = LeastSlack.add_blossom_edge(ctx, blossom_id, 0, slack0)
+
+      # Add edge 1 (slack 4) first, then edge 0 (slack 0) - should replace
+      ctx =
+        ctx
+        |> LeastSlack.add_blossom_edge(blossom_id, 1, slack1)
+        |> LeastSlack.add_blossom_edge(blossom_id, 0, slack0)
 
       blossom = Context.get_blossom(ctx, blossom_id)
       assert blossom.best_edge == 0
     end
 
     test "appends to best_edge_set for non-trivial blossom" do
-      graph = Graph.new([{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {2, 3, 3}])
-      ctx = Context.new(graph)
+      ctx =
+        [{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {2, 3, 3}]
+        |> Graph.new()
+        |> Context.new()
 
       sub_ids = [
         Context.get_vertex_blossom_id(ctx, 0),
@@ -296,10 +335,12 @@ defmodule MaxWeightMatching.LeastSlackTest do
       ]
 
       nt_blossom = NonTrivial.new(sub_ids, [{0, 1}, {1, 2}, {2, 0}], 0)
-      ctx = Context.add_blossom(ctx, nt_blossom)
-      ctx = LeastSlack.new_blossom(ctx, nt_blossom.id)
 
-      # Add edge 3 (connects to vertex 3)
+      ctx =
+        ctx
+        |> Context.add_blossom(nt_blossom)
+        |> LeastSlack.new_blossom(nt_blossom.id)
+
       slack = Slack.edge_slack_2x(ctx, 3)
       ctx = LeastSlack.add_blossom_edge(ctx, nt_blossom.id, 3, slack)
 
@@ -309,8 +350,10 @@ defmodule MaxWeightMatching.LeastSlackTest do
     end
 
     test "accumulates edges in best_edge_set for non-trivial blossom" do
-      graph = Graph.new([{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {2, 3, 3}, {0, 4, 4}])
-      ctx = Context.new(graph)
+      ctx =
+        [{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {2, 3, 3}, {0, 4, 4}]
+        |> Graph.new()
+        |> Context.new()
 
       sub_ids = [
         Context.get_vertex_blossom_id(ctx, 0),
@@ -319,13 +362,19 @@ defmodule MaxWeightMatching.LeastSlackTest do
       ]
 
       nt_blossom = NonTrivial.new(sub_ids, [{0, 1}, {1, 2}, {2, 0}], 0)
-      ctx = Context.add_blossom(ctx, nt_blossom)
-      ctx = LeastSlack.new_blossom(ctx, nt_blossom.id)
+
+      ctx =
+        ctx
+        |> Context.add_blossom(nt_blossom)
+        |> LeastSlack.new_blossom(nt_blossom.id)
 
       slack3 = Slack.edge_slack_2x(ctx, 3)
       slack4 = Slack.edge_slack_2x(ctx, 4)
-      ctx = LeastSlack.add_blossom_edge(ctx, nt_blossom.id, 3, slack3)
-      ctx = LeastSlack.add_blossom_edge(ctx, nt_blossom.id, 4, slack4)
+
+      ctx =
+        ctx
+        |> LeastSlack.add_blossom_edge(nt_blossom.id, 3, slack3)
+        |> LeastSlack.add_blossom_edge(nt_blossom.id, 4, slack4)
 
       blossom = Context.get_blossom(ctx, nt_blossom.id)
       assert 3 in blossom.best_edge_set
@@ -335,15 +384,14 @@ defmodule MaxWeightMatching.LeastSlackTest do
 
   describe "get_best_blossom_edge/1" do
     test "returns best edge among S-blossoms" do
-      graph = Graph.new([{0, 1, 5}, {0, 2, 3}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}, {0, 2, 3}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
+        |> label_blossom(0, :s)
+        |> label_blossom(1, :s)
 
-      # Label blossoms as S
-      ctx = label_blossom(ctx, 0, :s)
-      ctx = label_blossom(ctx, 1, :s)
-
-      # Add edge to blossom 0
       blossom_id = Context.get_vertex_blossom_id(ctx, 0)
       slack = Slack.edge_slack_2x(ctx, 0)
       ctx = LeastSlack.add_blossom_edge(ctx, blossom_id, 0, slack)
@@ -354,22 +402,23 @@ defmodule MaxWeightMatching.LeastSlackTest do
     end
 
     test "ignores non-S blossoms" do
-      graph = Graph.new([{0, 1, 5}, {1, 2, 3}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}, {1, 2, 3}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
+        |> label_blossom(0, :s)
+        |> label_blossom(1, :t)
 
-      # Vertex 0 is S, vertex 1 is T, vertex 2 is unlabeled
-      ctx = label_blossom(ctx, 0, :s)
-      ctx = label_blossom(ctx, 1, :t)
-
-      # Add edge to both blossoms
       blossom0 = Context.get_vertex_blossom_id(ctx, 0)
       blossom1 = Context.get_vertex_blossom_id(ctx, 1)
-
       slack0 = Slack.edge_slack_2x(ctx, 0)
       slack1 = Slack.edge_slack_2x(ctx, 1)
-      ctx = LeastSlack.add_blossom_edge(ctx, blossom0, 0, slack0)
-      ctx = LeastSlack.add_blossom_edge(ctx, blossom1, 1, slack1)
+
+      ctx =
+        ctx
+        |> LeastSlack.add_blossom_edge(blossom0, 0, slack0)
+        |> LeastSlack.add_blossom_edge(blossom1, 1, slack1)
 
       # Should only return edge from S-blossom
       {edge, _slack} = LeastSlack.get_best_blossom_edge(ctx)
@@ -377,28 +426,26 @@ defmodule MaxWeightMatching.LeastSlackTest do
     end
 
     test "ignores nested blossoms (parent_id != nil)" do
-      graph = Graph.new([{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {2, 3, 3}])
-      ctx = Context.new(graph)
+      ctx =
+        [{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {2, 3, 3}]
+        |> Graph.new()
+        |> Context.new()
 
-      # Get sub-blossom IDs
       sub0_id = Context.get_vertex_blossom_id(ctx, 0)
       sub1_id = Context.get_vertex_blossom_id(ctx, 1)
       sub2_id = Context.get_vertex_blossom_id(ctx, 2)
 
-      # Create non-trivial blossom
       nt_blossom = NonTrivial.new([sub0_id, sub1_id, sub2_id], [{0, 1}, {1, 2}, {2, 0}], 0)
-      ctx = Context.add_blossom(ctx, nt_blossom)
 
-      # Set parent_id on sub-blossoms
-      ctx = Context.update_blossom(ctx, sub0_id, parent_id: nt_blossom.id, label: :s)
-      ctx = Context.update_blossom(ctx, sub1_id, parent_id: nt_blossom.id, label: :s)
-      ctx = Context.update_blossom(ctx, sub2_id, parent_id: nt_blossom.id, label: :s)
-
-      # Label non-trivial blossom as S
-      ctx = Context.update_blossom(ctx, nt_blossom.id, label: :s)
-
-      ctx = LeastSlack.reset(ctx)
-      ctx = LeastSlack.new_blossom(ctx, nt_blossom.id)
+      ctx =
+        ctx
+        |> Context.add_blossom(nt_blossom)
+        |> Context.update_blossom(sub0_id, parent_id: nt_blossom.id, label: :s)
+        |> Context.update_blossom(sub1_id, parent_id: nt_blossom.id, label: :s)
+        |> Context.update_blossom(sub2_id, parent_id: nt_blossom.id, label: :s)
+        |> Context.update_blossom(nt_blossom.id, label: :s)
+        |> LeastSlack.reset()
+        |> LeastSlack.new_blossom(nt_blossom.id)
 
       # Add edge only to a sub-blossom (which has parent_id set)
       slack = Slack.edge_slack_2x(ctx, 3)
@@ -410,35 +457,37 @@ defmodule MaxWeightMatching.LeastSlackTest do
     end
 
     test "returns {-1, 0} when no S-blossoms have edges" do
-      graph = Graph.new([{0, 1, 5}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
-
-      ctx = label_blossom(ctx, 0, :s)
-      ctx = label_blossom(ctx, 1, :s)
+      ctx =
+        [{0, 1, 5}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
+        |> label_blossom(0, :s)
+        |> label_blossom(1, :s)
 
       assert LeastSlack.get_best_blossom_edge(ctx) == {-1, 0}
     end
 
     test "finds minimum slack across multiple S-blossoms" do
-      graph = Graph.new([{0, 1, 5}, {2, 3, 3}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
-
-      # Label all as S
-      ctx = label_blossom(ctx, 0, :s)
-      ctx = label_blossom(ctx, 1, :s)
-      ctx = label_blossom(ctx, 2, :s)
-      ctx = label_blossom(ctx, 3, :s)
+      ctx =
+        [{0, 1, 5}, {2, 3, 3}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
+        |> label_blossom(0, :s)
+        |> label_blossom(1, :s)
+        |> label_blossom(2, :s)
+        |> label_blossom(3, :s)
 
       blossom0 = Context.get_vertex_blossom_id(ctx, 0)
       blossom2 = Context.get_vertex_blossom_id(ctx, 2)
-
-      # Edge 0 has slack 0, edge 1 has slack 4
       slack0 = Slack.edge_slack_2x(ctx, 0)
       slack1 = Slack.edge_slack_2x(ctx, 1)
-      ctx = LeastSlack.add_blossom_edge(ctx, blossom0, 0, slack0)
-      ctx = LeastSlack.add_blossom_edge(ctx, blossom2, 1, slack1)
+
+      ctx =
+        ctx
+        |> LeastSlack.add_blossom_edge(blossom0, 0, slack0)
+        |> LeastSlack.add_blossom_edge(blossom2, 1, slack1)
 
       {edge, slack} = LeastSlack.get_best_blossom_edge(ctx)
       assert edge == 0
@@ -452,36 +501,34 @@ defmodule MaxWeightMatching.LeastSlackTest do
       #   0---1
       #    \ /
       #     2---3
-      graph = Graph.new([{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {2, 3, 5}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {2, 3, 5}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
 
-      # Get sub-blossom IDs and label them as S
       id0 = Context.get_vertex_blossom_id(ctx, 0)
       id1 = Context.get_vertex_blossom_id(ctx, 1)
       id2 = Context.get_vertex_blossom_id(ctx, 2)
       id3 = Context.get_vertex_blossom_id(ctx, 3)
 
-      ctx = Context.update_blossom(ctx, id0, label: :s)
-      ctx = Context.update_blossom(ctx, id1, label: :s)
-      ctx = Context.update_blossom(ctx, id2, label: :s)
-      ctx = Context.update_blossom(ctx, id3, label: :s)
+      nt_blossom =
+        [id0, id1, id2]
+        |> NonTrivial.new([{0, 1}, {1, 2}, {2, 0}], 0)
+        |> then(&%{&1 | label: :s})
 
-      # Create non-trivial blossom from 0, 1, 2
-      nt_blossom = NonTrivial.new([id0, id1, id2], [{0, 1}, {1, 2}, {2, 0}], 0)
-      nt_blossom = %{nt_blossom | label: :s}
-      ctx = Context.add_blossom(ctx, nt_blossom)
-
-      # Update parent_id for sub-blossoms
-      ctx = Context.update_blossom(ctx, id0, parent_id: nt_blossom.id)
-      ctx = Context.update_blossom(ctx, id1, parent_id: nt_blossom.id)
-      ctx = Context.update_blossom(ctx, id2, parent_id: nt_blossom.id)
-
-      # Update vertex mappings
-      ctx = Context.set_vertices_blossom(ctx, [0, 1, 2], nt_blossom.id)
-
-      # Merge blossoms
-      ctx = LeastSlack.merge_blossoms(ctx, nt_blossom.id)
+      ctx =
+        ctx
+        |> Context.update_blossom(id0, label: :s)
+        |> Context.update_blossom(id1, label: :s)
+        |> Context.update_blossom(id2, label: :s)
+        |> Context.update_blossom(id3, label: :s)
+        |> Context.add_blossom(nt_blossom)
+        |> Context.update_blossom(id0, parent_id: nt_blossom.id)
+        |> Context.update_blossom(id1, parent_id: nt_blossom.id)
+        |> Context.update_blossom(id2, parent_id: nt_blossom.id)
+        |> Context.set_vertices_blossom([0, 1, 2], nt_blossom.id)
+        |> LeastSlack.merge_blossoms(nt_blossom.id)
 
       blossom = Context.get_blossom(ctx, nt_blossom.id)
 
@@ -491,30 +538,32 @@ defmodule MaxWeightMatching.LeastSlackTest do
     end
 
     test "filters out internal edges" do
-      # All edges are internal to the new blossom
-      graph = Graph.new([{0, 1, 5}, {1, 2, 5}, {0, 2, 5}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}, {1, 2, 5}, {0, 2, 5}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
 
       id0 = Context.get_vertex_blossom_id(ctx, 0)
       id1 = Context.get_vertex_blossom_id(ctx, 1)
       id2 = Context.get_vertex_blossom_id(ctx, 2)
 
-      ctx = Context.update_blossom(ctx, id0, label: :s)
-      ctx = Context.update_blossom(ctx, id1, label: :s)
-      ctx = Context.update_blossom(ctx, id2, label: :s)
+      nt_blossom =
+        [id0, id1, id2]
+        |> NonTrivial.new([{0, 1}, {1, 2}, {2, 0}], 0)
+        |> then(&%{&1 | label: :s})
 
-      nt_blossom = NonTrivial.new([id0, id1, id2], [{0, 1}, {1, 2}, {2, 0}], 0)
-      nt_blossom = %{nt_blossom | label: :s}
-      ctx = Context.add_blossom(ctx, nt_blossom)
-
-      ctx = Context.update_blossom(ctx, id0, parent_id: nt_blossom.id)
-      ctx = Context.update_blossom(ctx, id1, parent_id: nt_blossom.id)
-      ctx = Context.update_blossom(ctx, id2, parent_id: nt_blossom.id)
-
-      ctx = Context.set_vertices_blossom(ctx, [0, 1, 2], nt_blossom.id)
-
-      ctx = LeastSlack.merge_blossoms(ctx, nt_blossom.id)
+      ctx =
+        ctx
+        |> Context.update_blossom(id0, label: :s)
+        |> Context.update_blossom(id1, label: :s)
+        |> Context.update_blossom(id2, label: :s)
+        |> Context.add_blossom(nt_blossom)
+        |> Context.update_blossom(id0, parent_id: nt_blossom.id)
+        |> Context.update_blossom(id1, parent_id: nt_blossom.id)
+        |> Context.update_blossom(id2, parent_id: nt_blossom.id)
+        |> Context.set_vertices_blossom([0, 1, 2], nt_blossom.id)
+        |> LeastSlack.merge_blossoms(nt_blossom.id)
 
       blossom = Context.get_blossom(ctx, nt_blossom.id)
 
@@ -524,31 +573,33 @@ defmodule MaxWeightMatching.LeastSlackTest do
     end
 
     test "filters out edges to non-S blossoms" do
-      # Triangle with external unlabeled vertex
-      graph = Graph.new([{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {2, 3, 5}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      # Triangle with external unlabeled vertex (id3 stays unlabeled)
+      ctx =
+        [{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {2, 3, 5}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
 
       id0 = Context.get_vertex_blossom_id(ctx, 0)
       id1 = Context.get_vertex_blossom_id(ctx, 1)
       id2 = Context.get_vertex_blossom_id(ctx, 2)
-      # id3 stays unlabeled (label: :none)
 
-      ctx = Context.update_blossom(ctx, id0, label: :s)
-      ctx = Context.update_blossom(ctx, id1, label: :s)
-      ctx = Context.update_blossom(ctx, id2, label: :s)
+      nt_blossom =
+        [id0, id1, id2]
+        |> NonTrivial.new([{0, 1}, {1, 2}, {2, 0}], 0)
+        |> then(&%{&1 | label: :s})
 
-      nt_blossom = NonTrivial.new([id0, id1, id2], [{0, 1}, {1, 2}, {2, 0}], 0)
-      nt_blossom = %{nt_blossom | label: :s}
-      ctx = Context.add_blossom(ctx, nt_blossom)
-
-      ctx = Context.update_blossom(ctx, id0, parent_id: nt_blossom.id)
-      ctx = Context.update_blossom(ctx, id1, parent_id: nt_blossom.id)
-      ctx = Context.update_blossom(ctx, id2, parent_id: nt_blossom.id)
-
-      ctx = Context.set_vertices_blossom(ctx, [0, 1, 2], nt_blossom.id)
-
-      ctx = LeastSlack.merge_blossoms(ctx, nt_blossom.id)
+      ctx =
+        ctx
+        |> Context.update_blossom(id0, label: :s)
+        |> Context.update_blossom(id1, label: :s)
+        |> Context.update_blossom(id2, label: :s)
+        |> Context.add_blossom(nt_blossom)
+        |> Context.update_blossom(id0, parent_id: nt_blossom.id)
+        |> Context.update_blossom(id1, parent_id: nt_blossom.id)
+        |> Context.update_blossom(id2, parent_id: nt_blossom.id)
+        |> Context.set_vertices_blossom([0, 1, 2], nt_blossom.id)
+        |> LeastSlack.merge_blossoms(nt_blossom.id)
 
       blossom = Context.get_blossom(ctx, nt_blossom.id)
 
@@ -559,32 +610,35 @@ defmodule MaxWeightMatching.LeastSlackTest do
 
     test "ignores T-labeled sub-blossoms" do
       # Triangle where one sub-blossom is labeled T
-      graph = Graph.new([{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {2, 3, 5}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {2, 3, 5}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
 
       id0 = Context.get_vertex_blossom_id(ctx, 0)
       id1 = Context.get_vertex_blossom_id(ctx, 1)
       id2 = Context.get_vertex_blossom_id(ctx, 2)
       id3 = Context.get_vertex_blossom_id(ctx, 3)
 
+      nt_blossom =
+        [id0, id1, id2]
+        |> NonTrivial.new([{0, 1}, {1, 2}, {2, 0}], 0)
+        |> then(&%{&1 | label: :s})
+
       # 0 and 1 are S, 2 is T (so its edges won't be scanned)
-      ctx = Context.update_blossom(ctx, id0, label: :s)
-      ctx = Context.update_blossom(ctx, id1, label: :s)
-      ctx = Context.update_blossom(ctx, id2, label: :t)
-      ctx = Context.update_blossom(ctx, id3, label: :s)
-
-      nt_blossom = NonTrivial.new([id0, id1, id2], [{0, 1}, {1, 2}, {2, 0}], 0)
-      nt_blossom = %{nt_blossom | label: :s}
-      ctx = Context.add_blossom(ctx, nt_blossom)
-
-      ctx = Context.update_blossom(ctx, id0, parent_id: nt_blossom.id)
-      ctx = Context.update_blossom(ctx, id1, parent_id: nt_blossom.id)
-      ctx = Context.update_blossom(ctx, id2, parent_id: nt_blossom.id)
-
-      ctx = Context.set_vertices_blossom(ctx, [0, 1, 2], nt_blossom.id)
-
-      ctx = LeastSlack.merge_blossoms(ctx, nt_blossom.id)
+      ctx =
+        ctx
+        |> Context.update_blossom(id0, label: :s)
+        |> Context.update_blossom(id1, label: :s)
+        |> Context.update_blossom(id2, label: :t)
+        |> Context.update_blossom(id3, label: :s)
+        |> Context.add_blossom(nt_blossom)
+        |> Context.update_blossom(id0, parent_id: nt_blossom.id)
+        |> Context.update_blossom(id1, parent_id: nt_blossom.id)
+        |> Context.update_blossom(id2, parent_id: nt_blossom.id)
+        |> Context.set_vertices_blossom([0, 1, 2], nt_blossom.id)
+        |> LeastSlack.merge_blossoms(nt_blossom.id)
 
       blossom = Context.get_blossom(ctx, nt_blossom.id)
 
@@ -599,8 +653,8 @@ defmodule MaxWeightMatching.LeastSlackTest do
     test "handles non-trivial sub-blossoms with edge sets" do
       # Create a nested structure: outer blossom contains a non-trivial sub-blossom
       # Graph: 0-1-2 (inner triangle) + 3-4-5 (outer) + edge 2-3
-      graph =
-        Graph.new([
+      ctx =
+        [
           {0, 1, 5},
           {1, 2, 5},
           {0, 2, 5},
@@ -608,12 +662,11 @@ defmodule MaxWeightMatching.LeastSlackTest do
           {4, 5, 5},
           {3, 5, 5},
           {2, 3, 5}
-        ])
+        ]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
 
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
-
-      # Create inner non-trivial blossom from 0, 1, 2
       id0 = Context.get_vertex_blossom_id(ctx, 0)
       id1 = Context.get_vertex_blossom_id(ctx, 1)
       id2 = Context.get_vertex_blossom_id(ctx, 2)
@@ -621,43 +674,35 @@ defmodule MaxWeightMatching.LeastSlackTest do
       id4 = Context.get_vertex_blossom_id(ctx, 4)
       id5 = Context.get_vertex_blossom_id(ctx, 5)
 
-      # Label all as S
-      ctx = Context.update_blossom(ctx, id0, label: :s)
-      ctx = Context.update_blossom(ctx, id1, label: :s)
-      ctx = Context.update_blossom(ctx, id2, label: :s)
-      ctx = Context.update_blossom(ctx, id3, label: :s)
-      ctx = Context.update_blossom(ctx, id4, label: :s)
-      ctx = Context.update_blossom(ctx, id5, label: :s)
+      inner_blossom =
+        [id0, id1, id2]
+        |> NonTrivial.new([{0, 1}, {1, 2}, {2, 0}], 0)
+        |> then(&%{&1 | label: :s, best_edge_set: [6]})
 
-      inner_blossom = NonTrivial.new([id0, id1, id2], [{0, 1}, {1, 2}, {2, 0}], 0)
-      inner_blossom = %{inner_blossom | label: :s, best_edge_set: [6]}
-      ctx = Context.add_blossom(ctx, inner_blossom)
-
-      ctx = Context.update_blossom(ctx, id0, parent_id: inner_blossom.id)
-      ctx = Context.update_blossom(ctx, id1, parent_id: inner_blossom.id)
-      ctx = Context.update_blossom(ctx, id2, parent_id: inner_blossom.id)
-
-      ctx = Context.set_vertices_blossom(ctx, [0, 1, 2], inner_blossom.id)
-
-      # Create outer blossom containing inner_blossom, id3, id4, id5
-      # This is a bit artificial but tests the code path
       outer_blossom =
-        NonTrivial.new(
-          [inner_blossom.id, id3, id5],
-          [{2, 3}, {3, 5}, {5, 0}],
-          0
-        )
+        [inner_blossom.id, id3, id5]
+        |> NonTrivial.new([{2, 3}, {3, 5}, {5, 0}], 0)
+        |> then(&%{&1 | label: :s})
 
-      outer_blossom = %{outer_blossom | label: :s}
-      ctx = Context.add_blossom(ctx, outer_blossom)
-
-      ctx = Context.update_blossom(ctx, inner_blossom.id, parent_id: outer_blossom.id)
-      ctx = Context.update_blossom(ctx, id3, parent_id: outer_blossom.id)
-      ctx = Context.update_blossom(ctx, id5, parent_id: outer_blossom.id)
-
-      ctx = Context.set_vertices_blossom(ctx, [0, 1, 2, 3, 5], outer_blossom.id)
-
-      ctx = LeastSlack.merge_blossoms(ctx, outer_blossom.id)
+      ctx =
+        ctx
+        |> Context.update_blossom(id0, label: :s)
+        |> Context.update_blossom(id1, label: :s)
+        |> Context.update_blossom(id2, label: :s)
+        |> Context.update_blossom(id3, label: :s)
+        |> Context.update_blossom(id4, label: :s)
+        |> Context.update_blossom(id5, label: :s)
+        |> Context.add_blossom(inner_blossom)
+        |> Context.update_blossom(id0, parent_id: inner_blossom.id)
+        |> Context.update_blossom(id1, parent_id: inner_blossom.id)
+        |> Context.update_blossom(id2, parent_id: inner_blossom.id)
+        |> Context.set_vertices_blossom([0, 1, 2], inner_blossom.id)
+        |> Context.add_blossom(outer_blossom)
+        |> Context.update_blossom(inner_blossom.id, parent_id: outer_blossom.id)
+        |> Context.update_blossom(id3, parent_id: outer_blossom.id)
+        |> Context.update_blossom(id5, parent_id: outer_blossom.id)
+        |> Context.set_vertices_blossom([0, 1, 2, 3, 5], outer_blossom.id)
+        |> LeastSlack.merge_blossoms(outer_blossom.id)
 
       # The inner blossom's best_edge_set should have been cleared
       inner = Context.get_blossom(ctx, inner_blossom.id)
@@ -667,35 +712,37 @@ defmodule MaxWeightMatching.LeastSlackTest do
     test "keeps best edge per external S-blossom" do
       # Graph: triangle (0-1-2) with two edges to same external vertex 3
       # Edge 3: 0-3 (weight 10), Edge 4: 2-3 (weight 3)
-      # Initial duals = max_weight = 10
       # Slack for edge 3 (weight 10): 10 + 10 - 20 = 0
       # Slack for edge 4 (weight 3): 10 + 10 - 6 = 14
       # Edge 3 has LESS slack, so it should be kept
-      graph = Graph.new([{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {0, 3, 10}, {2, 3, 3}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {0, 3, 10}, {2, 3, 3}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
 
       id0 = Context.get_vertex_blossom_id(ctx, 0)
       id1 = Context.get_vertex_blossom_id(ctx, 1)
       id2 = Context.get_vertex_blossom_id(ctx, 2)
       id3 = Context.get_vertex_blossom_id(ctx, 3)
 
-      ctx = Context.update_blossom(ctx, id0, label: :s)
-      ctx = Context.update_blossom(ctx, id1, label: :s)
-      ctx = Context.update_blossom(ctx, id2, label: :s)
-      ctx = Context.update_blossom(ctx, id3, label: :s)
+      nt_blossom =
+        [id0, id1, id2]
+        |> NonTrivial.new([{0, 1}, {1, 2}, {2, 0}], 0)
+        |> then(&%{&1 | label: :s})
 
-      nt_blossom = NonTrivial.new([id0, id1, id2], [{0, 1}, {1, 2}, {2, 0}], 0)
-      nt_blossom = %{nt_blossom | label: :s}
-      ctx = Context.add_blossom(ctx, nt_blossom)
-
-      ctx = Context.update_blossom(ctx, id0, parent_id: nt_blossom.id)
-      ctx = Context.update_blossom(ctx, id1, parent_id: nt_blossom.id)
-      ctx = Context.update_blossom(ctx, id2, parent_id: nt_blossom.id)
-
-      ctx = Context.set_vertices_blossom(ctx, [0, 1, 2], nt_blossom.id)
-
-      ctx = LeastSlack.merge_blossoms(ctx, nt_blossom.id)
+      ctx =
+        ctx
+        |> Context.update_blossom(id0, label: :s)
+        |> Context.update_blossom(id1, label: :s)
+        |> Context.update_blossom(id2, label: :s)
+        |> Context.update_blossom(id3, label: :s)
+        |> Context.add_blossom(nt_blossom)
+        |> Context.update_blossom(id0, parent_id: nt_blossom.id)
+        |> Context.update_blossom(id1, parent_id: nt_blossom.id)
+        |> Context.update_blossom(id2, parent_id: nt_blossom.id)
+        |> Context.set_vertices_blossom([0, 1, 2], nt_blossom.id)
+        |> LeastSlack.merge_blossoms(nt_blossom.id)
 
       blossom = Context.get_blossom(ctx, nt_blossom.id)
 
@@ -709,13 +756,14 @@ defmodule MaxWeightMatching.LeastSlackTest do
     test "sets best_edge to minimum slack among all external edges" do
       # Graph: triangle (0-1-2) with edges to two different external vertices
       # Edge 3: 0-3 (weight 10), Edge 4: 2-4 (weight 3)
-      # Initial duals = max_weight = 10
-      # Slack for edge 3 (weight 10): 10 + 10 - 20 = 0
-      # Slack for edge 4 (weight 3): 10 + 10 - 6 = 14
+      # Slack for edge 3: 10 + 10 - 20 = 0
+      # Slack for edge 4: 10 + 10 - 6 = 14
       # Edge 3 has LESS slack (0), so it's the best_edge
-      graph = Graph.new([{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {0, 3, 10}, {2, 4, 3}])
-      ctx = Context.new(graph)
-      ctx = LeastSlack.reset(ctx)
+      ctx =
+        [{0, 1, 5}, {1, 2, 5}, {0, 2, 5}, {0, 3, 10}, {2, 4, 3}]
+        |> Graph.new()
+        |> Context.new()
+        |> LeastSlack.reset()
 
       id0 = Context.get_vertex_blossom_id(ctx, 0)
       id1 = Context.get_vertex_blossom_id(ctx, 1)
@@ -723,23 +771,24 @@ defmodule MaxWeightMatching.LeastSlackTest do
       id3 = Context.get_vertex_blossom_id(ctx, 3)
       id4 = Context.get_vertex_blossom_id(ctx, 4)
 
-      ctx = Context.update_blossom(ctx, id0, label: :s)
-      ctx = Context.update_blossom(ctx, id1, label: :s)
-      ctx = Context.update_blossom(ctx, id2, label: :s)
-      ctx = Context.update_blossom(ctx, id3, label: :s)
-      ctx = Context.update_blossom(ctx, id4, label: :s)
+      nt_blossom =
+        [id0, id1, id2]
+        |> NonTrivial.new([{0, 1}, {1, 2}, {2, 0}], 0)
+        |> then(&%{&1 | label: :s})
 
-      nt_blossom = NonTrivial.new([id0, id1, id2], [{0, 1}, {1, 2}, {2, 0}], 0)
-      nt_blossom = %{nt_blossom | label: :s}
-      ctx = Context.add_blossom(ctx, nt_blossom)
-
-      ctx = Context.update_blossom(ctx, id0, parent_id: nt_blossom.id)
-      ctx = Context.update_blossom(ctx, id1, parent_id: nt_blossom.id)
-      ctx = Context.update_blossom(ctx, id2, parent_id: nt_blossom.id)
-
-      ctx = Context.set_vertices_blossom(ctx, [0, 1, 2], nt_blossom.id)
-
-      ctx = LeastSlack.merge_blossoms(ctx, nt_blossom.id)
+      ctx =
+        ctx
+        |> Context.update_blossom(id0, label: :s)
+        |> Context.update_blossom(id1, label: :s)
+        |> Context.update_blossom(id2, label: :s)
+        |> Context.update_blossom(id3, label: :s)
+        |> Context.update_blossom(id4, label: :s)
+        |> Context.add_blossom(nt_blossom)
+        |> Context.update_blossom(id0, parent_id: nt_blossom.id)
+        |> Context.update_blossom(id1, parent_id: nt_blossom.id)
+        |> Context.update_blossom(id2, parent_id: nt_blossom.id)
+        |> Context.set_vertices_blossom([0, 1, 2], nt_blossom.id)
+        |> LeastSlack.merge_blossoms(nt_blossom.id)
 
       blossom = Context.get_blossom(ctx, nt_blossom.id)
 

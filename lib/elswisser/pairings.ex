@@ -42,6 +42,7 @@ defmodule Elswisser.Pairings do
     scores
     |> partition()
     |> unique_possible_pairs(max_score)
+    # |> MaxWeightMatching.maximum_weight_matching
     |> Worker.pooled_call(:swiss)
   end
 

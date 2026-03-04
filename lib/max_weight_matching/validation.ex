@@ -57,8 +57,6 @@ defmodule MaxWeightMatching.Validation do
     Enum.filter(edges, fn {_x, _y, w} -> w >= 0 end)
   end
 
-  # Private helpers
-
   defp validate_edges(edges) do
     Enum.reduce_while(edges, :ok, fn edge, :ok ->
       case validate_edge(edge) do

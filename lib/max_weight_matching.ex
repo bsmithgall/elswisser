@@ -27,7 +27,7 @@ defmodule MaxWeightMatching do
   ## Reference
 
   Based on the Python implementation by Joris van Rantwijk (2023),
-  available at https://github.com/jorisvr/maximum-weight-matching
+  available at https://git.jorisvr.nl/joris/maximum-weight-matching/
 
   MIT License - Copyright (c) 2023 Joris van Rantwijk
   """
@@ -38,83 +38,6 @@ defmodule MaxWeightMatching do
   @type weight :: number()
   @type edge :: {vertex(), vertex(), weight()}
   @type matched_pair :: {vertex(), vertex()}
-
-  @doc """
-  Adjusts edge weights to ensure a maximum-cardinality matching is found.
-
-  This function increases all edge weights by an equal amount such that:
-  - All edge weights are positive
-  - The minimum edge weight is at least n * (max_weight - min_weight)
-
-  These conditions ensure that any non-maximum-cardinality matching can be
-  improved by adding an extra edge, even if it has minimum weight and causes
-  all other matched edges to degrade from maximum to minimum weight.
-
-  Since we only consider maximum-cardinality matchings, increasing all edge
-  weights by an equal amount will not change the set of edges that makes up
-  the maximum-weight matching.
-
-  ## Parameters
-
-  - `edges` - List of edges, each specified as a tuple `{x, y, w}`
-
-  ## Returns
-
-  List of edges with adjusted weights. If no adjustments are necessary,
-  the original list may be returned.
-
-  ## Examples
-
-      iex> MaxWeightMatching.adjust_weights_for_maximum_cardinality_matching([])
-      []
-
-      iex> MaxWeightMatching.adjust_weights_for_maximum_cardinality_matching([{0, 1, 10}])
-      [{0, 1, 10}]
-
-      iex> MaxWeightMatching.adjust_weights_for_maximum_cardinality_matching([{0, 1, -5}, {1, 2, 10}])
-      [{0, 1, 40}, {1, 2, 55}]
-  """
-  @spec adjust_weights_for_maximum_cardinality_matching([edge()]) :: [edge()]
-  def adjust_weights_for_maximum_cardinality_matching([]), do: []
-
-  def adjust_weights_for_maximum_cardinality_matching(edges) do
-    with :ok <- Validation.check_input_types(edges),
-         :ok <- Validation.check_input_graph(edges) do
-      do_adjust_weights(edges)
-    else
-      {:error, reason} -> raise ArgumentError, reason
-    end
-  end
-
-  defp do_adjust_weights(edges) do
-    # Single-pass to compute num_vertex, min_weight, and max_weight
-    {max_vertex, min_weight, max_weight} =
-      Enum.reduce(edges, {0, nil, nil}, fn {x, y, w}, {max_v, min_w, max_w} ->
-        new_max_v = max(max_v, max(x, y))
-        new_min_w = if min_w == nil, do: w, else: min(min_w, w)
-        new_max_w = if max_w == nil, do: w, else: max(max_w, w)
-        {new_max_v, new_min_w, new_max_w}
-      end)
-
-    num_vertex = max_vertex + 1
-    weight_range = max_weight - min_weight
-
-    # Do nothing if weights already ensure maximum-cardinality matching
-    if min_weight > 0 and min_weight >= num_vertex * weight_range do
-      edges
-    else
-      delta =
-        if weight_range > 0 do
-          # Increase weights to make minimum edge weight large enough
-          num_vertex * weight_range - min_weight
-        else
-          # All weights are the same. Increase to make them positive.
-          1 - min_weight
-        end
-
-      Enum.map(edges, fn {x, y, w} -> {x, y, w + delta} end)
-    end
-  end
 
   @doc """
   Computes a maximum-weighted matching in the general undirected weighted graph.
@@ -167,10 +90,7 @@ defmodule MaxWeightMatching do
   defp do_matching([]), do: []
 
   defp do_matching(edges) do
-    graph = Graph.new(edges)
-    ctx = Context.new(graph)
-    ctx = run_stages(ctx)
-    extract_matching(edges, ctx)
+    Graph.new(edges) |> Context.new() |> run_stages() |> extract_matching(edges)
   end
 
   defp run_stages(ctx) do
@@ -180,7 +100,7 @@ defmodule MaxWeightMatching do
     end
   end
 
-  defp extract_matching(edges, ctx) do
+  defp extract_matching(ctx, edges) do
     edges
     |> Enum.filter(fn {x, y, _w} -> Map.fetch!(ctx.vertex_mate, x) == y end)
     |> Enum.map(fn {x, y, _w} -> {x, y} end)

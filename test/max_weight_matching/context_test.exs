@@ -157,8 +157,10 @@ defmodule MaxWeightMatching.ContextTest do
 
   describe "update_blossom/3" do
     test "updates blossom label" do
-      graph = Graph.new([{0, 1, 10}])
-      ctx = Context.new(graph)
+      ctx =
+        [{0, 1, 10}]
+        |> Graph.new()
+        |> Context.new()
 
       id0 = ctx.vertex_top_blossom_id[0]
       ctx = Context.update_blossom(ctx, id0, label: :s)
@@ -168,8 +170,10 @@ defmodule MaxWeightMatching.ContextTest do
     end
 
     test "updates multiple fields" do
-      graph = Graph.new([{0, 1, 10}])
-      ctx = Context.new(graph)
+      ctx =
+        [{0, 1, 10}]
+        |> Graph.new()
+        |> Context.new()
 
       id0 = ctx.vertex_top_blossom_id[0]
       ctx = Context.update_blossom(ctx, id0, label: :t, tree_edge: {1, 0}, marker: true)
@@ -213,11 +217,13 @@ defmodule MaxWeightMatching.ContextTest do
 
   describe "add_blossom/2" do
     test "adds new blossom to context" do
-      graph = Graph.new([{0, 1, 10}])
-      ctx = Context.new(graph)
-
       new_blossom = Trivial.new(99)
-      ctx = Context.add_blossom(ctx, new_blossom)
+
+      ctx =
+        [{0, 1, 10}]
+        |> Graph.new()
+        |> Context.new()
+        |> Context.add_blossom(new_blossom)
 
       assert Map.has_key?(ctx.blossoms, new_blossom.id)
       assert Context.get_blossom(ctx, new_blossom.id) == new_blossom
@@ -226,8 +232,10 @@ defmodule MaxWeightMatching.ContextTest do
 
   describe "remove_blossom/2" do
     test "removes blossom from context" do
-      graph = Graph.new([{0, 1, 10}])
-      ctx = Context.new(graph)
+      ctx =
+        [{0, 1, 10}]
+        |> Graph.new()
+        |> Context.new()
 
       id0 = ctx.vertex_top_blossom_id[0]
       ctx = Context.remove_blossom(ctx, id0)
@@ -238,11 +246,13 @@ defmodule MaxWeightMatching.ContextTest do
 
   describe "set_vertex_blossom/3" do
     test "updates vertex to blossom mapping" do
-      graph = Graph.new([{0, 1, 10}])
-      ctx = Context.new(graph)
-
       new_id = make_ref()
-      ctx = Context.set_vertex_blossom(ctx, 0, new_id)
+
+      ctx =
+        [{0, 1, 10}]
+        |> Graph.new()
+        |> Context.new()
+        |> Context.set_vertex_blossom(0, new_id)
 
       assert Context.get_vertex_blossom_id(ctx, 0) == new_id
     end
@@ -250,11 +260,13 @@ defmodule MaxWeightMatching.ContextTest do
 
   describe "set_vertices_blossom/3" do
     test "updates multiple vertices to same blossom" do
-      graph = Graph.new([{0, 1, 10}, {1, 2, 5}])
-      ctx = Context.new(graph)
-
       new_id = make_ref()
-      ctx = Context.set_vertices_blossom(ctx, [0, 1, 2], new_id)
+
+      ctx =
+        [{0, 1, 10}, {1, 2, 5}]
+        |> Graph.new()
+        |> Context.new()
+        |> Context.set_vertices_blossom([0, 1, 2], new_id)
 
       assert Context.get_vertex_blossom_id(ctx, 0) == new_id
       assert Context.get_vertex_blossom_id(ctx, 1) == new_id
@@ -276,19 +288,21 @@ defmodule MaxWeightMatching.ContextTest do
 
   describe "queue operations" do
     test "enqueue adds vertices to queue" do
-      graph = Graph.new([{0, 1, 10}])
-      ctx = Context.new(graph)
-
-      ctx = Context.enqueue(ctx, [0, 1])
+      ctx =
+        [{0, 1, 10}]
+        |> Graph.new()
+        |> Context.new()
+        |> Context.enqueue([0, 1])
 
       refute Context.queue_empty?(ctx)
     end
 
     test "dequeue returns vertices in FIFO order" do
-      graph = Graph.new([{0, 1, 10}, {1, 2, 5}])
-      ctx = Context.new(graph)
-
-      ctx = Context.enqueue(ctx, [0, 1, 2])
+      ctx =
+        [{0, 1, 10}, {1, 2, 5}]
+        |> Graph.new()
+        |> Context.new()
+        |> Context.enqueue([0, 1, 2])
 
       {v1, ctx} = Context.dequeue(ctx)
       {v2, ctx} = Context.dequeue(ctx)
@@ -315,19 +329,22 @@ defmodule MaxWeightMatching.ContextTest do
     end
 
     test "queue_empty? returns false after enqueue" do
-      graph = Graph.new([{0, 1, 10}])
-      ctx = Context.new(graph)
-
-      ctx = Context.enqueue(ctx, [0])
+      ctx =
+        [{0, 1, 10}]
+        |> Graph.new()
+        |> Context.new()
+        |> Context.enqueue([0])
 
       refute Context.queue_empty?(ctx)
     end
 
     test "clear_queue empties the queue" do
-      graph = Graph.new([{0, 1, 10}])
-      ctx = Context.new(graph)
+      ctx =
+        [{0, 1, 10}]
+        |> Graph.new()
+        |> Context.new()
+        |> Context.enqueue([0, 1])
 
-      ctx = Context.enqueue(ctx, [0, 1])
       refute Context.queue_empty?(ctx)
 
       ctx = Context.clear_queue(ctx)
