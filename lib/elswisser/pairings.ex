@@ -90,6 +90,51 @@ defmodule Elswisser.Pairings do
   end
 
   @doc """
+  Build the weighted edge list for a set of scores, remapped to 0-indexed
+  vertex IDs suitable for the matching visualizer.
+
+  Returns `{edges, labels}` where:
+  - `edges` is a list of `{v1, v2, weight}` with 0-indexed vertices
+  - `labels` is a map of `%{vertex_index => player_name}`
+
+  The `players` argument is the tournament roster (list of player structs
+  with `:id` and `:name` fields), used to look up display names.
+  """
+  def edges_for_viz(scores, players) when is_list(scores) do
+    max_score = max_score(scores)
+
+    raw_edges =
+      scores
+      |> partition()
+      |> unique_possible_pairs(max_score)
+
+    # Collect all player IDs that appear in the edges
+    player_ids =
+      raw_edges
+      |> Enum.flat_map(fn {x, y, _w} -> [x, y] end)
+      |> Enum.uniq()
+      |> Enum.sort()
+
+    # Map player_id → 0-indexed vertex
+    id_to_vertex = player_ids |> Enum.with_index() |> Map.new()
+
+    # Build a name lookup from the roster
+    name_lookup = Map.new(players, fn p -> {p.id, p.name} end)
+
+    edges =
+      Enum.map(raw_edges, fn {x, y, w} ->
+        {Map.fetch!(id_to_vertex, x), Map.fetch!(id_to_vertex, y), round(w)}
+      end)
+
+    labels =
+      Map.new(id_to_vertex, fn {player_id, vertex} ->
+        {vertex, Map.get(name_lookup, player_id, "Player #{player_id}")}
+      end)
+
+    {edges, labels}
+  end
+
+  @doc """
   Given a list of tuples of player_ids for the pairings and a map of player_id
   to score, return the list of tuples with {:white_id, :black_id}.
   """
