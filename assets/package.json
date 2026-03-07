@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "^1.5.3",
+    "cytoscape": "^3.33.1",
     "html-to-image": "^1.11.11"
   }
 }
