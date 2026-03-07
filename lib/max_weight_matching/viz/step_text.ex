@@ -326,32 +326,4 @@ defmodule MaxWeightMatching.Viz.StepText do
   end
 
   defp fmt_num(n), do: Integer.to_string(n)
-
-  @classification_labels %{
-    grow: "grow",
-    s_to_s: "S–S",
-    tight_t: "tight-T",
-    delta2: "Δ₂",
-    delta3: "Δ₃",
-    internal: "internal"
-  }
-
-  defp classification_counts(edges) do
-    edges
-    |> Enum.reject(&(&1.classification == :internal))
-    |> Enum.group_by(& &1.classification)
-    |> Enum.sort_by(fn {cls, _} ->
-      case cls do
-        :grow -> 0
-        :s_to_s -> 1
-        :tight_t -> 2
-        :delta2 -> 3
-        :delta3 -> 4
-        _ -> 5
-      end
-    end)
-    |> Enum.map(fn {cls, items} ->
-      {Map.get(@classification_labels, cls, Atom.to_string(cls)), length(items)}
-    end)
-  end
 end
