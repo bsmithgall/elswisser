@@ -21,13 +21,6 @@ defmodule MaxWeightMatching.Viz.Summary do
       <span class="text-sm font-medium text-zinc-700 whitespace-nowrap">
         Step {@current + 1} of {@total}
       </span>
-      <button
-        phx-click={show_modal("how-it-works")}
-        class="text-zinc-400 hover:text-zinc-600"
-        title="How this works"
-      >
-        <.icon name="hero-question-mark-circle" class="h-4 w-4" />
-      </button>
       <span class={[
         "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset",
         badge_classes(@step.type)

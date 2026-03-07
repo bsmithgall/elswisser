@@ -30,7 +30,7 @@ defmodule MaxWeightMatching.Viz.Live do
     socket =
       socket
       |> assign(
-        page_title: "Matching Visualizer",
+        page_title: "Edmond's Blossom Algorithm",
         edges: edges,
         edge_input: EdgeParser.format(edges),
         vertex_labels: vertex_labels,
@@ -49,6 +49,17 @@ defmodule MaxWeightMatching.Viz.Live do
     assigns = assign(assigns, step: step)
 
     ~H"""
+    <div class="flex items-center gap-2 mb-6">
+      <h1 class="text-lg font-semibold leading-8 text-zinc-800">Edmond's Blossom Algorithm</h1>
+      <button
+        phx-click={show_modal("how-it-works")}
+        class="text-zinc-400 hover:text-zinc-600"
+        title="How this works"
+      >
+        <.icon name="hero-question-mark-circle" class="h-5 w-5" />
+      </button>
+    </div>
+
     <div class="flex flex-col lg:flex-row gap-6">
       <div class="flex-1 min-h-[400px] max-h-[600px]">
         <div
