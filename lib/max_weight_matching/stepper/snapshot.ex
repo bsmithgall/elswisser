@@ -1,0 +1,86 @@
+defmodule MaxWeightMatching.Stepper.Snapshot do
+  @moduledoc """
+  Extracts displayable state from a `Context`.
+
+  Translates opaque `make_ref()` blossom IDs into vertex groups and
+  produces a renderer-agnostic map suitable for any visualization consumer.
+  """
+
+  alias MaxWeightMatching.Context
+  alias MaxWeightMatching.Blossom.NonTrivial
+
+  @doc """
+  Build a snapshot from the current algorithm context.
+
+  ## Returns
+
+  A map with:
+  - `vertex_labels` — each vertex's current label (`:s`, `:t`, or `:none`)
+  - `vertex_duals` — each vertex's 2× dual variable (raw internal value)
+  - `matched_edges` — list of `{x, y}` pairs where `x < y`
+  - `blossoms` — list of top-level non-trivial blossom groups
+  - `edges` — the graph's edge map (immutable, same every step)
+  """
+  @spec from_context(Context.t()) :: MaxWeightMatching.Step.snapshot()
+  def from_context(%Context{} = ctx) do
+    n = ctx.graph.num_vertex
+
+    %{
+      vertex_labels: extract_vertex_labels(ctx, n),
+      vertex_duals: extract_vertex_duals(ctx, n),
+      matched_edges: extract_matched_edges(ctx, n),
+      blossoms: extract_blossoms(ctx),
+      edges: ctx.graph.edges
+    }
+  end
+
+  defp extract_vertex_labels(_ctx, n) when n == 0, do: %{}
+
+  defp extract_vertex_labels(ctx, n) do
+    Map.new(0..(n - 1), fn v ->
+      {v, Context.get_vertex_blossom(ctx, v).label}
+    end)
+  end
+
+  defp extract_vertex_duals(_ctx, n) when n == 0, do: %{}
+
+  defp extract_vertex_duals(ctx, n) do
+    Map.new(0..(n - 1), fn v ->
+      {v, Map.fetch!(ctx.vertex_dual_2x, v)}
+    end)
+  end
+
+  defp extract_matched_edges(_ctx, n) when n == 0, do: []
+
+  defp extract_matched_edges(ctx, n) do
+    0..(n - 1)
+    |> Enum.reduce([], fn v, acc ->
+      mate = Map.fetch!(ctx.vertex_mate, v)
+
+      if mate != -1 and v < mate do
+        [{v, mate} | acc]
+      else
+        acc
+      end
+    end)
+    |> Enum.sort()
+  end
+
+  defp extract_blossoms(ctx) do
+    ctx.blossoms
+    |> Map.values()
+    |> Enum.filter(fn
+      %NonTrivial{parent_id: nil} -> true
+      _ -> false
+    end)
+    |> Enum.map(fn blossom ->
+      vertices = Context.blossom_vertices(ctx, blossom.id) |> Enum.sort()
+
+      %{
+        vertices: vertices,
+        base: blossom.base_vertex,
+        dual: blossom.dual_var_2x
+      }
+    end)
+  end
+end
