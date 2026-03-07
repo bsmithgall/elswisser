@@ -186,12 +186,25 @@ defmodule MaxWeightMatching.Viz.Live do
   end
 
   defp push_current_step(socket) do
-    step = Enum.at(socket.assigns.steps, socket.assigns.current)
+    current = socket.assigns.current
+    step = Enum.at(socket.assigns.steps, current)
+
+    prev_duals =
+      if current > 0 do
+        prev_snap = Enum.at(socket.assigns.steps, current - 1).snapshot
+
+        Map.new(prev_snap.vertex_duals, fn {v, dual} ->
+          {Integer.to_string(v), dual}
+        end)
+      else
+        %{}
+      end
 
     data =
       step
       |> Serializer.serialize()
       |> Map.put(:vertex_labels_map, serialize_vertex_labels(socket.assigns.vertex_labels))
+      |> Map.put(:prev_duals, prev_duals)
 
     push_event(socket, "step", data)
   end

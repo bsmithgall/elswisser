@@ -116,6 +116,7 @@ export function updateBlossoms(cy, snapshot) {
 
 /**
  * Update vertex dual labels and detect budget changes.
+ * `prevDuals` is the server-provided previous step's duals (empty map for step 0).
  * Returns a `dualChanges` map `{ v: { from, to } }` for vertices
  * whose budget changed this step.
  */
@@ -133,7 +134,6 @@ export function updateDuals(cy, snapshot, prevDuals) {
       dualChanges[v] = { from: prevDuals[v], to: dual };
       node.addClass("budget-changed");
     }
-    prevDuals[v] = dual;
   }
 
   return dualChanges;

@@ -24,7 +24,6 @@ export const MatchingVizHook = {
 
     this.initDone = false;
     this.edgeKeys = [];
-    this.prevDuals = {};
 
     this.handleEvent("step", (data) => this.onStep(data));
     this.handleEvent("reset", () => this.onReset());
@@ -34,11 +33,10 @@ export const MatchingVizHook = {
     this.cy.elements().remove();
     this.initDone = false;
     this.edgeKeys = [];
-    this.prevDuals = {};
   },
 
   onStep(data) {
-    const { type, detail, snapshot, vertex_labels_map } = data;
+    const { type, detail, snapshot, vertex_labels_map, prev_duals } = data;
 
     this.cy.elements().removeClass("final-matched final-unmatched");
 
@@ -50,7 +48,7 @@ export const MatchingVizHook = {
     updateLabels(this.cy, snapshot);
     updateMatched(this.cy, this.edgeKeys, snapshot);
     updateBlossoms(this.cy, snapshot);
-    const dualChanges = updateDuals(this.cy, snapshot, this.prevDuals);
+    const dualChanges = updateDuals(this.cy, snapshot, prev_duals);
     updateActive(this.cy, this.edgeKeys, type, detail, dualChanges);
 
     if (type === "stage_end" && detail && detail.augmented === false) {
