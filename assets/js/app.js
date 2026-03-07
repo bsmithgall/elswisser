@@ -25,6 +25,7 @@ import topbar from "../vendor/topbar";
 import { ShareCaptureHook, shareCapture } from "./share-capture";
 import { FlashHook } from "./flash";
 import { ElchesserHook } from "./elchesser";
+import { MatchingVizHook } from "./matching-viz";
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
@@ -32,7 +33,7 @@ let csrfToken = document
 
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
-  hooks: { ShareCaptureHook, FlashHook, ElchesserHook },
+  hooks: { ShareCaptureHook, FlashHook, ElchesserHook, MatchingVizHook },
 });
 
 // Show progress bar on live navigation and form submits

@@ -4,11 +4,15 @@ defmodule ElswisserWeb.RoundLive.Pairing do
   alias Elswisser.{Pairings, Players, Rounds, Scores, Games, Matches}
   alias Elswisser.Pairings.Bye
   alias Elswisser.Scores.Score
+  alias MaxWeightMatching.Viz.EdgeParser
 
   embed_templates("pairing_html/*")
 
   @impl true
   def mount(_params, session, socket) do
+    players = fetch_unpaired_players(session["tournament_id"], session["round_id"])
+    viz_url = build_viz_url(session["tournament_id"], players, session["roster"])
+
     {:ok,
      socket
      |> set_white()
@@ -16,7 +20,8 @@ defmodule ElswisserWeb.RoundLive.Pairing do
      |> assign(:round_number, session["round_number"])
      |> assign(:roster, session["roster"])
      |> assign(:tournament_id, session["tournament_id"])
-     |> assign(:players, fetch_unpaired_players(session["tournament_id"], session["round_id"]))
+     |> assign(:players, players)
+     |> assign(:viz_url, viz_url)
      |> assign(:next_board, 1), layout: false}
   end
 
@@ -30,6 +35,14 @@ defmodule ElswisserWeb.RoundLive.Pairing do
         <.success_button id="es:auto-pair" phx-click="auto-pair-remaining" class="mb-4 w-full">
           Auto-pair remaining players
         </.success_button>
+        <.link
+          :if={@viz_url}
+          href={@viz_url}
+          target="_blank"
+          class="block text-center text-xs text-zinc-500 hover:text-zinc-700 underline mb-4"
+        >
+          <.icon name="hero-eye-mini" class="-mt-0.5 h-3 w-3" /> Visualize pairing algorithm
+        </.link>
         <.section_title class="text-xs uppercase mb-4">
           or select player for pairing ({@color} pieces)
         </.section_title>
@@ -306,5 +319,39 @@ defmodule ElswisserWeb.RoundLive.Pairing do
 
   defp find_player(socket, id) when is_number(id) do
     Enum.find(socket.assigns[:roster], &(&1.id == id))
+  end
+
+  defp build_viz_url(tournament_id, players, roster) do
+    remaining_ids = Enum.map(players, & &1.id)
+    all_games = Games.get_games_with_round_number_for_tournament(tournament_id)
+
+    scores =
+      Scores.calculate(all_games)
+      |> Scores.with_players(roster)
+      |> Map.filter(fn {player_id, _score} -> Enum.member?(remaining_ids, player_id) end)
+      |> Map.values()
+      |> Scores.sort()
+
+    case scores do
+      [] ->
+        nil
+
+      [_] ->
+        nil
+
+      scores ->
+        {edges, labels} = Pairings.edges_for_viz(scores, roster)
+
+        labels_param =
+          labels
+          |> Enum.sort_by(fn {k, _} -> k end)
+          |> Enum.map_join("|", fn {_k, name} -> name end)
+
+        "/matching-viz?" <>
+          URI.encode_query(%{
+            "edges" => EdgeParser.encode(edges),
+            "labels" => labels_param
+          })
+    end
   end
 end

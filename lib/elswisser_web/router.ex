@@ -68,6 +68,12 @@ defmodule ElswisserWeb.Router do
     live "/play-computer", Elchesser.Computer
   end
 
+  scope "/" do
+    pipe_through(:browser)
+
+    live "/matching-viz", MaxWeightMatching.Viz.Live
+  end
+
   ## Authentication routes
 
   scope "/accounts", ElswisserWeb.Accounts, as: :accounts do

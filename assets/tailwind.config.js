@@ -10,6 +10,7 @@ module.exports = {
     "./js/**/*.js",
     "../lib/*_web.ex",
     "../lib/*_web/**/*.*ex",
+    "../lib/max_weight_matching/viz/**/*.*ex",
     "node_modules/@chrisoakman/chessboard2/dist/chessboard2.min.css",
   ],
   theme: {

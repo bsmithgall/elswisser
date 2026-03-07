@@ -215,7 +215,29 @@ defmodule MaxWeightMatching.Stage do
     end
   end
 
-  defp scan_vertex_edges(%Context{} = ctx, x) do
+  @doc """
+  Scan all adjacent edges of vertex `x` and process them.
+
+  For each edge incident to `x`, checks blossom membership and edge slack
+  to determine the action:
+  - Tight edge to unlabeled blossom → assign T label (grow tree)
+  - Tight edge to S-blossom → check for augmenting path or blossom
+  - Tight edge to T-blossom → no action
+  - Non-tight edge → track for delta calculations
+
+  ## Parameters
+
+  - `ctx` - The current matching context
+  - `x` - The S-vertex whose edges to scan
+
+  ## Returns
+
+  - `{:augmenting_path, path, ctx}` if an augmenting path was found
+  - `{:continue, ctx}` if scanning completed without finding a path
+  """
+  @spec scan_vertex_edges(Context.t(), non_neg_integer()) ::
+          {:augmenting_path, AlternatingPath.t(), Context.t()} | {:continue, Context.t()}
+  def scan_vertex_edges(%Context{} = ctx, x) do
     adjacent_edges = Map.fetch!(ctx.graph.adjacent_edges, x)
 
     Enum.reduce_while(adjacent_edges, {:continue, ctx}, fn e, {:continue, ctx} ->
