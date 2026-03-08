@@ -218,16 +218,26 @@ defmodule MaxWeightMatching.Stepper do
 
       {x, ctx} ->
         neighbor_edges = analyze_vertex_edges(ctx, x)
+        prev_delta_candidates = collect_delta_candidates(ctx)
         blossom_count_before = map_size(ctx.blossoms)
 
         case Stage.scan_vertex_edges(ctx, x) do
           {:augmenting_path, path, ctx} ->
+            delta_candidates = collect_delta_candidates(ctx)
+
             acc =
               emit(
                 on_step,
                 acc,
                 :scan_step,
-                %{vertex: x, result: :augmenting_path, neighbor_edges: neighbor_edges},
+                %{
+                  vertex: x,
+                  result: :augmenting_path,
+                  neighbor_edges: neighbor_edges,
+                  prev_delta_candidates: prev_delta_candidates,
+                  delta_candidates: delta_candidates,
+                  active_delta_wins: compute_active_delta_wins(ctx, x, delta_candidates)
+                },
                 ctx
               )
 
@@ -236,7 +246,15 @@ defmodule MaxWeightMatching.Stepper do
           {:continue, ctx} ->
             # Detect blossoms created as a side effect of scan_vertex_edges
             # (tight S-S same-tree edges create blossoms but return :continue)
-            detail = %{vertex: x, neighbor_edges: neighbor_edges}
+            delta_candidates = collect_delta_candidates(ctx)
+
+            detail = %{
+              vertex: x,
+              neighbor_edges: neighbor_edges,
+              prev_delta_candidates: prev_delta_candidates,
+              delta_candidates: delta_candidates,
+              active_delta_wins: compute_active_delta_wins(ctx, x, delta_candidates)
+            }
 
             detail =
               if map_size(ctx.blossoms) > blossom_count_before do
@@ -339,6 +357,19 @@ defmodule MaxWeightMatching.Stepper do
       if(delta4, do: %{delta_type: 4, value_2x: delta4, edge: nil})
     ]
     |> Enum.reject(&is_nil/1)
+  end
+
+  # Determine which delta types the scanned vertex x is directly responsible for.
+  # Used to highlight the relevant row in the scan-step delta table.
+  defp compute_active_delta_wins(ctx, x, candidates) do
+    Enum.flat_map(candidates, fn
+      %{delta_type: dt, edge: e} when dt in [2, 3] and not is_nil(e) ->
+        {p, q, _} = Graph.get_edge(ctx.graph, e)
+        if p == x or q == x, do: [dt], else: []
+
+      _ ->
+        []
+    end)
   end
 
   # --- Helpers ---

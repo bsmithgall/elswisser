@@ -45,10 +45,17 @@ defmodule MaxWeightMatching.Viz.StepText do
     """
   end
 
-  def explanation(%{type: :scan_step, detail: %{result: :augmenting_path}}) do
-    assigns = %{}
+  def explanation(%{type: :scan_step, detail: %{result: :augmenting_path} = d}) do
+    active_wins = Map.get(d, :active_delta_wins, [])
+    contribs = vertex_delta_contributions(Map.get(d, :neighbor_edges, []))
+
+    assigns = %{
+      rows: delta_rows(d, active_wins, contribs),
+      has_candidates: d[:delta_candidates] != nil
+    }
 
     ~H"""
+    <.delta_candidates_table :if={@has_candidates} rows={@rows} show_vertex />
     <p>
       Scanning found a tight edge to an S-vertex in a different alternating
       tree — that connects two unmatched roots, giving us an augmenting
@@ -58,15 +65,22 @@ defmodule MaxWeightMatching.Viz.StepText do
     """
   end
 
-  def explanation(%{type: :scan_step, detail: %{result: :blossom}}) do
-    assigns = %{}
+  def explanation(%{type: :scan_step, detail: %{result: :blossom} = d}) do
+    active_wins = Map.get(d, :active_delta_wins, [])
+    contribs = vertex_delta_contributions(Map.get(d, :neighbor_edges, []))
+
+    assigns = %{
+      rows: delta_rows(d, active_wins, contribs),
+      has_candidates: d[:delta_candidates] != nil
+    }
 
     ~H"""
+    <.delta_candidates_table :if={@has_candidates} rows={@rows} show_vertex />
     <p>
       Scanning found a tight edge to an S-vertex in the same tree, forming
       an odd cycle. The algorithm contracts this into a blossom — a
-      super-vertex that hides the cycle. This is necessary because odd
-      cycles break the alternating-path logic.
+      super-vertex that hides the cycle. Odd cycles break the
+      alternating-path logic, so the cycle gets collapsed into a single node.
     </p>
     <p class="mt-1.5">
       Former T-vertices inside the blossom effectively become S,
@@ -75,13 +89,22 @@ defmodule MaxWeightMatching.Viz.StepText do
     """
   end
 
-  def explanation(%{type: :scan_step, detail: %{neighbor_edges: edges}}) when is_list(edges) do
+  def explanation(%{type: :scan_step, detail: %{neighbor_edges: edges} = d})
+      when is_list(edges) do
     grew_into_blossom =
       Enum.any?(edges, fn ne -> ne.classification == :grow and ne[:neighbor_in_blossom] end)
 
-    assigns = %{grew_into_blossom: grew_into_blossom}
+    active_wins = Map.get(d, :active_delta_wins, [])
+    contribs = vertex_delta_contributions(edges)
+
+    assigns = %{
+      grew_into_blossom: grew_into_blossom,
+      rows: delta_rows(d, active_wins, contribs),
+      has_candidates: d[:delta_candidates] != nil
+    }
 
     ~H"""
+    <.delta_candidates_table :if={@has_candidates} rows={@rows} show_vertex />
     <p :if={@grew_into_blossom}>
       <strong>Blossom growth:</strong> The tight edge reaches a vertex inside
       a blossom. Since a blossom acts as a single super-vertex, the entire
@@ -89,15 +112,9 @@ defmodule MaxWeightMatching.Viz.StepText do
     </p>
     <p class={if(@grew_into_blossom, do: "mt-1.5", else: "")}>
       Pulled an S-vertex off the queue and checked each of its edges.
-      The edge labels show the slack computation: <code>budget[x] + budget[y] − 2×weight</code>.
+      Edge labels show the slack: <code>budget[x] + budget[y] − 2×weight</code>.
+      Zero means tight; tight edges drive tree growth or trigger a delta step.
     </p>
-    <p class="mt-1.5">When slack = 0, the edge is tight and the algorithm can act on it:</p>
-    <ul class="list-disc ml-5 mt-1 space-y-0.5">
-      <li><strong>Tight → unlabeled:</strong> grow the tree (assign T, then its mate becomes S)</li>
-      <li><strong>Tight → S-vertex:</strong> augmenting path or blossom</li>
-      <li><strong>Tight → T-vertex:</strong> already in the tree, skip</li>
-      <li><strong>Not tight:</strong> tracked as a candidate for future delta steps</li>
-    </ul>
     """
   end
 
@@ -121,6 +138,7 @@ defmodule MaxWeightMatching.Viz.StepText do
     assigns = %{rows: delta_rows(detail)}
 
     ~H"""
+    <.delta_candidates_table rows={@rows} />
     <p>
       The scan queue is empty and no budget adjustment can help. The
       smallest S-vertex budget is already zero, so Δ₁ wins — any
@@ -131,7 +149,6 @@ defmodule MaxWeightMatching.Viz.StepText do
       unmatched vertices serve as a certificate of optimality: the
       current matching is provably maximum weight.
     </p>
-    <.delta_candidates_table rows={@rows} />
     """
   end
 
@@ -139,6 +156,7 @@ defmodule MaxWeightMatching.Viz.StepText do
     assigns = %{rows: delta_rows(detail)}
 
     ~H"""
+    <.delta_candidates_table rows={@rows} />
     <p>
       The scan queue emptied without finding a path. The algorithm
       adjusts all budgets by the smallest delta candidate to make a
@@ -151,7 +169,6 @@ defmodule MaxWeightMatching.Viz.StepText do
       became tight. The unlabeled vertex is assigned T, and its matched
       partner becomes S and joins the scan queue.
     </p>
-    <.delta_candidates_table rows={@rows} />
     """
   end
 
@@ -162,6 +179,7 @@ defmodule MaxWeightMatching.Viz.StepText do
     assigns = %{rows: delta_rows(detail)}
 
     ~H"""
+    <.delta_candidates_table rows={@rows} />
     <p>
       Δ₃ won: an edge between two S-vertices became tight. Since
       they are in different trees, this gives an augmenting path
@@ -172,7 +190,6 @@ defmodule MaxWeightMatching.Viz.StepText do
       both endpoints' budgets are decreasing simultaneously — that's
       why Δ₃ = ½ × slack rather than the full slack.
     </p>
-    <.delta_candidates_table rows={@rows} />
     """
   end
 
@@ -180,6 +197,7 @@ defmodule MaxWeightMatching.Viz.StepText do
     assigns = %{rows: delta_rows(detail)}
 
     ~H"""
+    <.delta_candidates_table rows={@rows} />
     <p>
       Δ₃ won: an edge between two S-vertices became tight. Since
       they are in the same tree, this forms an odd cycle — a new
@@ -190,7 +208,6 @@ defmodule MaxWeightMatching.Viz.StepText do
       their edges for scanning. S–S edges get tight twice as fast
       because both endpoints spend budget simultaneously (Δ₃ = ½ × slack).
     </p>
-    <.delta_candidates_table rows={@rows} />
     """
   end
 
@@ -198,6 +215,7 @@ defmodule MaxWeightMatching.Viz.StepText do
     assigns = %{rows: delta_rows(detail)}
 
     ~H"""
+    <.delta_candidates_table rows={@rows} />
     <p>
       Δ₄ won: a T-blossom's budget has reached zero. It must be
       expanded back into its sub-blossoms since further budget decreases
@@ -208,7 +226,6 @@ defmodule MaxWeightMatching.Viz.StepText do
       reconstructed: sub-blossoms along it alternate S/T labels,
       and new S-vertices are queued for scanning.
     </p>
-    <.delta_candidates_table rows={@rows} />
     """
   end
 
@@ -274,6 +291,7 @@ defmodule MaxWeightMatching.Viz.StepText do
   ]
 
   attr :rows, :list, required: true
+  attr :show_vertex, :boolean, default: false
 
   defp delta_candidates_table(assigns) do
     ~H"""
@@ -281,7 +299,7 @@ defmodule MaxWeightMatching.Viz.StepText do
       <thead>
         <tr class="text-left font-semibold text-amber-700 uppercase tracking-wide border-b border-amber-200">
           <th class="px-2 py-1">Delta</th>
-          <th class="px-2 py-1">Source</th>
+          <th class="px-2 py-1">Computed from</th>
           <th class="px-2 py-1">Effect</th>
           <th class="px-2 py-1 text-right">Value</th>
         </tr>
@@ -298,7 +316,17 @@ defmodule MaxWeightMatching.Viz.StepText do
           <td class="px-2 py-1 font-mono">{row.label}{if row.winner, do: " ★", else: ""}</td>
           <td class="px-2 py-1">{row.source}</td>
           <td class="px-2 py-1">{row.effect}</td>
-          <td class="px-2 py-1 text-right font-mono">{row.value}</td>
+          <td class="px-2 py-1 text-right font-mono whitespace-nowrap">
+            <span :if={@show_vertex && row.value_changed} class="text-zinc-400 mr-0.5">
+              {row.prev_value} →
+            </span>
+            <span class={[
+              @show_vertex && row.vertex_wins && "bg-green-200 rounded px-0.5",
+              @show_vertex && row.vertex_contributes && "bg-red-100 rounded px-0.5"
+            ]}>
+              {row.value}
+            </span>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -308,15 +336,44 @@ defmodule MaxWeightMatching.Viz.StepText do
     """
   end
 
-  defp delta_rows(detail) do
+  defp delta_rows(detail, active_wins \\ [], contribs \\ []) do
     candidates = detail[:delta_candidates] || []
-    winner = detail.delta_type
+    prev_candidates = detail[:prev_delta_candidates] || []
+    winner = detail[:delta_type]
 
     Enum.map(@delta_row_meta, fn meta ->
       candidate = Enum.find(candidates, &(&1.delta_type == meta.type))
+      prev_candidate = Enum.find(prev_candidates, &(&1.delta_type == meta.type))
+
       value = if candidate, do: fmt_num(candidate.value_2x), else: "—"
-      Map.merge(meta, %{value: value, winner: meta.type == winner, present: candidate != nil})
+      prev_value = if prev_candidate, do: fmt_num(prev_candidate.value_2x), else: "—"
+
+      Map.merge(meta, %{
+        value: value,
+        prev_value: prev_value,
+        value_changed: value != prev_value,
+        winner: winner != nil && meta.type == winner,
+        present: candidate != nil,
+        vertex_wins: meta.type in active_wins,
+        vertex_contributes: meta.type in contribs and meta.type not in active_wins
+      })
     end)
+  end
+
+  # Determine which delta types the currently scanned vertex has candidates for,
+  # derived from the neighbor_edges classification already computed in the stepper.
+  # x is always an S-vertex (just dequeued), so it always contributes to Δ₁.
+  # Δ₂ candidates are non-tight edges to unlabeled neighbors.
+  # Δ₃ candidates are non-tight edges to S-neighbors.
+  # Δ₄ is never contributed by an S-vertex (it tracks T-blossom budgets).
+  defp vertex_delta_contributions(edges) do
+    has_delta2 =
+      Enum.any?(edges, &(&1.classification == :delta2 and &1[:neighbor_label] == :none))
+
+    has_delta3 = Enum.any?(edges, &(&1.classification == :delta3))
+
+    if(has_delta2, do: [2], else: []) ++
+      if(has_delta3, do: [3], else: [])
   end
 
   defp fmt_num(n) when is_float(n) do

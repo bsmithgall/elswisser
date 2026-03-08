@@ -148,9 +148,11 @@ export function updateActive(cy, edgeKeys, type, detail, dualChanges) {
     "active edge-grow edge-s-to-s edge-tight-t edge-delta2 edge-delta3 grow-target s-to-s-target",
   );
 
-  // Restore original weight labels
+  // Restore original weight labels and clear any stored slack info
   for (const { id, w } of edgeKeys) {
-    cy.getElementById(id).data("label", `${w}`);
+    const el = cy.getElementById(id);
+    el.data("label", `${w}`);
+    el.data("slackInfo", null);
   }
 
   if (type === "scan_step" && detail.vertex !== undefined) {
@@ -186,6 +188,15 @@ export function updateActive(cy, edgeKeys, type, detail, dualChanges) {
           "label",
           `${fmtNum(ne.x_budget)}+${fmtNum(ne.y_budget)}−2×${ne.weight}=${fmtNum(ne.slack_2x)}`,
         );
+
+        edgeEl.data("slackInfo", {
+          x: detail.vertex,
+          y: ne.neighbor,
+          x_budget: ne.x_budget,
+          y_budget: ne.y_budget,
+          weight: ne.weight,
+          slack_2x: ne.slack_2x,
+        });
       }
     }
 
