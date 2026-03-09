@@ -30,12 +30,13 @@ defmodule MaxWeightMatching.Viz.Serializer do
       matched_edges: Enum.map(snap.matched_edges, fn {x, y} -> [x, y] end),
       blossoms:
         Enum.map(snap.blossoms, fn b ->
-          %{vertices: b.vertices, base: b.base, dual: b.dual}
+          %{id: b.id, vertices: b.vertices, parent: b.parent, base: b.base, dual: b.dual}
         end),
       edges:
         Map.new(snap.edges, fn {k, {x, y, w}} ->
           {Integer.to_string(k), [x, y, w]}
-        end)
+        end),
+      queue: snap.queue
     }
   end
 

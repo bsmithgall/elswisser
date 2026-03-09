@@ -86,29 +86,49 @@ export function updateMatched(cy, edgeKeys, snapshot) {
 
 /**
  * Rebuild blossom compound nodes from the snapshot.
+ *
+ * Each blossom has: id (int), vertices (direct leaf vertices only),
+ * parent (int index of parent blossom, or null), base, dual.
+ * Nested blossoms are compound nodes inside other compound nodes.
  */
 export function updateBlossoms(cy, snapshot) {
+  // Remove all existing blossom compound nodes
   cy.nodes(":parent").forEach((p) => {
     p.children().move({ parent: null });
     cy.remove(p);
   });
 
-  for (let i = 0; i < snapshot.blossoms.length; i++) {
-    const b = snapshot.blossoms[i];
-    const parentId = `blossom-${i}`;
+  // Sort so parents are created before children (null parent first,
+  // then by ascending parent id)
+  const sorted = [...snapshot.blossoms].sort((a, b) => {
+    if (a.parent === null && b.parent !== null) return -1;
+    if (a.parent !== null && b.parent === null) return 1;
+    return (a.parent ?? -1) - (b.parent ?? -1);
+  });
+
+  // Create all blossom compound nodes first
+  for (const b of sorted) {
+    const blossomId = `blossom-${b.id}`;
+    const parentId = b.parent !== null ? `blossom-${b.parent}` : undefined;
 
     cy.add({
       group: "nodes",
       data: {
-        id: parentId,
+        id: blossomId,
         label: `B [${b.dual}]`,
+        ...(parentId && { parent: parentId }),
       },
     });
+  }
+
+  // Move direct leaf vertices into their blossom
+  for (const b of sorted) {
+    const blossomId = `blossom-${b.id}`;
 
     for (const v of b.vertices) {
       const node = cy.getElementById(`n${v}`);
       if (node.length > 0) {
-        node.move({ parent: parentId });
+        node.move({ parent: blossomId });
       }
     }
   }
@@ -148,11 +168,9 @@ export function updateActive(cy, edgeKeys, type, detail, dualChanges) {
     "active edge-grow edge-s-to-s edge-tight-t edge-delta2 edge-delta3 grow-target s-to-s-target",
   );
 
-  // Restore original weight labels and clear any stored slack info
+  // Restore original weight labels
   for (const { id, w } of edgeKeys) {
-    const el = cy.getElementById(id);
-    el.data("label", `${w}`);
-    el.data("slackInfo", null);
+    cy.getElementById(id).data("label", `${w}`);
   }
 
   if (type === "scan_step" && detail.vertex !== undefined) {
@@ -188,15 +206,6 @@ export function updateActive(cy, edgeKeys, type, detail, dualChanges) {
           "label",
           `${fmtNum(ne.x_budget)}+${fmtNum(ne.y_budget)}−2×${ne.weight}=${fmtNum(ne.slack_2x)}`,
         );
-
-        edgeEl.data("slackInfo", {
-          x: detail.vertex,
-          y: ne.neighbor,
-          x_budget: ne.x_budget,
-          y_budget: ne.y_budget,
-          weight: ne.weight,
-          slack_2x: ne.slack_2x,
-        });
       }
     }
 
@@ -223,8 +232,8 @@ export function updateActive(cy, edgeKeys, type, detail, dualChanges) {
     }
   }
 
-  if (type === "augment" && detail.path_edges) {
-    for (const edgeIdx of detail.path_edges) {
+  if (type === "augment" && detail.path_edge_indices) {
+    for (const edgeIdx of detail.path_edge_indices) {
       cy.getElementById(`e${edgeIdx}`).addClass("active");
     }
   }

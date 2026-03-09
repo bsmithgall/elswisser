@@ -96,7 +96,6 @@ const CYTOSCAPE_STYLE = [
     style: {
       "border-width": 4,
       "border-color": c.yellow400,
-      "border-style": "double",
     },
   },
   {
@@ -246,7 +245,7 @@ const CYTOSCAPE_STYLE = [
       color: c.violet600,
       "text-outline-color": c.white,
       "text-outline-width": 1,
-      padding: "16px",
+      padding: "10px",
     },
   },
 
@@ -256,7 +255,7 @@ const CYTOSCAPE_STYLE = [
     style: {
       "transition-property":
         "background-color, line-color, width, border-width, border-color, opacity",
-      "transition-duration": "0.45s",
+      "transition-duration": "0.225s",
     },
   },
 ];
