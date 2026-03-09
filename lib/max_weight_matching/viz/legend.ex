@@ -121,16 +121,16 @@ defmodule MaxWeightMatching.Viz.Legend do
         <%!-- Key concepts --%>
         <div class="border-t border-zinc-200 pt-2 space-y-1.5 text-zinc-500">
           <p>
-            <strong class="text-zinc-600">Budget</strong>
-            (the number below each vertex name)
+            <strong class="text-zinc-600">Budget</strong> (the number below each vertex name)
             starts at half the max edge weight, shown at 2× scale to keep
             values integer. S-budgets decrease during delta steps;
             T-budgets increase.
           </p>
           <p>
-            <strong class="text-zinc-600">Slack</strong> =
-            budget[x] + budget[y] − 2×weight. Zero means the edge is
-            <strong>tight</strong> and the algorithm can use it. During
+            <strong class="text-zinc-600">Slack</strong>
+            =
+            budget[x] + budget[y] − 2×weight. Zero means the edge is <strong>tight</strong>
+            and the algorithm can use it. During
             scans, each edge is annotated with this arithmetic.
           </p>
           <p>

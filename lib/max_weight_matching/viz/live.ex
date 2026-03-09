@@ -9,55 +9,48 @@ defmodule MaxWeightMatching.Viz.Live do
   alias MaxWeightMatching.Viz.StepText
   alias MaxWeightMatching.Viz.Summary
 
-  @examples %{
-    "default" => {
-      "Blossom + chain",
-      [
-        {0, 1, 10},
-        {1, 2, 10},
-        {2, 0, 10},
-        {0, 3, 8},
-        {1, 4, 8},
-        {2, 5, 8},
-        {3, 4, 5},
-        {4, 5, 5},
-        {5, 6, 4}
-      ]
-    },
-    "nested" => {
-      "Nested blossoms",
-      [
-        {0, 1, 30},
-        {1, 2, 30},
-        {2, 0, 30},
-        {0, 3, 20},
-        {3, 4, 20},
-        {4, 1, 20},
-        {3, 5, 10},
-        {4, 6, 10},
-        {2, 7, 10}
-      ]
-    },
-    "simple" => {
-      "Simple triangle",
-      [
-        {0, 1, 10},
-        {1, 2, 7},
-        {2, 0, 5}
-      ]
-    },
-    "path" => {
-      "Path (no blossoms)",
-      [
-        {0, 1, 8},
-        {1, 2, 6},
-        {2, 3, 9},
-        {3, 4, 5}
-      ]
-    }
-  }
+  @examples [
+    {"default", "Blossom + chain",
+     [
+       {0, 1, 10},
+       {1, 2, 10},
+       {2, 0, 10},
+       {0, 3, 8},
+       {1, 4, 8},
+       {2, 5, 8},
+       {3, 4, 5},
+       {4, 5, 5},
+       {5, 6, 4}
+     ]},
+    {"nested", "Nested blossoms",
+     [
+       {0, 1, 30},
+       {1, 2, 30},
+       {2, 0, 30},
+       {0, 3, 20},
+       {3, 4, 20},
+       {4, 1, 20},
+       {3, 5, 10},
+       {4, 6, 10},
+       {2, 7, 10}
+     ]},
+    {"simple", "Simple triangle",
+     [
+       {0, 1, 10},
+       {1, 2, 7},
+       {2, 0, 5}
+     ]},
+    {"path", "Path (no blossoms)",
+     [
+       {0, 1, 8},
+       {1, 2, 6},
+       {2, 3, 9},
+       {3, 4, 5}
+     ]}
+  ]
 
-  @default_edges @examples["default"] |> elem(1)
+  @examples_map Map.new(@examples, fn {key, _label, edges} -> {key, edges} end)
+  @default_edges @examples_map["default"]
   @play_interval_ms 800
 
   @impl true
@@ -123,7 +116,7 @@ defmodule MaxWeightMatching.Viz.Live do
           <label class="block text-sm font-medium text-zinc-700">Examples</label>
           <div class="flex flex-wrap gap-1.5">
             <button
-              :for={{key, {label, _edges}} <- @examples}
+              :for={{key, label, _edges} <- @examples}
               phx-click="load-example"
               phx-value-key={key}
               class="rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-200"
@@ -160,6 +153,10 @@ defmodule MaxWeightMatching.Viz.Live do
   end
 
   @impl true
+  def handle_event("keydown", %{"is_form_element" => true}, socket) do
+    {:noreply, socket}
+  end
+
   def handle_event("keydown", %{"key" => "ArrowLeft"}, socket) do
     {:noreply, go_to(socket, socket.assigns.current - 1)}
   end
@@ -197,8 +194,8 @@ defmodule MaxWeightMatching.Viz.Live do
   end
 
   def handle_event("load-example", %{"key" => key}, socket) do
-    case Map.get(@examples, key) do
-      {_label, edges} ->
+    case Map.get(@examples_map, key) do
+      edges when is_list(edges) ->
         steps = Stepper.run(edges)
 
         socket =

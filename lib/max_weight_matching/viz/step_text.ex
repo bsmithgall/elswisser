@@ -200,8 +200,8 @@ defmodule MaxWeightMatching.Viz.StepText do
 
     ~H"""
     <p class="mb-1.5">
-      Queue empty — adjusting budgets (<Util.s /> −δ, <Util.t /> +δ).
-      <Util.s />–<Util.s /> edges tighten at 2× rate (both endpoints spend), so Δ₃ = ½ × slack.
+      Queue empty — adjusting budgets (<Util.s /> −δ, <Util.t /> +δ). <Util.s />–<Util.s />
+      edges tighten at 2× rate (both endpoints spend), so Δ₃ = ½ × slack.
     </p>
     <.delta_outcome_table rows={@rows} />
     """
@@ -217,8 +217,8 @@ defmodule MaxWeightMatching.Viz.StepText do
 
     ~H"""
     <p class="mb-1.5">
-      Queue empty — adjusting budgets (<Util.s /> −δ, <Util.t /> +δ).
-      <Util.s />–<Util.s /> edges tighten at 2× rate (both endpoints spend), so Δ₃ = ½ × slack.
+      Queue empty — adjusting budgets (<Util.s /> −δ, <Util.t /> +δ). <Util.s />–<Util.s />
+      edges tighten at 2× rate (both endpoints spend), so Δ₃ = ½ × slack.
     </p>
     <.delta_outcome_table rows={@rows} />
     """

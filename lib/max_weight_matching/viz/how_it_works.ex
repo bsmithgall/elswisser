@@ -1,5 +1,3 @@
-alias MaxWeightMatching.Viz.Util
-
 defmodule MaxWeightMatching.Viz.HowItWorks do
   @moduledoc """
   Static component that renders the "How it works" modal body for the
@@ -7,6 +5,8 @@ defmodule MaxWeightMatching.Viz.HowItWorks do
   """
 
   use Phoenix.Component
+
+  alias MaxWeightMatching.Viz.Util
 
   def how_it_works(assigns) do
     ~H"""
@@ -20,7 +20,7 @@ defmodule MaxWeightMatching.Viz.HowItWorks do
           target="_blank"
         >blossom algorithm</a>, which finds a maximum weight matching
         in a graph: a set of edges (pairs of vertices)
-        where no vertex appears twice and the total weight is as large as possible. This is used internally by our chess tournmanet manager to pair players in a Swiss tournament. For each round in a Swiss tournament, each possible combination of players can be thought of as an edge on the graph whose weight corresponds to the pairing rules (have these two players played before, their score, etc). This algorithm gives us the "matching" (combination of matched players) that maximizes their weight (best possible pairing among all pairings).
+        where no vertex appears twice and the total weight is as large as possible. This is used internally by our chess tournament manager to pair players in a Swiss tournament. For each round in a Swiss tournament, each possible combination of players can be thought of as an edge on the graph whose weight corresponds to the pairing rules (have these two players played before, their score, etc). This algorithm gives us the "matching" (combination of matched players) that maximizes their weight (best possible pairing among all pairings).
       </p>
 
       <h3 class="font-semibold text-zinc-800">Stages and substages</h3>
@@ -33,7 +33,7 @@ defmodule MaxWeightMatching.Viz.HowItWorks do
 
       <h3 class="font-semibold text-zinc-800">Budgets, slack, and tight edges</h3>
       <p>
-        Every vertex has a buget which starts as half of the maximum input edge weight. Each edge has a related "slack". The slack for an edge that connects vertices
+        Every vertex has a budget which starts as half of the maximum input edge weight. Each edge has a related "slack". The slack for an edge that connects vertices
         <code>x</code>
         and <code>y</code>
         is calculated as <code>budget[x] + budget[y] − weight</code>. An edge is
@@ -52,12 +52,12 @@ defmodule MaxWeightMatching.Viz.HowItWorks do
         are labeled <Util.s /> or <Util.t />
         to track their depth: At the start of each stage, all unmatched vertices are labeled
         <Util.s />
-        and go into a queue (everything else starts unlabled). One-by-one, these are pulled off the queue. Each edge is examined and categorized as follows:
+        and go into a queue (everything else starts unlabeled). One-by-one, these are pulled off the queue. Each edge is examined and categorized as follows:
       </p>
       <ul class="list-disc ml-5 space-y-1">
         <li>
           <strong>Tight edge → unlabeled:</strong>
-          Grow the search tree by labeleling the neighbor <Util.t />, labeling its matching partner
+          Grow the search tree by labeling the neighbor <Util.t />, labeling its matching partner
           <Util.s /> and adding that newly
           <Util.s />-labeled vertex to the search queue. When this happens, we also mark that the original
           <Util.s /> vertex was the "parent" of the edge. This is important for the next case.

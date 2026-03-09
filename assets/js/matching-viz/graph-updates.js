@@ -92,6 +92,8 @@ export function updateMatched(cy, edgeKeys, snapshot) {
  * Nested blossoms are compound nodes inside other compound nodes.
  */
 export function updateBlossoms(cy, snapshot) {
+  const prevCount = cy.nodes(":parent").length;
+
   // Remove all existing blossom compound nodes
   cy.nodes(":parent").forEach((p) => {
     p.children().move({ parent: null });
@@ -132,6 +134,8 @@ export function updateBlossoms(cy, snapshot) {
       }
     }
   }
+
+  return sorted.length !== prevCount;
 }
 
 /**

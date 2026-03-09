@@ -107,6 +107,7 @@ defmodule MaxWeightMatching.Stepper do
               },
               ctx
             )
+
           ctx = Stage.reset_stage(ctx)
           acc = emit(on_step, acc, :stage_end, %{stage: stage_num, augmented: true}, ctx)
           run_stages(ctx, acc, on_step, stage_num + 1)
