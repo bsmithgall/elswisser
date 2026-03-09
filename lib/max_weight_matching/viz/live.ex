@@ -9,17 +9,48 @@ defmodule MaxWeightMatching.Viz.Live do
   alias MaxWeightMatching.Viz.StepText
   alias MaxWeightMatching.Viz.Summary
 
-  @default_edges [
-    {0, 1, 10},
-    {1, 2, 10},
-    {2, 0, 10},
-    {0, 3, 8},
-    {1, 4, 8},
-    {2, 5, 8},
-    {3, 4, 5},
-    {4, 5, 5},
-    {5, 6, 4}
+  @examples [
+    {"default", "Blossom + chain",
+     [
+       {0, 1, 10},
+       {1, 2, 10},
+       {2, 0, 10},
+       {0, 3, 8},
+       {1, 4, 8},
+       {2, 5, 8},
+       {3, 4, 5},
+       {4, 5, 5},
+       {5, 6, 4}
+     ]},
+    {"nested", "Nested blossoms",
+     [
+       {0, 1, 30},
+       {1, 2, 30},
+       {2, 0, 30},
+       {0, 3, 20},
+       {3, 4, 20},
+       {4, 1, 20},
+       {3, 5, 10},
+       {4, 6, 10},
+       {2, 7, 10}
+     ]},
+    {"simple", "Simple triangle",
+     [
+       {0, 1, 10},
+       {1, 2, 7},
+       {2, 0, 5}
+     ]},
+    {"path", "Path (no blossoms)",
+     [
+       {0, 1, 8},
+       {1, 2, 6},
+       {2, 3, 9},
+       {3, 4, 5}
+     ]}
   ]
+
+  @examples_map Map.new(@examples, fn {key, _label, edges} -> {key, edges} end)
+  @default_edges @examples_map["default"]
   @play_interval_ms 800
 
   @impl true
@@ -34,6 +65,7 @@ defmodule MaxWeightMatching.Viz.Live do
         edges: edges,
         edge_input: EdgeParser.format(edges),
         vertex_labels: vertex_labels,
+        examples: @examples,
         steps: steps,
         current: 0,
         playing: false,
@@ -49,7 +81,7 @@ defmodule MaxWeightMatching.Viz.Live do
     assigns = assign(assigns, step: step)
 
     ~H"""
-    <div class="flex items-center gap-2 mb-6">
+    <div class="flex items-center gap-2 mb-6" phx-window-keydown="keydown">
       <h1 class="text-lg font-semibold leading-8 text-zinc-800">Edmond's Blossom Algorithm</h1>
       <button
         phx-click={show_modal("how-it-works")}
@@ -75,10 +107,24 @@ defmodule MaxWeightMatching.Viz.Live do
         <Summary.summary current={@current} total={length(@steps)} step={@step} playing={@playing} />
 
         <div class="text-xs text-zinc-600 bg-zinc-50 border border-zinc-200 rounded px-3 py-2 leading-relaxed min-h-[6rem] max-h-[16rem] overflow-y-auto">
-          {StepText.explanation(@step)}
+          {StepText.explanation(@step, @vertex_labels)}
         </div>
 
         <Legend.legend />
+
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-zinc-700">Examples</label>
+          <div class="flex flex-wrap gap-1.5">
+            <button
+              :for={{key, label, _edges} <- @examples}
+              phx-click="load-example"
+              phx-value-key={key}
+              class="rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-200"
+            >
+              {label}
+            </button>
+          </div>
+        </div>
 
         <form phx-submit="set-edges" class="space-y-2">
           <label class="block text-sm font-medium text-zinc-700">
@@ -107,6 +153,22 @@ defmodule MaxWeightMatching.Viz.Live do
   end
 
   @impl true
+  def handle_event("keydown", %{"is_form_element" => true}, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("keydown", %{"key" => "ArrowLeft"}, socket) do
+    {:noreply, go_to(socket, socket.assigns.current - 1)}
+  end
+
+  def handle_event("keydown", %{"key" => "ArrowRight"}, socket) do
+    {:noreply, go_to(socket, socket.assigns.current + 1)}
+  end
+
+  def handle_event("keydown", _params, socket) do
+    {:noreply, socket}
+  end
+
   def handle_event("prev", _params, socket) do
     {:noreply, go_to(socket, socket.assigns.current - 1)}
   end
@@ -129,6 +191,32 @@ defmodule MaxWeightMatching.Viz.Live do
     if playing, do: schedule_tick()
 
     {:noreply, assign(socket, playing: playing)}
+  end
+
+  def handle_event("load-example", %{"key" => key}, socket) do
+    case Map.get(@examples_map, key) do
+      edges when is_list(edges) ->
+        steps = Stepper.run(edges)
+
+        socket =
+          socket
+          |> assign(
+            edges: edges,
+            edge_input: EdgeParser.format(edges),
+            vertex_labels: %{},
+            steps: steps,
+            current: 0,
+            playing: false,
+            error: nil
+          )
+          |> push_event("reset", %{})
+          |> push_current_step()
+
+        {:noreply, socket}
+
+      nil ->
+        {:noreply, socket}
+    end
   end
 
   def handle_event("set-edges", %{"edges" => input}, socket) do

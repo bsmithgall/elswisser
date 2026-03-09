@@ -84,8 +84,30 @@ defmodule MaxWeightMatching.Stepper do
           {ctx, acc}
 
         path ->
+          prev_matched = Snapshot.from_context(ctx).matched_edges
+
+          # Convert vertex-pair edges to edge indices for JS graph highlighting
+          path_edge_indices =
+            Enum.map(path.edges, fn {x, y} ->
+              find_edge_index(ctx.graph, x, y)
+            end)
+            |> Enum.reject(&is_nil/1)
+
           ctx = Augment.augment_matching(ctx, path)
-          acc = emit(on_step, acc, :augment, %{path_edges: path.edges}, ctx)
+
+          acc =
+            emit(
+              on_step,
+              acc,
+              :augment,
+              %{
+                path_edges: path.edges,
+                path_edge_indices: path_edge_indices,
+                prev_matched_edges: prev_matched
+              },
+              ctx
+            )
+
           ctx = Stage.reset_stage(ctx)
           acc = emit(on_step, acc, :stage_end, %{stage: stage_num, augmented: true}, ctx)
           run_stages(ctx, acc, on_step, stage_num + 1)
@@ -218,16 +240,26 @@ defmodule MaxWeightMatching.Stepper do
 
       {x, ctx} ->
         neighbor_edges = analyze_vertex_edges(ctx, x)
+        prev_delta_candidates = collect_delta_candidates(ctx)
         blossom_count_before = map_size(ctx.blossoms)
 
         case Stage.scan_vertex_edges(ctx, x) do
           {:augmenting_path, path, ctx} ->
+            delta_candidates = collect_delta_candidates(ctx)
+
             acc =
               emit(
                 on_step,
                 acc,
                 :scan_step,
-                %{vertex: x, result: :augmenting_path, neighbor_edges: neighbor_edges},
+                %{
+                  vertex: x,
+                  result: :augmenting_path,
+                  neighbor_edges: neighbor_edges,
+                  prev_delta_candidates: prev_delta_candidates,
+                  delta_candidates: delta_candidates,
+                  active_delta_wins: compute_active_delta_wins(ctx, x, delta_candidates)
+                },
                 ctx
               )
 
@@ -236,7 +268,16 @@ defmodule MaxWeightMatching.Stepper do
           {:continue, ctx} ->
             # Detect blossoms created as a side effect of scan_vertex_edges
             # (tight S-S same-tree edges create blossoms but return :continue)
-            detail = %{vertex: x, neighbor_edges: neighbor_edges}
+            delta_candidates = collect_delta_candidates(ctx)
+
+            detail = %{
+              vertex: x,
+              neighbor_edges: neighbor_edges,
+              prev_delta_candidates: prev_delta_candidates,
+              delta_candidates: delta_candidates,
+              active_delta_wins: compute_active_delta_wins(ctx, x, delta_candidates),
+              queue_empty: Context.queue_empty?(ctx)
+            }
 
             detail =
               if map_size(ctx.blossoms) > blossom_count_before do
@@ -278,19 +319,28 @@ defmodule MaxWeightMatching.Stepper do
             {_, false} -> :delta2
           end
 
-        [
-          %{
-            edge: e,
-            neighbor: y,
-            weight: w,
-            slack_2x: slack,
-            neighbor_label: by.label,
-            classification: classification,
-            x_budget: x_dual_2x,
-            y_budget: y_dual_2x,
-            neighbor_in_blossom: match?(%NonTrivial{}, by)
-          }
-        ]
+        base = %{
+          edge: e,
+          neighbor: y,
+          weight: w,
+          slack_2x: slack,
+          neighbor_label: by.label,
+          classification: classification,
+          x_budget: x_dual_2x,
+          y_budget: y_dual_2x,
+          neighbor_in_blossom: match?(%NonTrivial{}, by)
+        }
+
+        # For grow edges, include the matched partner that will become S
+        base =
+          if classification == :grow do
+            mate = Map.fetch!(ctx.vertex_mate, y)
+            if mate != -1, do: Map.put(base, :mate, mate), else: base
+          else
+            base
+          end
+
+        [base]
       end
     end)
   end
@@ -341,6 +391,19 @@ defmodule MaxWeightMatching.Stepper do
     |> Enum.reject(&is_nil/1)
   end
 
+  # Determine which delta types the scanned vertex x is directly responsible for.
+  # Used to highlight the relevant row in the scan-step delta table.
+  defp compute_active_delta_wins(ctx, x, candidates) do
+    Enum.flat_map(candidates, fn
+      %{delta_type: dt, edge: e} when dt in [2, 3] and not is_nil(e) ->
+        {p, q, _} = Graph.get_edge(ctx.graph, e)
+        if p == x or q == x, do: [dt], else: []
+
+      _ ->
+        []
+    end)
+  end
+
   # --- Helpers ---
 
   defp emit(on_step, acc, type, detail, ctx) do
@@ -367,5 +430,11 @@ defmodule MaxWeightMatching.Stepper do
     edges
     |> Enum.filter(fn {x, y, _w} -> Map.fetch!(ctx.vertex_mate, x) == y end)
     |> Enum.map(fn {x, y, _w} -> {x, y} end)
+  end
+
+  defp find_edge_index(graph, x, y) do
+    Enum.find_value(graph.edges, fn {idx, {p, q, _w}} ->
+      if (p == x and q == y) or (p == y and q == x), do: idx
+    end)
   end
 end

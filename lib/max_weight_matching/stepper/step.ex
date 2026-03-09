@@ -33,7 +33,8 @@ defmodule MaxWeightMatching.Stepper.Step do
           vertex_duals: %{non_neg_integer() => number()},
           matched_edges: [{non_neg_integer(), non_neg_integer()}],
           blossoms: [blossom_group()],
-          edges: %{non_neg_integer() => {non_neg_integer(), non_neg_integer(), number()}}
+          edges: %{non_neg_integer() => {non_neg_integer(), non_neg_integer(), number()}},
+          queue: [non_neg_integer()]
         }
 
   @type t :: %__MODULE__{

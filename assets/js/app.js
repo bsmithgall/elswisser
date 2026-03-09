@@ -34,6 +34,12 @@ let csrfToken = document
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
   hooks: { ShareCaptureHook, FlashHook, ElchesserHook, MatchingVizHook },
+  metadata: {
+    keydown: (_e, _el) => {
+      const tag = document.activeElement && document.activeElement.tagName;
+      return { is_form_element: tag === "INPUT" || tag === "TEXTAREA" };
+    },
+  },
 });
 
 // Show progress bar on live navigation and form submits

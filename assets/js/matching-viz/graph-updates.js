@@ -86,32 +86,56 @@ export function updateMatched(cy, edgeKeys, snapshot) {
 
 /**
  * Rebuild blossom compound nodes from the snapshot.
+ *
+ * Each blossom has: id (int), vertices (direct leaf vertices only),
+ * parent (int index of parent blossom, or null), base, dual.
+ * Nested blossoms are compound nodes inside other compound nodes.
  */
 export function updateBlossoms(cy, snapshot) {
+  const prevCount = cy.nodes(":parent").length;
+
+  // Remove all existing blossom compound nodes
   cy.nodes(":parent").forEach((p) => {
     p.children().move({ parent: null });
     cy.remove(p);
   });
 
-  for (let i = 0; i < snapshot.blossoms.length; i++) {
-    const b = snapshot.blossoms[i];
-    const parentId = `blossom-${i}`;
+  // Sort so parents are created before children (null parent first,
+  // then by ascending parent id)
+  const sorted = [...snapshot.blossoms].sort((a, b) => {
+    if (a.parent === null && b.parent !== null) return -1;
+    if (a.parent !== null && b.parent === null) return 1;
+    return (a.parent ?? -1) - (b.parent ?? -1);
+  });
+
+  // Create all blossom compound nodes first
+  for (const b of sorted) {
+    const blossomId = `blossom-${b.id}`;
+    const parentId = b.parent !== null ? `blossom-${b.parent}` : undefined;
 
     cy.add({
       group: "nodes",
       data: {
-        id: parentId,
+        id: blossomId,
         label: `B [${b.dual}]`,
+        ...(parentId && { parent: parentId }),
       },
     });
+  }
+
+  // Move direct leaf vertices into their blossom
+  for (const b of sorted) {
+    const blossomId = `blossom-${b.id}`;
 
     for (const v of b.vertices) {
       const node = cy.getElementById(`n${v}`);
       if (node.length > 0) {
-        node.move({ parent: parentId });
+        node.move({ parent: blossomId });
       }
     }
   }
+
+  return sorted.length !== prevCount;
 }
 
 /**
@@ -212,8 +236,8 @@ export function updateActive(cy, edgeKeys, type, detail, dualChanges) {
     }
   }
 
-  if (type === "augment" && detail.path_edges) {
-    for (const edgeIdx of detail.path_edges) {
+  if (type === "augment" && detail.path_edge_indices) {
+    for (const edgeIdx of detail.path_edge_indices) {
       cy.getElementById(`e${edgeIdx}`).addClass("active");
     }
   }

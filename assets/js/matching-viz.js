@@ -27,6 +27,7 @@ export const MatchingVizHook = {
 
     this.handleEvent("step", (data) => this.onStep(data));
     this.handleEvent("reset", () => this.onReset());
+
   },
 
   onReset() {
@@ -47,7 +48,11 @@ export const MatchingVizHook = {
 
     updateLabels(this.cy, snapshot);
     updateMatched(this.cy, this.edgeKeys, snapshot);
-    updateBlossoms(this.cy, snapshot);
+    const blossomsChanged = updateBlossoms(this.cy, snapshot);
+    if (blossomsChanged) {
+      this.cy.stop();
+      this.cy.animate({ fit: { eles: this.cy.elements(), padding: 20 } }, { duration: 225 });
+    }
     const dualChanges = updateDuals(this.cy, snapshot, prev_duals);
     updateActive(this.cy, this.edgeKeys, type, detail, dualChanges);
 
@@ -57,8 +62,6 @@ export const MatchingVizHook = {
   },
 
   destroyed() {
-    if (this.cy) {
-      this.cy.destroy();
-    }
+    if (this.cy) this.cy.destroy();
   },
 };

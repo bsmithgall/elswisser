@@ -18,15 +18,16 @@ defmodule MaxWeightMatching.Viz.Legend do
             <span class="inline-block w-3 h-3 mt-0.5 rounded-full bg-blue-500 shrink-0"></span>
             <span>
               <strong>S</strong> — active searchers, queued for scanning.
-              At even depth from an unmatched root in the alternating tree.
+              Unmatched vertices start as S; matched vertices become S when
+              their partner becomes T.
             </span>
           </div>
           <div class="flex items-start gap-2">
             <span class="inline-block w-3 h-3 mt-0.5 rounded-full bg-red-500 shrink-0"></span>
             <span>
-              <strong>T</strong> — pass-through vertices at odd depth.
-              Reached via a tight unmatched edge; their matched partner
-              immediately becomes S.
+              <strong>T</strong> — reached via a tight edge from an S-vertex.
+              Never queued directly; their matched partner immediately
+              becomes S and joins the queue.
             </span>
           </div>
           <div class="flex items-start gap-2">
@@ -74,8 +75,8 @@ defmodule MaxWeightMatching.Viz.Legend do
             During Scan Steps
           </p>
           <p class="text-zinc-500 mb-1">
-            Each edge from the active S-vertex is classified by its slack
-            (budget[x] + budget[y] − 2×weight) and the neighbor's label:
+            Each edge from the scanned S-vertex is classified by its slack
+            and the neighbor's label:
           </p>
           <div class="flex items-start gap-2">
             <span class="inline-block w-4 h-0.5 mt-1.5 bg-green-500 shrink-0 rounded"></span>
@@ -120,17 +121,17 @@ defmodule MaxWeightMatching.Viz.Legend do
         <%!-- Key concepts --%>
         <div class="border-t border-zinc-200 pt-2 space-y-1.5 text-zinc-500">
           <p>
-            <strong class="text-zinc-600">Budget</strong>
-            (the number below each vertex ID)
-            is the vertex's dual variable, shown at 2× scale to keep values integer. An edge is
-            <strong>tight</strong>
-            when its endpoints' budgets sum to exactly 2× the edge weight
-            — meaning slack is zero and the algorithm can use it.
+            <strong class="text-zinc-600">Budget</strong> (the number below each vertex name)
+            starts at half the max edge weight, shown at 2× scale to keep
+            values integer. S-budgets decrease during delta steps;
+            T-budgets increase.
           </p>
           <p>
-            <strong class="text-zinc-600">Slack</strong> =
-            budget[x] + budget[y] − 2×weight. During scans, each edge is annotated with this
-            arithmetic. Zero means tight.
+            <strong class="text-zinc-600">Slack</strong>
+            =
+            budget[x] + budget[y] − 2×weight. Zero means the edge is <strong>tight</strong>
+            and the algorithm can use it. During
+            scans, each edge is annotated with this arithmetic.
           </p>
           <p>
             <strong class="text-zinc-600">Blossom</strong> (dashed purple group) — an odd cycle
