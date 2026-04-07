@@ -52,3 +52,12 @@ __pycache__
 # ignore scratchpad
 /priv/scratch
 .vscode
+
+# Rust binary artifacts
+/target/
+*.so
+/priv/native/render
+
+# Rust NIF test artifacts
+native/to_gif/test_fens.txt
+native/to_gif/*.gif

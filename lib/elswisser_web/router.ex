@@ -59,6 +59,7 @@ defmodule ElswisserWeb.Router do
       get("/:id/stats", Tournaments.StatsController, :stats, as: :stats)
       get("/:id/roster", Tournaments.RosterController, :index)
       get("/:id/games", Tournaments.GamesController, :index)
+      get("/:tournament_id/games/:id/gif", GifController, :game)
       get("/:id/current-games", Tournaments.GamesController, :current, as: :current)
     end
 
@@ -72,6 +73,12 @@ defmodule ElswisserWeb.Router do
     pipe_through(:browser)
 
     live "/matching-viz", MaxWeightMatching.Viz.Live
+  end
+
+  ## Public non-browser routes
+
+  scope "/", ElswisserWeb do
+    get "/gif", GifController, :show
   end
 
   ## Authentication routes

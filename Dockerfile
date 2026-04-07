@@ -12,10 +12,12 @@
 #   - Ex: hexpm/elixir:1.15.5-erlang-26.0.2-debian-bullseye-20230612-slim
 #
 ARG ELIXIR_VERSION=1.18.4
-ARG OTP_VERSION=27.0-rc1
-ARG DEBIAN_VERSION=bookworm-20251117-slim
+ARG OTP_VERSION=27.3.4.5
+ARG DEBIAN_VERSION=trixie-20260316-slim
+ARG RUST_VERSION=1.94
 
 ARG ASSETS_IMAGE="node:18.17-bullseye-slim"
+ARG RUST_IMAGE="rust:${RUST_VERSION}-slim-trixie"
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 
@@ -31,6 +33,13 @@ RUN apt-get update \
 COPY assets/package.json ./
 
 RUN npm install
+
+FROM ${RUST_IMAGE} AS rust-builder
+
+WORKDIR /app
+COPY Cargo.toml Cargo.toml
+COPY native native
+RUN cargo build --release -p to_gif
 
 FROM ${BUILDER_IMAGE} AS builder
 
@@ -61,6 +70,9 @@ RUN mix deps.compile
 
 COPY priv priv
 
+# Copy pre-built Rust NIF from rust-builder stage
+COPY --from=rust-builder /app/target/release/libto_gif.so priv/native/to_gif.so
+
 COPY lib lib
 
 COPY assets assets
@@ -87,7 +99,7 @@ RUN set -uex \
   && apt-get install -y ca-certificates curl gnupg \
   && mkdir -p /etc/apt/keyrings \
   && apt-get update \
-  && apt-get install -y libstdc++6 openssl libncurses5 locales \
+  && apt-get install -y libstdc++6 openssl libncurses6 locales \
   && rm -f /var/lib/apt/lists/*_*
 
 # Set the locale

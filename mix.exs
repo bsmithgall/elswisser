@@ -63,7 +63,8 @@ defmodule Elswisser.MixProject do
       {:nimble_parsec, "~> 1.4.0"},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:dotenv_parser, "~> 2.0", only: [:dev, :test]},
-      {:req, "~> 0.5.7"}
+      {:req, "~> 0.5.7"},
+      {:rustler, "~> 0.37.3", runtime: false}
     ]
   end
 
