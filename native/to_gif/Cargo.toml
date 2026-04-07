@@ -1,0 +1,17 @@
+[package]
+name = "to_gif"
+version = "0.1.0"
+authors = []
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+gif = "0.14.1"
+image = "0.25.10"
+rustler = "0.37.3"
+
+[[bin]]
+name = "render"
+path = "src/bin/render.rs"

@@ -4,7 +4,7 @@ defmodule Elswisser.Games.Lichess do
   @behaviour PgnProvider
 
   @impl PgnProvider
-  def provides_for, do: ~r/lichess\.org\/(?<id>\w+)\.*?/
+  def provides_for, do: ~r/lichess\.org\/(?<id>\w{8})\.*?/
 
   @impl PgnProvider
   def extract_id(game_link) do

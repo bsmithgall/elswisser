@@ -106,7 +106,7 @@ defmodule Elchesser.Fen do
           p -> {0, acc <> dump_pieces(ct, p)}
         end
       end)
-      |> then(fn {ct, acc} -> if ct == 8, do: "8", else: acc end)
+      |> then(fn {ct, acc} -> if ct == 0, do: acc, else: acc <> Integer.to_string(ct) end)
     end)
     |> Enum.join("/")
   end
