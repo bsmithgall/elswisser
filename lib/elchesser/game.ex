@@ -55,6 +55,27 @@ defmodule Elchesser.Game do
   def get_square(%{} = board, {file, rank}), do: Map.get(board, {file, rank})
   def get_square(%{} = board, %Square{loc: loc}), do: Map.get(board, loc)
 
+  @spec make_move(Game.t(), Move.t()) :: {:error, atom()} | {:ok, Game.t()}
+  @doc """
+  Lightweight move generation.
+
+  This function is meant to be used for search and avoids doing a lot of
+  expensive stuff like checking legality, SAN generation, piece discrimination,
+  etc. For making a move that requires full bookkeeping, prefer move/2.
+  """
+  def make_move(game, move) do
+    with {:ok, {move, game}} <- Board.make_move(game, move) do
+      game
+      |> flip_color()
+      |> set_castling_rights(move)
+      |> set_en_passant(move)
+      |> then(&{:ok, &1})
+    end
+  end
+
+  @doc """
+  Full bookkeeping for a move, including move parsing and validation, managing results, adding fens to history, etc.
+  """
   @spec move(Game.t(), Move.t() | binary()) :: {:error, atom()} | {:ok, Game.t()}
   def move(%Game{} = game, %Move{} = move) do
     with :ok <- ensure_valid_move(game, move),
