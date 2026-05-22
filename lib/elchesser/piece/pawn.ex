@@ -26,8 +26,9 @@ defmodule Elchesser.Piece.Pawn do
   defp moves(square, game, candidates, promotion) do
     m =
       valid_candidates(game, candidates)
-      |> Enum.map(fn {file, rank} ->
-        Move.from(square, {file, rank}, promotion: promote(promotion, square.piece))
+      |> Enum.flat_map(fn {file, rank} ->
+        promote(promotion, square.piece)
+        |> Enum.map(&Move.from(square, {file, rank}, promotion: &1))
       end)
 
     a =
@@ -36,7 +37,7 @@ defmodule Elchesser.Piece.Pawn do
         sq = Game.get_square(game, s)
         Piece.enemy?(square.piece, sq.piece) || en_passant?(sq, game)
       end)
-      |> Enum.map(fn s ->
+      |> Enum.flat_map(fn s ->
         sq = Game.get_square(game, s)
         ep? = en_passant?(sq, game)
 
@@ -47,7 +48,8 @@ defmodule Elchesser.Piece.Pawn do
             true -> sq.piece
           end
 
-        Move.from(square, s, capture: capture, promotion: promote(promotion, square.piece))
+        promote(promotion, square.piece)
+        |> Enum.map(&Move.from(square, s, capture: capture, promotion: &1))
       end)
 
     Enum.concat(m, a)
@@ -82,7 +84,8 @@ defmodule Elchesser.Piece.Pawn do
     Square.empty?(square) && Square.eq?(square, game.en_passant)
   end
 
-  defp promote(false, _), do: nil
-  defp promote(true, :p), do: :q
-  defp promote(true, :P), do: :Q
+  @spec promote(boolean(), atom()) :: list(Piece.t())
+  defp promote(false, _), do: [nil]
+  defp promote(true, :p), do: [:q, :r, :b, :n]
+  defp promote(true, :P), do: [:Q, :R, :B, :N]
 end
