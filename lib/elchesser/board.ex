@@ -24,6 +24,11 @@ defmodule Elchesser.Board do
     end
   end
 
+  def get_square(%Game{board: board}, {file, rank}), do: Map.get(board, {file, rank})
+  def get_square(%Game{board: board}, %Square{loc: loc}), do: Map.get(board, loc)
+  def get_square(%{} = board, {file, rank}), do: Map.get(board, {file, rank})
+  def get_square(%{} = board, %Square{loc: loc}), do: Map.get(board, loc)
+
   @spec find(Game.t(), Piece.t()) :: [Square.t()]
   def find(%Game{board: board}, piece) do
     Enum.reduce(board, [], fn {_, %Square{} = square}, acc ->
@@ -33,7 +38,7 @@ defmodule Elchesser.Board do
 
   @spec color_at(Elchesser.Game.t(), Elchesser.Square.t()) :: :b | nil | :w
   def color_at(%Game{} = game, %Square{} = square) do
-    p = Game.get_square(game, square).piece
+    p = get_square(game, square).piece
 
     cond do
       is_nil(p) -> nil

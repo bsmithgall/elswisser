@@ -50,10 +50,7 @@ defmodule Elchesser.Game do
   def with_tags(%Game{} = game, %{} = tags), do: %{game | tags: tags}
   def with_result(%Game{} = game, result), do: %{game | result: result}
 
-  def get_square(%Game{board: board}, {file, rank}), do: Map.get(board, {file, rank})
-  def get_square(%Game{board: board}, %Square{loc: loc}), do: Map.get(board, loc)
-  def get_square(%{} = board, {file, rank}), do: Map.get(board, {file, rank})
-  def get_square(%{} = board, %Square{loc: loc}), do: Map.get(board, loc)
+  defdelegate get_square(game_or_board, loc), to: Board
 
   @spec make_move(Game.t(), Move.t()) :: {:error, atom()} | {:ok, Game.t()}
   @doc """

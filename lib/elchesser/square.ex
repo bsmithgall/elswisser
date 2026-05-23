@@ -11,6 +11,9 @@ defmodule Elchesser.Square do
 
   @type t :: %Square{}
 
+  def diagonal(), do: [:up_right, :up_left, :down_right, :down_left]
+  def rank_file(), do: [:up, :down, :left, :right]
+
   def from({file, rank}), do: from(file, rank, nil)
   def from(%Move{to: {file, rank}}), do: from(file, rank, nil)
   def from(file, rank), do: from(file, rank, nil)

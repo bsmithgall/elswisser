@@ -1,5 +1,6 @@
 defmodule Elchesser.Game.Check do
   alias Elchesser.{Game, Board, Square, Move}
+  alias Elchesser.Board.Attacks
 
   def opponent_checking(%Game{} = game, %Move{} = move) do
     in_check? = opponent_in_check?(game)
@@ -20,11 +21,17 @@ defmodule Elchesser.Game.Check do
 
   @spec check?(Game.t(), :b | :w) :: boolean()
   def check?(%Game{} = game, :w) do
-    Board.find(game, :K) |> then(&Board.black_attacks_any?(game, &1))
+    case Board.find(game, :K) do
+      [] -> false
+      [king | _] -> Attacks.square_attacked_by?(game, king, :b)
+    end
   end
 
   def check?(%Game{} = game, :b) do
-    Board.find(game, :k) |> then(&Board.white_attacks_any?(game, &1))
+    case Board.find(game, :k) do
+      [] -> false
+      [king | _] -> Attacks.square_attacked_by?(game, king, :w)
+    end
   end
 
   def any_legal_moves?(%Game{active: :w} = game, %Move{} = move) do
