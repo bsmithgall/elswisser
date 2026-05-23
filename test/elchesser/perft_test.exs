@@ -1,8 +1,6 @@
 defmodule Elchesser.PerftTest do
   use ExUnit.Case
 
-  @moduletag :perft
-
   alias Elchesser.Fen
   alias Elchesser.Perft
 
@@ -22,7 +20,14 @@ defmodule Elchesser.PerftTest do
                   end)
 
   for {fen, depths} <- @perft_fixtures, {depth, expected} <- depths do
-    @tag slow: expected > 5_000_000
+    if expected <= 5_000_000 do
+      @tag :perft
+    end
+
+    if expected > 5_000_000 do
+      @tag :perft_slow
+    end
+
     @tag timeout: :infinity
     test "perft(#{depth}, expecting #{expected}) for fen #{fen}" do
       game = Fen.parse(unquote(fen))

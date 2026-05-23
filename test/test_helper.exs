@@ -1,4 +1,4 @@
-ExUnit.start(exclude: [:perft, :slow])
+ExUnit.start(exclude: [:perft, :perft_slow])
 Ecto.Adapters.SQL.Sandbox.mode(Elswisser.Repo, :manual)
 
 defmodule TestHelper do
