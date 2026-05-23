@@ -44,16 +44,18 @@ defmodule Elchesser.Piece.King do
 
   defp maybe_castle_kingside(%Square{piece: :K} = square, %Game{} = game, attacks) do
     through_squares = [{?f, 1}, {?g, 1}] |> Enum.map(&Game.get_square(game, &1))
+    attack_locs = [{?e, 1}, {?f, 1}, {?g, 1}]
 
-    if can_castle?(through_squares, attacks),
+    if can_castle?(through_squares, attack_locs, attacks),
       do: [Move.from(square, {?g, 1}, castle: true)],
       else: []
   end
 
   defp maybe_castle_kingside(%Square{piece: :k} = square, %Game{} = game, attacks) do
     through_squares = [{?f, 8}, {?g, 8}] |> Enum.map(&Game.get_square(game, &1))
+    attack_locs = [{?e, 8}, {?f, 8}, {?g, 8}]
 
-    if can_castle?(through_squares, attacks),
+    if can_castle?(through_squares, attack_locs, attacks),
       do: [Move.from(square, {?g, 8}, castle: true)],
       else: []
   end
@@ -68,33 +70,26 @@ defmodule Elchesser.Piece.King do
 
   defp maybe_castle_queenside(%Square{piece: :K} = square, %Game{} = game, attacks) do
     empty_squares = [{?d, 1}, {?c, 1}, {?b, 1}] |> Enum.map(&Game.get_square(game, &1))
-    attack_squares = [{?d, 1}, {?c, 1}] |> Enum.map(&Game.get_square(game, &1))
+    attack_locs = [{?e, 1}, {?d, 1}, {?c, 1}]
 
-    if can_castle?(empty_squares, attack_squares, attacks),
+    if can_castle?(empty_squares, attack_locs, attacks),
       do: [Move.from(square, {?c, 1}, castle: true)],
       else: []
   end
 
   defp maybe_castle_queenside(%Square{piece: :k} = square, %Game{} = game, attacks) do
     empty_squares = [{?d, 8}, {?c, 8}, {?b, 8}] |> Enum.map(&Game.get_square(game, &1))
-    attack_squares = [{?d, 8}, {?c, 8}] |> Enum.map(&Game.get_square(game, &1))
+    attack_locs = [{?e, 8}, {?d, 8}, {?c, 8}]
 
-    if can_castle?(empty_squares, attack_squares, attacks),
+    if can_castle?(empty_squares, attack_locs, attacks),
       do: [Move.from(square, {?c, 8}, castle: true)],
       else: []
   end
 
-  @spec can_castle?([Square.t()], MapSet.t()) :: boolean()
-  defp can_castle?(through_squares, attacks),
-    do: can_castle?(through_squares, through_squares, attacks)
-
-  @spec can_castle?([Square.t()], [Square.t()], MapSet.t()) :: boolean()
-  defp can_castle?(empty_through, attack_through, attacks) do
+  @spec can_castle?([Square.t()], [{number(), number()}], MapSet.t()) :: boolean()
+  defp can_castle?(empty_through, attack_locs, attacks) do
     empty? = Enum.all?(empty_through, &Square.empty?/1)
-
-    attacked? =
-      attacks |> Enum.map(&Square.from/1) |> Enum.any?(&(&1 in attack_through))
-
+    attacked? = Enum.any?(attack_locs, &MapSet.member?(attacks, &1))
     empty? and not attacked?
   end
 end

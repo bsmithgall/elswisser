@@ -113,6 +113,18 @@ defmodule Elchesser.Piece.KingTest do
       ])
     end
 
+    test "cannot castle out of check" do
+      game = Elchesser.Fen.parse("8/8/8/8/8/4r3/8/4K2R w K - 0 1")
+      square = Game.get_square(game, {?e, 1})
+
+      assert_list_eq_any_order(King.moves(square, game), [
+        Move.from(square, {?d, 1}),
+        Move.from(square, {?d, 2}),
+        Move.from(square, {?f, 1}),
+        Move.from(square, {?f, 2})
+      ])
+    end
+
     test "can castle kingside when rook is attacked but not king" do
       game = Elchesser.Fen.parse("8/8/8/8/8/7r/8/4K2R w K - 0 1")
       square = Game.get_square(game, {?e, 1})
@@ -275,6 +287,18 @@ defmodule Elchesser.Piece.KingTest do
         Move.from(square, {?d, 8}),
         Move.from(square, {?d, 7}),
         Move.from(square, {?e, 7})
+      ])
+    end
+
+    test "cannot castle out of check" do
+      game = Elchesser.Fen.parse("4k2r/8/4R3/8/8/8/8/8 w k - 0 1")
+      square = Game.get_square(game, {?e, 8})
+
+      assert_list_eq_any_order(King.moves(square, game), [
+        Move.from(square, {?d, 7}),
+        Move.from(square, {?d, 8}),
+        Move.from(square, {?f, 7}),
+        Move.from(square, {?f, 8})
       ])
     end
 

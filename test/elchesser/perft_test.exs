@@ -4,7 +4,7 @@ defmodule Elchesser.PerftTest do
   @moduletag :perft
 
   alias Elchesser.Fen
-  alias Elchesser.Game
+  alias Elchesser.Perft
 
   @perft_fixtures Path.join([File.cwd!(), "test", "support", "fixtures", "perft.epd"])
                   |> Path.expand()
@@ -22,27 +22,11 @@ defmodule Elchesser.PerftTest do
                   end)
 
   for {fen, depths} <- @perft_fixtures, {depth, expected} <- depths do
-    if expected > 5_000_000 do
-      @tag :slow
-    end
-
+    @tag slow: expected > 5_000_000
     @tag timeout: :infinity
     test "perft(#{depth}, expecting #{expected}) for fen #{fen}" do
       game = Fen.parse(unquote(fen))
-      assert perft(game, unquote(depth)) == unquote(expected)
+      assert Perft.perft(game, unquote(depth)) == unquote(expected)
     end
-  end
-
-  @spec perft(Game.t(), non_neg_integer()) :: non_neg_integer()
-  def perft(_, 0), do: 1
-
-  def perft(game, depth) do
-    game
-    |> Game.all_legal_moves()
-    |> Enum.map(fn move ->
-      {:ok, new_game} = Game.make_move(game, move)
-      perft(new_game, depth - 1)
-    end)
-    |> Enum.sum()
   end
 end

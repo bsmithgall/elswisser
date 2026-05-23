@@ -1,6 +1,7 @@
 defmodule Elchesser.Game.Check do
   alias Elchesser.{Game, Board, Square, Move}
   alias Elchesser.Board.Attacks
+  alias Elchesser.Game.Castling
 
   def opponent_checking(%Game{} = game, %Move{} = move) do
     in_check? = opponent_in_check?(game)
@@ -44,7 +45,7 @@ defmodule Elchesser.Game.Check do
 
   defp check_legal_moves(squares, game, move) do
     game =
-      game |> Game.flip_color() |> Game.set_en_passant(move) |> Game.set_castling_rights(move)
+      game |> Game.flip_color() |> Game.set_en_passant(move) |> Castling.set_castling_rights(move)
 
     Enum.any?(squares, &(length(Square.legal_moves(&1, game)) > 0))
   end
