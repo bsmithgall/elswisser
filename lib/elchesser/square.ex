@@ -11,6 +11,9 @@ defmodule Elchesser.Square do
 
   @type t :: %Square{}
 
+  def diagonal(), do: [:up_right, :up_left, :down_right, :down_left]
+  def rank_file(), do: [:up, :down, :left, :right]
+
   def from({file, rank}), do: from(file, rank, nil)
   def from(%Move{to: {file, rank}}), do: from(file, rank, nil)
   def from(file, rank), do: from(file, rank, nil)
@@ -68,7 +71,7 @@ defmodule Elchesser.Square do
       do:
         Piece.module(piece).moves(square, game)
         |> Enum.reject(fn %Move{} = move ->
-          {:ok, {_, g}} = Board.raw_move(game, move)
+          {:ok, {_, g}} = Board.make_move(game, move)
           Game.Check.check?(g, color(square))
         end),
       else: []

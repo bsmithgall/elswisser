@@ -81,6 +81,18 @@ defmodule Elchesser.Piece.PawnTest do
 
       assert Pawn.moves(square, game) == [Move.from(square, {?b, 3})]
     end
+
+    test "promotion" do
+      game = Elchesser.Fen.parse("1k6/6P1/8/8/1K6/8/8/8 w - - 0 1")
+      square = Game.get_square(game, {?g, 7})
+
+      assert_list_eq_any_order(Pawn.moves(square, game), [
+        Move.from(square, {?g, 8}, promotion: :Q),
+        Move.from(square, {?g, 8}, promotion: :R),
+        Move.from(square, {?g, 8}, promotion: :B),
+        Move.from(square, {?g, 8}, promotion: :N)
+      ])
+    end
   end
 
   describe "black pieces" do
@@ -130,6 +142,18 @@ defmodule Elchesser.Piece.PawnTest do
       assert_list_eq_any_order(Pawn.moves(square, game), [
         Move.from(square, {?e, 3}),
         Move.from(square, {?d, 3}, capture: :P)
+      ])
+    end
+
+    test "promotion" do
+      game = Elchesser.Fen.parse("2K5/8/8/2k5/8/8/6p1/8 b - - 0 1")
+      square = Game.get_square(game, {?g, 2})
+
+      assert_list_eq_any_order(Pawn.moves(square, game), [
+        Move.from(square, {?g, 1}, promotion: :q),
+        Move.from(square, {?g, 1}, promotion: :r),
+        Move.from(square, {?g, 1}, promotion: :b),
+        Move.from(square, {?g, 1}, promotion: :n)
       ])
     end
   end

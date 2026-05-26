@@ -1,6 +1,7 @@
 defmodule Elchesser.Game do
   alias Elchesser.Move.SanParser
   alias Elchesser.{Square, Move, Board, Piece}
+  alias Elchesser.Game.Castling
   alias __MODULE__
 
   @starting_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
@@ -50,11 +51,29 @@ defmodule Elchesser.Game do
   def with_tags(%Game{} = game, %{} = tags), do: %{game | tags: tags}
   def with_result(%Game{} = game, result), do: %{game | result: result}
 
-  def get_square(%Game{board: board}, {file, rank}), do: Map.get(board, {file, rank})
-  def get_square(%Game{board: board}, %Square{loc: loc}), do: Map.get(board, loc)
-  def get_square(%{} = board, {file, rank}), do: Map.get(board, {file, rank})
-  def get_square(%{} = board, %Square{loc: loc}), do: Map.get(board, loc)
+  defdelegate get_square(game_or_board, loc), to: Board
 
+  @spec make_move(Game.t(), Move.t()) :: {:error, atom()} | {:ok, Game.t()}
+  @doc """
+  Lightweight move generation.
+
+  This function is meant to be used for search and avoids doing a lot of
+  expensive stuff like checking legality, SAN generation, piece discrimination,
+  etc. For making a move that requires full bookkeeping, prefer move/2.
+  """
+  def make_move(game, move) do
+    with {:ok, {move, game}} <- Board.make_move(game, move) do
+      game
+      |> flip_color()
+      |> Castling.set_castling_rights(move)
+      |> set_en_passant(move)
+      |> then(&{:ok, &1})
+    end
+  end
+
+  @doc """
+  Full bookkeeping for a move, including move parsing and validation, managing results, adding fens to history, etc.
+  """
   @spec move(Game.t(), Move.t() | binary()) :: {:error, atom()} | {:ok, Game.t()}
   def move(%Game{} = game, %Move{} = move) do
     with :ok <- ensure_valid_move(game, move),
@@ -66,7 +85,7 @@ defmodule Elchesser.Game do
         |> add_move(move)
         |> add_fen()
         |> add_capture(move.capture)
-        |> set_castling_rights(move)
+        |> Castling.set_castling_rights(move)
         |> set_en_passant(move)
         |> set_half_move_count(move)
         |> set_full_move_count()
@@ -114,33 +133,6 @@ defmodule Elchesser.Game do
   # Note: these are public because they are needed for validating checkmate/stalemate positions
   def flip_color(%Game{active: :w} = game), do: %Game{game | active: :b}
   def flip_color(%Game{active: :b} = game), do: %Game{game | active: :w}
-
-  @spec set_castling_rights(Game.t(), Move.t()) :: Game.t()
-  def set_castling_rights(%Game{castling: castling} = game, %Move{piece: :K}) do
-    %Game{game | castling: MapSet.delete(castling, :K) |> MapSet.delete(:Q)}
-  end
-
-  def set_castling_rights(%Game{castling: castling} = game, %Move{piece: :k}) do
-    %Game{game | castling: MapSet.delete(castling, :k) |> MapSet.delete(:q)}
-  end
-
-  def set_castling_rights(%Game{castling: castling} = game, %Move{from: {?h, 1}, piece: :R}) do
-    %Game{game | castling: MapSet.delete(castling, :K)}
-  end
-
-  def set_castling_rights(%Game{castling: castling} = game, %Move{from: {?a, 1}, piece: :R}) do
-    %Game{game | castling: MapSet.delete(castling, :Q)}
-  end
-
-  def set_castling_rights(%Game{castling: castling} = game, %Move{from: {?h, 8}, piece: :r}) do
-    %Game{game | castling: MapSet.delete(castling, :k)}
-  end
-
-  def set_castling_rights(%Game{castling: castling} = game, %Move{from: {?a, 8}, piece: :r}) do
-    %Game{game | castling: MapSet.delete(castling, :q)}
-  end
-
-  def set_castling_rights(game, _), do: game
 
   @spec set_en_passant(Game.t(), Move.t()) :: Game.t()
   def set_en_passant(%Game{} = game, %Move{from: {f, 2}, to: {f, 4}, piece: :P}),

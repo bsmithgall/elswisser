@@ -1,13 +1,21 @@
 defmodule Elchesser.Board do
   alias Elchesser.{Game, Square, Piece, Move}
 
+  @spec make_move(Elchesser.Game.t(), Elchesser.Move.t()) ::
+          {:error, atom()} | {:ok, {Move.t(), Game.t()}}
+  def make_move(%Game{} = game, %Move{} = move) do
+    with {:ok, {move, game}} <- raw_move(game, move),
+         {:ok, game} <- castle(game, move),
+         {:ok, game} <- promote(game, move) do
+      {:ok, {move, game}}
+    end
+  end
+
   @spec move(Elchesser.Game.t(), Elchesser.Move.t()) ::
           {:ok, {Move.t(), Game.t()}} | {:error, atom()}
   def move(%Game{} = game, %Move{} = move) do
     with discriminator <- discriminator(game, move),
-         {:ok, {move, game}} <- raw_move(game, move),
-         {:ok, game} <- castle(game, move),
-         {:ok, game} <- promote(game, move) do
+         {:ok, {move, game}} <- make_move(game, move) do
       move = %{move | checking: Game.Check.opponent_checking(game, move)}
       move = %{move | san: Move.san(move)}
       move = %{move | discriminator: discriminator}
@@ -16,14 +24,10 @@ defmodule Elchesser.Board do
     end
   end
 
-  @spec raw_move(Elchesser.Game.t(), Elchesser.Move.t()) ::
-          {:ok, {Move.t(), Game.t()}} | {:error, :atom}
-  def raw_move(%Game{} = game, %Move{} = move) do
-    with {:ok, {piece, game}} <- move_from(game, move.from),
-         {:ok, {capture, game}} <- move_to(game, move, piece) do
-      {:ok, {%{move | capture: capture, piece: piece}, game}}
-    end
-  end
+  def get_square(%Game{board: board}, {file, rank}), do: Map.get(board, {file, rank})
+  def get_square(%Game{board: board}, %Square{loc: loc}), do: Map.get(board, loc)
+  def get_square(%{} = board, {file, rank}), do: Map.get(board, {file, rank})
+  def get_square(%{} = board, %Square{loc: loc}), do: Map.get(board, loc)
 
   @spec find(Game.t(), Piece.t()) :: [Square.t()]
   def find(%Game{board: board}, piece) do
@@ -34,7 +38,7 @@ defmodule Elchesser.Board do
 
   @spec color_at(Elchesser.Game.t(), Elchesser.Square.t()) :: :b | nil | :w
   def color_at(%Game{} = game, %Square{} = square) do
-    p = Game.get_square(game, square).piece
+    p = get_square(game, square).piece
 
     cond do
       is_nil(p) -> nil
@@ -144,7 +148,7 @@ defmodule Elchesser.Board do
         {?c, 8} -> Move.from({?a, 8, :r}, {?d, 8})
       end
 
-    with {:ok, {_, game}} <- move(game, move) do
+    with {:ok, {_, game}} <- raw_move(game, move) do
       {:ok, game}
     end
   end
@@ -188,6 +192,15 @@ defmodule Elchesser.Board do
       end
     else
       false -> nil
+    end
+  end
+
+  @spec raw_move(Elchesser.Game.t(), Elchesser.Move.t()) ::
+          {:ok, {Move.t(), Game.t()}} | {:error, :atom}
+  defp raw_move(%Game{} = game, %Move{} = move) do
+    with {:ok, {piece, game}} <- move_from(game, move.from),
+         {:ok, {capture, game}} <- move_to(game, move, piece) do
+      {:ok, {%{move | capture: capture, piece: piece}, game}}
     end
   end
 

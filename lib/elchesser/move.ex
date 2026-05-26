@@ -45,6 +45,13 @@ defmodule Elchesser.Move do
     )
   end
 
+  @spec to_uci(Move.t()) :: binary()
+  def to_uci(%Move{from: {f1, r1}, to: {f2, r2}, promotion: nil}),
+    do: <<f1, r1 + 48, f2, r2 + 48>>
+
+  def to_uci(%Move{from: {f1, r1}, to: {f2, r2}, promotion: prom}),
+    do: <<f1, r1 + 48, f2, r2 + 48>> <> (Piece.to_string(prom) |> String.downcase())
+
   @spec san(Move.t()) :: binary()
   def san(%Move{checking: nil} = move), do: as_san(move)
   def san(%Move{checking: :check} = move), do: as_san(move) <> "+"

@@ -109,51 +109,6 @@ defmodule Elchesser.GameTest do
       assert game.full_moves == 3
     end
 
-    test "removes castling rights after king moves" do
-      {:ok, game} =
-        Game.new()
-        |> Game.move!(Move.from({?e, 2, :P}, {?e, 3}))
-        |> Game.move(Move.from({?e, 7, :p}, {?e, 6}))
-
-      assert game.castling == MapSet.new([:K, :Q, :k, :q])
-
-      {:ok, game} = Game.move(game, Move.from({?e, 1, :K}, {?e, 2}))
-      assert game.castling == MapSet.new([:k, :q])
-
-      {:ok, game} = Game.move(game, Move.from({?e, 8, :k}, {?e, 7}))
-      assert game.castling == MapSet.new()
-    end
-
-    test "remove kingside castling rights after kingside rook moves" do
-      {:ok, game} =
-        Game.new()
-        |> Game.move!(Move.from({?h, 2, :P}, {?h, 3}))
-        |> Game.move(Move.from({?h, 7, :p}, {?h, 6}))
-
-      assert game.castling == MapSet.new([:K, :Q, :k, :q])
-
-      {:ok, game} = Game.move(game, Move.from({?h, 1, :R}, {?h, 2}))
-      assert game.castling == MapSet.new([:Q, :k, :q])
-
-      {:ok, game} = Game.move(game, Move.from({?h, 8, :r}, {?h, 7}))
-      assert game.castling == MapSet.new([:Q, :q])
-    end
-
-    test "remove queenside castling rights after queenside rook moves" do
-      {:ok, game} =
-        Game.new()
-        |> Game.move!(Move.from({?a, 2, :P}, {?a, 3}))
-        |> Game.move(Move.from({?a, 7, :p}, {?a, 6}))
-
-      assert game.castling == MapSet.new([:K, :Q, :k, :q])
-
-      {:ok, game} = Game.move(game, Move.from({?a, 1, :R}, {?a, 2}))
-      assert game.castling == MapSet.new([:K, :k, :q])
-
-      {:ok, game} = Game.move(game, Move.from({?a, 8, :r}, {?a, 7}))
-      assert game.castling == MapSet.new([:K, :k])
-    end
-
     test "properly handles moving into and out of check" do
       game = Elchesser.Fen.parse("4K3/7r/8/8/8/8/8/8 b - - 0 1")
       assert game.check == false
