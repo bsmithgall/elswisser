@@ -41,7 +41,7 @@ defmodule Elchesser.Square do
     }
   end
 
-  def valid?({file, rank}), do: file in Elchesser.files() && rank in Elchesser.ranks()
+  def valid?({file, rank}), do: file >= ?a and file <= ?h and rank >= 1 and rank <= 8
 
   @spec empty?(Elchesser.Square.t()) :: boolean()
   def empty?(%Square{piece: nil}), do: true

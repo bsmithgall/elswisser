@@ -29,9 +29,23 @@ defmodule Elchesser.PerftTest do
     end
 
     @tag timeout: :infinity
-    test "perft(#{depth}, expecting #{expected}) for fen #{fen}" do
+    test "perft(#{depth}) for fen #{fen}" do
       game = Fen.parse(unquote(fen))
-      assert Perft.perft(game, unquote(depth)) == unquote(expected)
+      {time_us, result} = :timer.tc(fn -> Perft.perft(game, unquote(depth)) end)
+      assert result == unquote(expected)
+      rate = round(result / (time_us / 1_000_000))
+
+      IO.puts(
+        "\n     -> #{fmt(result)} nodes in #{fmt(round(time_us / 1000))}ms (#{fmt(rate)} nodes/sec)"
+      )
     end
+  end
+
+  defp fmt(n) do
+    n
+    |> Integer.to_string()
+    |> String.reverse()
+    |> String.replace(~r/.{3}(?=.)/, "\\0,")
+    |> String.reverse()
   end
 end

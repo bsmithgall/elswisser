@@ -1,10 +1,15 @@
 defmodule Elchesser.Perft do
   alias Elchesser.{Game, Move}
 
-  @spec perft(Game.t(), non_neg_integer()) :: non_neg_integer()
+  @spec perft(binary() | Game.t(), non_neg_integer()) :: non_neg_integer()
   def perft(_, 0), do: 1
 
-  def perft(game, depth) do
+  def perft(game, depth) when is_binary(game) do
+    game = Elchesser.Fen.parse(game)
+    perft(game, depth)
+  end
+
+  def perft(%Game{} = game, depth) do
     game
     |> Game.all_legal_moves()
     |> Enum.map(fn move ->
