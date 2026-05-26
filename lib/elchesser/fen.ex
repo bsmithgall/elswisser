@@ -1,4 +1,5 @@
 defmodule Elchesser.Fen do
+  alias Elchesser.Board
   alias Elchesser.{Piece, Square, Game}
 
   @spec parse(String.t()) :: Elchesser.Game.t()
@@ -18,6 +19,14 @@ defmodule Elchesser.Fen do
         en_passant: en_passant,
         half_moves: half_moves,
         full_moves: full_moves
+      }
+
+      game = %Game{
+        game
+        | kings: {
+            Board.find(game, :K) |> List.first(),
+            Board.find(game, :k) |> List.first()
+          }
       }
 
       %Game{game | check: Game.Check.check?(game)}

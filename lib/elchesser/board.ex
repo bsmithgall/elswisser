@@ -6,7 +6,8 @@ defmodule Elchesser.Board do
   def make_move(%Game{} = game, %Move{} = move) do
     with {:ok, {move, game}} <- raw_move(game, move),
          {:ok, game} <- castle(game, move),
-         {:ok, game} <- promote(game, move) do
+         {:ok, game} <- promote(game, move),
+         {:ok, game} <- set_king_position(game, move) do
       {:ok, {move, game}}
     end
   end
@@ -205,4 +206,12 @@ defmodule Elchesser.Board do
   end
 
   defp check_discriminators?(squares), do: length(squares) > 1
+
+  defp set_king_position(%Game{kings: {_, b}} = game, %Move{piece: :K, to: to}),
+    do: {:ok, %{game | kings: {get_square(game, to), b}}}
+
+  defp set_king_position(%Game{kings: {w, _}} = game, %Move{piece: :k, to: to}),
+    do: {:ok, %{game | kings: {w, get_square(game, to)}}}
+
+  defp set_king_position(game, _), do: {:ok, game}
 end

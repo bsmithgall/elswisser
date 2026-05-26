@@ -21,18 +21,16 @@ defmodule Elchesser.Game.Check do
   def opponent_in_check?(%Game{active: :b} = game), do: check?(game, :w)
 
   @spec check?(Game.t(), :b | :w) :: boolean()
-  def check?(%Game{} = game, :w) do
-    case Board.find(game, :K) do
-      [] -> false
-      [king | _] -> Attacks.square_attacked_by?(game, king, :b)
-    end
+  def check?(%Game{kings: {nil, _}}, :w), do: false
+
+  def check?(%Game{kings: {w, _}} = game, :w) do
+    Attacks.square_attacked_by?(game, w, :b)
   end
 
-  def check?(%Game{} = game, :b) do
-    case Board.find(game, :k) do
-      [] -> false
-      [king | _] -> Attacks.square_attacked_by?(game, king, :w)
-    end
+  def check?(%Game{kings: {_, nil}}, :b), do: false
+
+  def check?(%Game{kings: {_, b}} = game, :b) do
+    Attacks.square_attacked_by?(game, b, :w)
   end
 
   def any_legal_moves?(%Game{active: :w} = game, %Move{} = move) do

@@ -7,6 +7,7 @@ defmodule Elchesser.Game do
   @starting_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
   defstruct board: %{},
+            kings: {nil, nil},
             active: :w,
             check: false,
             castling: MapSet.new([:K, :Q, :k, :q]),
@@ -21,6 +22,7 @@ defmodule Elchesser.Game do
 
   @type t :: %Game{
           board: %{{number(), number()} => Square.t()},
+          kings: {Square.t(), Square.t()},
           active: :w | :b,
           check: boolean(),
           castling: %MapSet{},
