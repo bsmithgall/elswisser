@@ -57,9 +57,10 @@ defmodule ElchesserWeb.LiveGame do
 
   def update(assigns, socket) do
     socket =
-      if Map.has_key?(assigns, :game_id),
-        do: assign(socket, game_id: assigns.game_id),
-        else: socket
+      socket
+      |> then(fn s -> if assigns[:game_id], do: assign(s, :game_id, assigns.game_id), else: s end)
+      |> then(fn s -> if assigns[:color], do: assign(s, :orientation, assigns.color), else: s end)
+      |> then(fn s -> if assigns[:game], do: assign_game_parts(s, assigns.game), else: s end)
 
     {:ok, socket}
   end
