@@ -18,17 +18,7 @@ defmodule Elchesser.Engine do
         |> String.capitalize()
       end
 
-      def move(game) do
-        game
-        |> Game.all_legal_moves()
-        |> Enum.max_by(fn move ->
-          {:ok, new_game} = Game.make_move(game, move)
-          -evaluate(new_game)
-        end)
-      end
-
       defoverridable name: 0
-      defoverridable move: 1
     end
   end
 
